@@ -12,9 +12,6 @@ void monCalcHist(const cv::Mat& image, cv::Mat& hist) {
     // Nombre de bins dans l'histogramme
     int histSize = 256;
 
-    // Indicateur pour accumuler les valeurs
-    bool accumulate = false;
-
     // Calculer l'histogramme
     hist = cv::Mat::zeros(1, histSize, CV_32F);
 
@@ -26,9 +23,8 @@ void monCalcHist(const cv::Mat& image, cv::Mat& hist) {
     }
 
     // Normaliser l'histogramme si nécessaire
-    if (!accumulate) {
-        hist /= static_cast<float>(image.total());
-    }
+    hist /= static_cast<float>(image.total());
+
 }
 
 void normalizeHistGris(const cv::Mat& hist, cv::Mat& normalizedHist, int targetHeight) {
@@ -108,16 +104,22 @@ int main() {
     if (!image.empty()) {
         // Créer une fenêtre pour afficher l'image
         cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
+        // On agrandit la fenêtre pour voir l'histogramme
         cv::namedWindow("Image", cv::WINDOW_NORMAL);
         cv::imshow("Image", image);
 
+        // On calcule l'histogramme de l'image avec openCV
         HistogrammeGris(image);
 
+        // On cré nous même l'histogramme
         cv::Mat hist;
         monCalcHist(image, hist);
+        // Et on l'affiche pour comparer avec open cv
         afficherHistogramme(hist);
-        
+
+        // On attend que l'utilisateur appuie sur une touche pour quitter
         cv::waitKey(0);
+        // On ferme toutes les fenêtres
         cv::destroyAllWindows();
     } else {
         std::cout << "Erreur de chargement de l'image." << std::endl;
