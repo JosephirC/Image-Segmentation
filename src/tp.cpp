@@ -49,6 +49,9 @@ void equalizeHist(const cv::Mat& image, cv::Mat& resultat) {
         for (int j = 0; j < image.cols; ++j) {
             int intensite = static_cast<int>(image.at<uchar>(i, j));
             resultat.at<uchar>(i, j) = static_cast<uchar>((pow(2, dynamique) - 1) * histCumule.at<float>(intensite) / (image.rows * image.cols));
+        }
+    }
+}
 void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, int newMax) {
 
     // Assurez-vous que l'image est en niveaux de gris
