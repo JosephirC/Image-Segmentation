@@ -85,6 +85,34 @@ void equalizeHistOpenCV(const cv::Mat& image, cv::Mat& newImage) {
     cv::equalizeHist(image, newImage);
 }
 
+void egaliseHist(const cv::Mat& image, cv::Mat& newImage) {
+    // Calculer l'histogramme cumulé
+    cv::Mat hist;
+    monCalcHist(image, hist); // Utilisez votre fonction monCalcHist() ici
+
+    cv::Mat histCumule;
+    calculerHistogrammeCumule(hist, histCumule); // Utilisez votre fonction calculerHistogrammeCumule() ici
+
+    // Nombre total de pixels dans l'image
+    int totalPixels = image.rows * image.cols;
+
+    // Calculer la transformation d'égalisation
+    cv::Mat transform(1, 256, CV_8U);
+    for (int i = 0; i < 256; ++i) {
+        transform.at<uchar>(0, i) = static_cast<uchar>((histCumule.at<float>(0, i) * 255.0) / totalPixels);
+    }
+
+    // Appliquer la transformation aux pixels de l'image
+    newImage = image.clone(); // Copiez l'image originale pour y appliquer la transformation
+
+    for (int i = 0; i < image.rows; ++i) {
+        for (int j = 0; j < image.cols; ++j) {
+            int pixelValue = static_cast<int>(image.at<uchar>(i, j));
+            newImage.at<uchar>(i, j) = transform.at<uchar>(0, pixelValue);
+        }
+    }
+}
+
 void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, int newMax) {
 
     // Assurez-vous que l'image est en niveaux de gris
@@ -116,8 +144,6 @@ void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, i
         }
     }
 }
-
-
 
 void normalizeHistGris(const cv::Mat& hist, cv::Mat& normalizedHist, int targetHeight) {
     // Trouver la valeur maximale de l'histogramme pour l'échelle
@@ -244,6 +270,13 @@ int main() {
         // On affiche l'image égalisée
         cv::imshow("Image Equalisee OpenCV", imageEqualiseeOpenCV);
         
+        // On applique notre fonction d'égalisation
+        cv::Mat imageEgalisee;
+        equalizeHist(image, imageEgalisee);
+        // On met en gris l'image égalisée
+        cv::cvtColor(imageEgalisee, imageEgalisee, cv::COLOR_GRAY2BGR);
+        // On affiche l'image égalisée
+        cv::imshow("Image Egalisee", imageEgalisee);
 
         // On attend que l'utilisateur appuie sur une touche pour quitter
         cv::waitKey(0);
