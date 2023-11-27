@@ -2,7 +2,28 @@
 #include <iostream>
 #include <string>
 
-// La fonction cv::calcHist() de 0 en c++
+
+void calculerHistogrammeCumule(const cv::Mat& hist, cv::Mat& histCumule) {
+    // Assurez-vous que l'histogramme est en niveaux de gris
+    if (hist.channels() != 1) {
+        std::cerr << "L'histogramme doit être en niveaux de gris." << std::endl;
+        return;
+    }
+
+    int histSize = hist.cols;
+
+    // On crée une matrice pour l'histogramme cumulé
+    histCumule = cv::Mat::zeros(1, histSize, CV_32F);
+
+    // On Initialiser le premier élément de l'histogramme cumulé
+    histCumule.at<float>(0, 0) = hist.at<float>(0, 0);
+
+    // On calcule le reste de l'histogramme cumulé
+    for (int i = 1; i < histSize; ++i) {
+        histCumule.at<float>(0, i) = histCumule.at<float>(0, i - 1) + hist.at<float>(0, i);
+    }
+}
+
 void monCalcHist(const cv::Mat& image, cv::Mat& hist) {
     // Assurez-vous que l'image est en niveaux de gris
     if (image.channels() != 1) {
@@ -25,26 +46,6 @@ void monCalcHist(const cv::Mat& image, cv::Mat& hist) {
     }
 }
 
-void calculerHistogrammeCumule(const cv::Mat& hist, cv::Mat& histCumule) {
-    // Assurez-vous que l'histogramme est en niveaux de gris
-    if (hist.channels() != 1) {
-        std::cerr << "L'histogramme doit être en niveaux de gris." << std::endl;
-        return;
-    }
-
-    int histSize = hist.cols;
-
-    // On crée une matrice pour l'histogramme cumulé
-    histCumule = cv::Mat::zeros(1, histSize, CV_32F);
-
-    // On Initialiser le premier élément de l'histogramme cumulé
-    histCumule.at<float>(0, 0) = hist.at<float>(0, 0);
-
-    // On calcule le reste de l'histogramme cumulé
-    for (int i = 1; i < histSize; ++i) {
-        histCumule.at<float>(0, i) = histCumule.at<float>(0, i - 1) + hist.at<float>(0, i);
-    }
-}
 
 void imgToHistoCumul(const cv::Mat& image, cv::Mat& hist) {
     monCalcHist(image, hist);
@@ -78,6 +79,12 @@ void equalizeHist(const cv::Mat& image, cv::Mat& resultat) {
         }
     }
 }
+
+void equalizeHistOpenCV(const cv::Mat& image, cv::Mat& newImage) {
+    // Appliquer la transformation
+    cv::equalizeHist(image, newImage);
+}
+
 void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, int newMax) {
 
     // Assurez-vous que l'image est en niveaux de gris
@@ -110,7 +117,15 @@ void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, i
     }
 }
 
-        // On met en gris l'image étirée
+
+
+void normalizeHistGris(const cv::Mat& hist, cv::Mat& normalizedHist, int targetHeight) {
+    // Trouver la valeur maximale de l'histogramme pour l'échelle
+    double maxVal;
+    // On ne garde que la valeur maximal.
+    cv::minMaxLoc(hist, nullptr, &maxVal, nullptr, nullptr);
+
+    // On crait une matrice pour l'histogramme normalisé
     normalizedHist = cv::Mat::zeros(1, hist.cols, CV_32F);
 
     // On parcour l'histogramme
@@ -130,7 +145,7 @@ void afficherHistogramme(const std::string titre, const cv::Mat& hist) {
 
     // Normaliser l'histogramme avec la fonction personnalisée
     cv::Mat normalizedHist;
-    normalizeHist(hist, normalizedHist, hist_h);
+    normalizeHistGris(hist, normalizedHist, hist_h);
 
     // Dessiner les compartiments de l'histogramme normalisé
     for (int i = 1; i < histSize; i++) {
@@ -144,7 +159,6 @@ void afficherHistogramme(const std::string titre, const cv::Mat& hist) {
     // cv::waitKey(0);
 }
 
-// Fonction pour dessiner un histogramme avec les fonctions de openCV
 void HistogrammeGris(cv::Mat & image) {
     // Calculer l'histogramme de l'image
     cv::Mat hist;
@@ -196,6 +210,12 @@ int main() {
         // Et on l'affiche pour comparer avec open cv
         afficherHistogramme("Histogramme fait nous meme", hist);
 
+        // On calcule l'histogramme cumulé
+        cv::Mat histCumule;
+        calculerHistogrammeCumule(hist, histCumule);
+        // On affiche l'histogramme cumulé 
+        afficherHistogramme("Histogramme cumule", histCumule);
+
         // On étire l'histogramme
         cv::Mat imageEtiree;
         etirerHistogramme(image, imageEtiree, 200, 255);
@@ -215,11 +235,15 @@ int main() {
         // Et on l'affiche 
         afficherHistogramme("Histogramme etire", histEtiree);
 
-        // On égalise l'histogramme
-        cv::Mat imageEgalisee;
-        equalizeHist(image, imageEgalisee);
-        cv::cvtColor(imageEgalisee, imageEgalisee, cv::COLOR_GRAY2BGR);
-        cv::imshow("Image Egalisee", imageEgalisee);
+
+        cv::Mat imageEqualiseeOpenCV;
+        // On égalise l'histogramme avec openCV
+        equalizeHistOpenCV(image, imageEqualiseeOpenCV);
+        // On met en gris l'image égalisée
+        cv::cvtColor(imageEqualiseeOpenCV, imageEqualiseeOpenCV, cv::COLOR_GRAY2BGR);
+        // On affiche l'image égalisée
+        cv::imshow("Image Equalisee OpenCV", imageEqualiseeOpenCV);
+        
 
         // On attend que l'utilisateur appuie sur une touche pour quitter
         cv::waitKey(0);
