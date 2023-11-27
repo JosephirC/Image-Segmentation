@@ -31,6 +31,20 @@ void monCalcHist(const cv::Mat& image, cv::Mat& hist) {
     }
 }
 
+void normalizeHistGris(const cv::Mat& hist, cv::Mat& normalizedHist, int targetHeight) {
+    // Trouver la valeur maximale de l'histogramme pour l'échelle
+    double maxVal;
+    cv::minMaxLoc(hist, nullptr, &maxVal, nullptr, nullptr);
+
+    // Créer une matrice pour l'histogramme normalisé
+    normalizedHist = cv::Mat::zeros(1, hist.cols, CV_32F);
+
+    // Normaliser l'histogramme
+    for (int i = 0; i < hist.cols; ++i) {
+        normalizedHist.at<float>(0, i) = hist.at<float>(0, i) * targetHeight / maxVal;
+    }
+}
+
 void afficherHistogramme(const cv::Mat& hist) {
     // Dessiner l'histogramme
     int histSize = hist.cols;
@@ -39,13 +53,14 @@ void afficherHistogramme(const cv::Mat& hist) {
     int bin_w = cvRound((double)hist_w / histSize);
     cv::Mat histImage(hist_h, hist_w, CV_8UC3, cv::Scalar(255, 255, 255));
 
-    // Normaliser l'histogramme pour qu'il rentre dans l'image
-    cv::normalize(hist, hist, 0, histImage.rows, cv::NORM_MINMAX, -1, cv::Mat());
+    // Normaliser l'histogramme avec la fonction personnalisée
+    cv::Mat normalizedHist;
+    normalizeHistGris(hist, normalizedHist, hist_h);
 
-    // Dessiner les compartiments de l'histogramme
+    // Dessiner les compartiments de l'histogramme normalisé
     for (int i = 1; i < histSize; i++) {
-        cv::line(histImage, cv::Point(bin_w * (i - 1), hist_h - cvRound(hist.at<float>(i - 1))),
-                    cv::Point(bin_w * (i), hist_h - cvRound(hist.at<float>(i))),
+        cv::line(histImage, cv::Point(bin_w * (i - 1), hist_h - cvRound(normalizedHist.at<float>(0, i - 1))),
+                    cv::Point(bin_w * (i), hist_h - cvRound(normalizedHist.at<float>(0, i))),
                     cv::Scalar(0, 0, 0), 2, 8, 0);
     }
 
