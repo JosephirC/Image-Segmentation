@@ -96,7 +96,6 @@ void HistogrammeGris(cv::Mat & image) {
     }
 
     // Afficher l'histogramme
-    cv::namedWindow("Histogramme Gris", cv::WINDOW_NORMAL);
     cv::imshow("Histogramme Gris", histImage);
 }
 
