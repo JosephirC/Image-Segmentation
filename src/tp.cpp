@@ -2,31 +2,7 @@
 #include <iostream>
 #include <string>
 
-
-void calculerHistogrammeCumule(const cv::Mat& hist, cv::Mat& histCumule) {
-    // Assurez-vous que l'histogramme est en niveaux de gris
-    if (hist.channels() != 1) {
-        std::cerr << "L'histogramme doit être en niveaux de gris." << std::endl;
-        return;
-    }
-
-    int histSize = hist.cols;
-
-    // On crée une matrice pour l'histogramme cumulé
-    histCumule = cv::Mat::zeros(1, histSize, CV_32F);
-
-    // On Initialiser le premier élément de l'histogramme cumulé
-    histCumule.at<float>(0, 0) = hist.at<float>(0, 0);
-
-    // On calcule le reste de l'histogramme cumulé
-    for (int i = 1; i < histSize; ++i) {
-        histCumule.at<float>(0, i) = histCumule.at<float>(0, i - 1) + hist.at<float>(0, i);
-    }
-}
-
-
-
-
+// La fonction cv::calcHist() de 0 en c++
 void monCalcHist(const cv::Mat& image, cv::Mat& hist) {
     // Assurez-vous que l'image est en niveaux de gris
     if (image.channels() != 1) {
@@ -49,12 +25,59 @@ void monCalcHist(const cv::Mat& image, cv::Mat& hist) {
     }
 }
 
+void calculerHistogrammeCumule(const cv::Mat& hist, cv::Mat& histCumule) {
+    // Assurez-vous que l'histogramme est en niveaux de gris
+    if (hist.channels() != 1) {
+        std::cerr << "L'histogramme doit être en niveaux de gris." << std::endl;
+        return;
+    }
+
+    int histSize = hist.cols;
+
+    // On crée une matrice pour l'histogramme cumulé
+    histCumule = cv::Mat::zeros(1, histSize, CV_32F);
+
+    // On Initialiser le premier élément de l'histogramme cumulé
+    histCumule.at<float>(0, 0) = hist.at<float>(0, 0);
+
+    // On calcule le reste de l'histogramme cumulé
+    for (int i = 1; i < histSize; ++i) {
+        histCumule.at<float>(0, i) = histCumule.at<float>(0, i - 1) + hist.at<float>(0, i);
+    }
+}
 
 void imgToHistoCumul(const cv::Mat& image, cv::Mat& hist) {
     monCalcHist(image, hist);
     calculerHistogrammeCumule(hist, hist);
 }
+
+void equalizeHist(const cv::Mat& image, cv::Mat& resultat) {
+    // Calculer l'histogramme de l'image
+    cv::Mat hist;
+    int channels[] = {0}; // Utiliser le canal 0 (niveaux de gris) pour l'histogramme
+    int bins = 256; // Nombre de compartiments dans l'histogramme
+    int histSize[] = {bins};
+    float range[] = {0, 256}; // La plage de valeurs pour le niveau de gris
+    const float* ranges[] = {range};
     
+    cv::calcHist(&image, 1, channels, cv::Mat(), hist, 1, histSize, ranges, true, false);
+
+    // Calculer l'histogramme cumulé
+    cv::Mat histCumule;
+    calculerHistogrammeCumule(hist, histCumule);
+
+    // Calculer la dynamique
+    int dynamique = 256; // Vous pouvez ajuster cela en fonction de vos besoins
+
+    // Appliquer la transformation
+    resultat = cv::Mat(image.size(), image.type());
+    for (int i = 0; i < image.rows; ++i) {
+        for (int j = 0; j < image.cols; ++j) {
+            int intensite = static_cast<int>(image.at<uchar>(i, j));
+            resultat.at<uchar>(i, j) = static_cast<uchar>((pow(2, dynamique) - 1) * histCumule.at<float>(intensite) / (image.rows * image.cols));
+        }
+    }
+}
 void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, int newMax) {
 
     // Assurez-vous que l'image est en niveaux de gris
@@ -87,15 +110,7 @@ void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, i
     }
 }
 
-
-
-void normalizeHistGris(const cv::Mat& hist, cv::Mat& normalizedHist, int targetHeight) {
-    // Trouver la valeur maximale de l'histogramme pour l'échelle
-    double maxVal;
-    // On ne garde que la valeur maximal.
-    cv::minMaxLoc(hist, nullptr, &maxVal, nullptr, nullptr);
-
-    // On crait une matrice pour l'histogramme normalisé
+        // On met en gris l'image étirée
     normalizedHist = cv::Mat::zeros(1, hist.cols, CV_32F);
 
     // On parcour l'histogramme
@@ -115,7 +130,7 @@ void afficherHistogramme(const std::string titre, const cv::Mat& hist) {
 
     // Normaliser l'histogramme avec la fonction personnalisée
     cv::Mat normalizedHist;
-    normalizeHistGris(hist, normalizedHist, hist_h);
+    normalizeHist(hist, normalizedHist, hist_h);
 
     // Dessiner les compartiments de l'histogramme normalisé
     for (int i = 1; i < histSize; i++) {
@@ -129,6 +144,7 @@ void afficherHistogramme(const std::string titre, const cv::Mat& hist) {
     // cv::waitKey(0);
 }
 
+// Fonction pour dessiner un histogramme avec les fonctions de openCV
 void HistogrammeGris(cv::Mat & image) {
     // Calculer l'histogramme de l'image
     cv::Mat hist;
@@ -159,44 +175,6 @@ void HistogrammeGris(cv::Mat & image) {
     cv::imshow("Histogramme Gris", histImage);
 }
 
-void egaliserHistogramme(const cv::Mat& image, cv::Mat& imageEgalisee) {
-    // On s'assurez que l'image est en niveaux de gris
-    if (image.channels() != 1) {
-        std::cerr << "L'image doit être en niveaux de gris." << std::endl;
-        return;
-    }
-
-    // On calculer l'histogramme cumulé
-    cv::Mat hist;
-    monCalcHist(image, hist);
-    cv::Mat histCumule;
-    calculerHistogrammeCumule(hist, histCumule);
-
-    // On trouver la valeur minimale et maximale de l'histogramme cumulé
-    double minHistCumule, maxHistCumule;
-    cv::minMaxLoc(histCumule, &minHistCumule, &maxHistCumule);
-
-    // On calcule la dynamique de l'image
-    int dynamique = static_cast<int>(maxHistCumule - minHistCumule);
-
-    // On applique la transformation d'égalisation d'histogramme
-
-    // On crée une image vide pour stocker le résultat
-    imageEgalisee = cv::Mat::zeros(image.size(), CV_8U);
-
-    for (int i = 0; i < image.rows; ++i) {
-        for (int j = 0; j < image.cols; ++j) {
-            // On trouve l'intensité du pixel (i, j)
-            int pixelValue = static_cast<int>(image.at<uchar>(i, j));
-            // On calculer la nouvelle valeur du pixel après égalisation
-            int nouvelleValeur = static_cast<int>((dynamique * (histCumule.at<float>(0, pixelValue) - minHistCumule) / (image.rows * image.cols - 1)));
-            // On met à jour la valeur du pixel dans l'image égalisée
-            imageEgalisee.at<uchar>(i, j) = static_cast<uchar>(nouvelleValeur);
-        }
-    }
-}
-
-
 int main() {
     std::string image_path = "Images/lena.png";
     cv::Mat image = cv::imread(image_path);
@@ -218,12 +196,6 @@ int main() {
         // Et on l'affiche pour comparer avec open cv
         afficherHistogramme("Histogramme fait nous meme", hist);
 
-        // On calcule l'histogramme cumulé
-        cv::Mat histCumule;
-        calculerHistogrammeCumule(hist, histCumule);
-        // On affiche l'histogramme cumulé 
-        afficherHistogramme("Histogramme cumule", histCumule);
-
         // On étire l'histogramme
         cv::Mat imageEtiree;
         etirerHistogramme(image, imageEtiree, 200, 255);
@@ -243,14 +215,11 @@ int main() {
         // Et on l'affiche 
         afficherHistogramme("Histogramme etire", histEtiree);
 
+        // On égalise l'histogramme
         cv::Mat imageEgalisee;
-        egaliserHistogramme(image, imageEgalisee);
-    
-        // On met en "couleur" l'image égalisée
+        equalizeHist(image, imageEgalisee);
         cv::cvtColor(imageEgalisee, imageEgalisee, cv::COLOR_GRAY2BGR);
-        // On affiche l'image égalisée
         cv::imshow("Image Egalisee", imageEgalisee);
-
 
         // On attend que l'utilisateur appuie sur une touche pour quitter
         cv::waitKey(0);
