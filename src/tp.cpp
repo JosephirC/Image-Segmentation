@@ -1,5 +1,6 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include <string>
 
 // La fonction cv::calcHist() de 0 en c++
 void monCalcHist(const cv::Mat& image, cv::Mat& hist) {
@@ -17,31 +18,64 @@ void monCalcHist(const cv::Mat& image, cv::Mat& hist) {
 
     for (int i = 0; i < image.rows; ++i) {
         for (int j = 0; j < image.cols; ++j) {
+            // Trouver l'intensité du pixel (i, j) et incrémenter le compartiment correspondant
             int intensity = static_cast<int>(image.at<uchar>(i, j));
             hist.at<float>(0, intensity) += 1.0;
         }
     }
-
-    // Normaliser l'histogramme si nécessaire
-    hist /= static_cast<float>(image.total());
-
 }
+
+void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, int newMax) {
+
+    // Assurez-vous que l'image est en niveaux de gris
+    if (image.channels() != 1) {
+        std::cerr << "L'image doit être en niveaux de gris." << std::endl;
+        return;
+    }
+
+    // On crée une image vide pour stocker le résultat
+    imageEtiree = cv::Mat::zeros(image.size(), CV_8U);
+
+    // On trouver les valeurs minimales et maximales de l'image d'entrée
+    double minVal, maxVal;
+    cv::minMaxLoc(image, &minVal, &maxVal);
+
+    // On calculer l'écart entre les valeurs minimales et maximales dans l'image de sortie
+    double newRange = newMax - newMin;
+
+    // On parcourir l'image et appliquer la transformation d'étirement
+    for (int i = 0; i < image.rows; ++i) {
+        for (int j = 0; j < image.cols; ++j) {
+            int pixelValue = static_cast<int>(image.at<uchar>(i, j));
+
+            // On applique la transformation d'étirement avec la formule vue en classe
+            int newPixelValue = static_cast<int>((newRange * (pixelValue - minVal) / (maxVal - minVal)) + newMin);
+
+            // On mettre à jour la valeur du pixel dans l'image de sortie
+            imageEtiree.at<uchar>(i, j) = static_cast<uchar>(newPixelValue);
+        }
+    }
+}
+
+
 
 void normalizeHistGris(const cv::Mat& hist, cv::Mat& normalizedHist, int targetHeight) {
     // Trouver la valeur maximale de l'histogramme pour l'échelle
     double maxVal;
+    // On ne garde que la valeur maximal.
     cv::minMaxLoc(hist, nullptr, &maxVal, nullptr, nullptr);
 
-    // Créer une matrice pour l'histogramme normalisé
+    // On crait une matrice pour l'histogramme normalisé
     normalizedHist = cv::Mat::zeros(1, hist.cols, CV_32F);
 
-    // Normaliser l'histogramme
+    // On parcour l'histogramme
     for (int i = 0; i < hist.cols; ++i) {
+        // Et on normalise chaque compartiment
         normalizedHist.at<float>(0, i) = hist.at<float>(0, i) * targetHeight / maxVal;
     }
 }
 
-void afficherHistogramme(const cv::Mat& hist) {
+void afficherHistogramme(const std::string titre, const cv::Mat& hist) {
     // Dessiner l'histogramme
     int histSize = hist.cols;
     int hist_w = 512;
@@ -61,8 +95,8 @@ void afficherHistogramme(const cv::Mat& hist) {
     }
 
     // Afficher l'histogramme
-    cv::imshow("Histogramme Moi", histImage);
-    cv::waitKey(0);
+    cv::imshow(titre, histImage);
+    // cv::waitKey(0);
 }
 
 void HistogrammeGris(cv::Mat & image) {
@@ -115,7 +149,27 @@ int main() {
         cv::Mat hist;
         monCalcHist(image, hist);
         // Et on l'affiche pour comparer avec open cv
-        afficherHistogramme(hist);
+        afficherHistogramme("Histogramme fait nous meme", hist);
+
+        // On étire l'histogramme
+        cv::Mat imageEtiree;
+        etirerHistogramme(image, imageEtiree, 200, 255);
+
+        // On met en gris l'image étirée
+        cv::cvtColor(imageEtiree, imageEtiree, cv::COLOR_GRAY2BGR);
+        // On affiche l'image étirée
+        cv::imshow("Image Etiree", imageEtiree);
+
+
+        cv::Mat histEtiree;
+
+        // On met en gris l'image étirée
+        cv::cvtColor(imageEtiree, imageEtiree, cv::COLOR_BGR2GRAY);
+        // On calcule l'histogramme de l'image étirée
+        monCalcHist(imageEtiree, histEtiree);
+        // Et on l'affiche 
+        afficherHistogramme("Histogramme etire", histEtiree);
+
 
         // On attend que l'utilisateur appuie sur une touche pour quitter
         cv::waitKey(0);
