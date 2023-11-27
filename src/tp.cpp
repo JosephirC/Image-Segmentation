@@ -21,13 +21,37 @@ void monCalcHist(const cv::Mat& image, cv::Mat& hist) {
             hist.at<float>(0, intensity) += 1.0;
         }
     }
-
-    // Normaliser l'histogramme si nécessaire
-    hist /= static_cast<float>(image.total());
-
 }
 
-void normalizeHistGris(const cv::Mat& hist, cv::Mat& normalizedHist, int targetHeight) {
+void equalizeHist(const cv::Mat& image, cv::Mat& resultat) {
+    // Calculer l'histogramme de l'image
+    cv::Mat hist;
+    int channels[] = {0}; // Utiliser le canal 0 (niveaux de gris) pour l'histogramme
+    int bins = 256; // Nombre de compartiments dans l'histogramme
+    int histSize[] = {bins};
+    float range[] = {0, 256}; // La plage de valeurs pour le niveau de gris
+    const float* ranges[] = {range};
+    
+    cv::calcHist(&image, 1, channels, cv::Mat(), hist, 1, histSize, ranges, true, false);
+
+    // Calculer l'histogramme cumulé
+    cv::Mat histCumule;
+    calculerHistogrammeCumule(hist, histCumule);
+
+    // Calculer la dynamique
+    int dynamique = 256; // Vous pouvez ajuster cela en fonction de vos besoins
+
+    // Appliquer la transformation
+    resultat = cv::Mat(image.size(), image.type());
+    for (int i = 0; i < image.rows; ++i) {
+        for (int j = 0; j < image.cols; ++j) {
+            int intensite = static_cast<int>(image.at<uchar>(i, j));
+            resultat.at<uchar>(i, j) = static_cast<uchar>((pow(2, dynamique) - 1) * histCumule.at<float>(intensite) / (image.rows * image.cols));
+        }
+    }
+}
+
+void normalizeHist(const cv::Mat& hist, cv::Mat& normalizedHist, int targetHeight) {
     // Trouver la valeur maximale de l'histogramme pour l'échelle
     double maxVal;
     cv::minMaxLoc(hist, nullptr, &maxVal, nullptr, nullptr);
@@ -51,7 +75,7 @@ void afficherHistogramme(const cv::Mat& hist) {
 
     // Normaliser l'histogramme avec la fonction personnalisée
     cv::Mat normalizedHist;
-    normalizeHistGris(hist, normalizedHist, hist_h);
+    normalizeHist(hist, normalizedHist, hist_h);
 
     // Dessiner les compartiments de l'histogramme normalisé
     for (int i = 1; i < histSize; i++) {
@@ -65,6 +89,7 @@ void afficherHistogramme(const cv::Mat& hist) {
     cv::waitKey(0);
 }
 
+// Fonction pour dessiner un histogramme avec les fonctions de openCV
 void HistogrammeGris(cv::Mat & image) {
     // Calculer l'histogramme de l'image
     cv::Mat hist;
