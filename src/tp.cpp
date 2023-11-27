@@ -52,6 +52,35 @@ void imgToHistoCumul(const cv::Mat& image, cv::Mat& hist) {
     calculerHistogrammeCumule(hist, hist);
 }
 
+void equalizeHistPE(const cv::Mat& image, cv::Mat& resultat) {
+    // Calculer l'histogramme de l'image
+    cv::Mat hist;
+    monCalcHist(image, hist);
+
+    // Calculer l'histogramme cumulé
+    cv::Mat histCumule;
+    calculerHistogrammeCumule(hist, histCumule);
+
+    // Trouver la valeur maximale de l'histogramme cumulé
+    double maxHistCumule;
+    cv::minMaxLoc(histCumule, nullptr, &maxHistCumule, nullptr, nullptr);
+
+    // Appliquer la transformation d'égalisation
+    resultat = cv::Mat(image.size(), image.type());
+    for (int i = 0; i < image.rows; ++i) {
+        for (int j = 0; j < image.cols; ++j) {
+            int intensite = static_cast<int>(image.at<uchar>(i, j));
+
+            // Formule d'égalisation mise à jour
+            int nouvelleIntensite = static_cast<int>(((pow(2, maxHistCumule) - 1) * histCumule.at<float>(0, intensite)) / (image.rows * image.cols));
+
+            // Mettre à jour la valeur du pixel dans l'image résultante
+            resultat.at<uchar>(i, j) = static_cast<uchar>(nouvelleIntensite);
+        }
+    }
+}
+
+
 void equalizeHist(const cv::Mat& image, cv::Mat& resultat) {
     // Calculer l'histogramme de l'image
     cv::Mat hist;
@@ -243,7 +272,17 @@ int main() {
         cv::cvtColor(imageEqualiseeOpenCV, imageEqualiseeOpenCV, cv::COLOR_GRAY2BGR);
         // On affiche l'image égalisée
         cv::imshow("Image Equalisee OpenCV", imageEqualiseeOpenCV);
-        
+
+        // On applique notre fonction d'égalisation
+        cv::Mat imageEqualisee;
+        equalizeHistPE(image, imageEqualisee);
+        // On met en gris l'image égalisée
+        cv::cvtColor(imageEqualisee, imageEqualisee, cv::COLOR_GRAY2BGR);
+        // On affiche l'image égalisée
+        cv::imshow("Image Equalisee", imageEqualisee);
+
+
+
 
         // On attend que l'utilisateur appuie sur une touche pour quitter
         cv::waitKey(0);
