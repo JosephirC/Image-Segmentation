@@ -2,6 +2,34 @@
 #include <iostream>
 #include <string>
 
+void minMaxIm(const cv::Mat& image, double& minVal, double& maxVal) {
+    // On s'assure que l'image est en niveaux de gris
+    if (image.channels() != 1) {
+        std::cerr << "L'image doit être en niveaux de gris." << std::endl;
+        return;
+    }
+
+    // On initialise les valeurs min et max
+    minVal = std::numeric_limits<double>::max();
+    maxVal = std::numeric_limits<double>::lowest();
+
+    // On parcour l'image
+    for (int i = 0; i < image.rows; ++i) {
+        for (int j = 0; j < image.cols; ++j) {
+            // On trouve l'intensité du pixel (i, j)
+            double intensite = static_cast<double>(image.at<uchar>(i, j));
+
+            // On met à jour les valeurs min et max
+            if (intensite < minVal) {
+                minVal = intensite;
+            }
+
+            if (intensite > maxVal) {
+                maxVal = intensite;
+            }
+        }
+    }
+}
 
 void calculerHistogrammeCumule(const cv::Mat& hist, cv::Mat& histCumule) {
     // Assurez-vous que l'histogramme est en niveaux de gris
@@ -52,64 +80,7 @@ void imgToHistoCumul(const cv::Mat& image, cv::Mat& hist) {
     calculerHistogrammeCumule(hist, hist);
 }
 
-void equalizeHistPE(const cv::Mat& image, cv::Mat& resultat) {
-    // Calculer l'histogramme de l'image
-    cv::Mat hist;
-    monCalcHist(image, hist);
-
-    // Calculer l'histogramme cumulé
-    cv::Mat histCumule;
-    calculerHistogrammeCumule(hist, histCumule);
-
-    // Trouver la valeur maximale de l'histogramme cumulé
-    double maxHistCumule;
-    cv::minMaxLoc(histCumule, nullptr, &maxHistCumule, nullptr, nullptr);
-
-    // Appliquer la transformation d'égalisation
-    resultat = cv::Mat(image.size(), image.type());
-    for (int i = 0; i < image.rows; ++i) {
-        for (int j = 0; j < image.cols; ++j) {
-            int intensite = static_cast<int>(image.at<uchar>(i, j));
-
-            // Formule d'égalisation mise à jour
-            int nouvelleIntensite = static_cast<int>(((pow(2, maxHistCumule) - 1) * histCumule.at<float>(0, intensite)) / (image.rows * image.cols));
-
-            // Mettre à jour la valeur du pixel dans l'image résultante
-            resultat.at<uchar>(i, j) = static_cast<uchar>(nouvelleIntensite);
-        }
-    }
-}
-
-
-void equalizeHist(const cv::Mat& image, cv::Mat& resultat) {
-    // Calculer l'histogramme de l'image
-    cv::Mat hist;
-    int channels[] = {0}; // Utiliser le canal 0 (niveaux de gris) pour l'histogramme
-    int bins = 256; // Nombre de compartiments dans l'histogramme
-    int histSize[] = {bins};
-    float range[] = {0, 256}; // La plage de valeurs pour le niveau de gris
-    const float* ranges[] = {range};
-    
-    cv::calcHist(&image, 1, channels, cv::Mat(), hist, 1, histSize, ranges, true, false);
-
-    // Calculer l'histogramme cumulé
-    cv::Mat histCumule;
-    calculerHistogrammeCumule(hist, histCumule);
-
-    // Calculer la dynamique
-    int dynamique = 256; // Vous pouvez ajuster cela en fonction de vos besoins
-
-    // Appliquer la transformation
-    resultat = cv::Mat(image.size(), image.type());
-    for (int i = 0; i < image.rows; ++i) {
-        for (int j = 0; j < image.cols; ++j) {
-            int intensite = static_cast<int>(image.at<uchar>(i, j));
-            resultat.at<uchar>(i, j) = static_cast<uchar>((pow(2, dynamique) - 1) * histCumule.at<float>(intensite) / (image.rows * image.cols));
-        }
-    }
-}
-
-void equalizeHistOpenCV(const cv::Mat& image, cv::Mat& newImage) {
+void egalizeHistOpenCV(const cv::Mat& image, cv::Mat& newImage) {
     // Appliquer la transformation
     cv::equalizeHist(image, newImage);
 }
@@ -142,6 +113,45 @@ void egaliseHist(const cv::Mat& image, cv::Mat& newImage) {
     }
 }
 
+void egalizeHistFormule(const cv::Mat& image, cv::Mat& resultat) {
+    // On calcule l'histogramme de l'image
+    cv::Mat hist;
+    monCalcHist(image, hist);
+
+    // On calcule l'histogramme cumulé
+    cv::Mat histCumule;
+    calculerHistogrammeCumule(hist, histCumule);
+
+    // On trouve la valeur maximale de l'histogramme cumulé
+    double maxHistCumule;
+    double minHistCumule;
+    minMaxIm(histCumule, minHistCumule, maxHistCumule);
+
+    // cv::minMaxLoc(histCumule, &minHistCumule, &maxHistCumule, nullptr, nullptr);
+
+    // Avec le min et le max on calcul la dynamqiue de l'image
+    double dynamique = maxHistCumule - minHistCumule;
+
+    // On applique la transformation d'égalisation
+    resultat = cv::Mat(image.size(), image.type());
+    for (int i = 0; i < image.rows; ++i) {
+        for (int j = 0; j < image.cols; ++j) {
+            // On recupère l'intensité du pixel (i, j)
+            int intensite = static_cast<int>(image.at<uchar>(i, j));
+
+            // On appplique la formule d'égalisation mise à jour
+            int nouvelleIntensite = static_cast<int>((pow(2, dynamique) - 1) * histCumule.at<float>(0, intensite) / (image.rows * image.cols));
+            std::cout << "la fonction de cumule" << histCumule.at<float>(0, intensite) << std::endl;
+
+            std::cout << "nouvelle instensité" << nouvelleIntensite << std::endl;
+
+            // On met à jour la valeur du pixel dans l'image résultante
+            resultat.at<uchar>(i, j) = static_cast<uchar>(nouvelleIntensite);
+        }
+    }
+}
+
+
 void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, int newMax) {
 
     // Assurez-vous que l'image est en niveaux de gris
@@ -155,7 +165,8 @@ void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, i
 
     // On trouver les valeurs minimales et maximales de l'image d'entrée
     double minVal, maxVal;
-    cv::minMaxLoc(image, &minVal, &maxVal);
+    minMaxIm(image, minVal, maxVal);
+    // cv::minMaxLoc(image, &minVal, &maxVal);
 
     // On calculer l'écart entre les valeurs minimales et maximales dans l'image de sortie
     double newRange = newMax - newMin;
@@ -178,7 +189,8 @@ void normalizeHistGris(const cv::Mat& hist, cv::Mat& normalizedHist, int targetH
     // Trouver la valeur maximale de l'histogramme pour l'échelle
     double maxVal;
     // On ne garde que la valeur maximal.
-    cv::minMaxLoc(hist, nullptr, &maxVal, nullptr, nullptr);
+    minMaxIm(hist, maxVal, maxVal);
+    // cv::minMaxLoc(hist, nullptr, &maxVal, nullptr, nullptr);
 
     // On crait une matrice pour l'histogramme normalisé
     normalizedHist = cv::Mat::zeros(1, hist.cols, CV_32F);
@@ -244,6 +256,39 @@ void HistogrammeGris(cv::Mat & image) {
     cv::imshow("Histogramme Gris", histImage);
 }
 
+// Fonction pour appliquer un filtre à une image
+cv::Mat appliquerFiltre(const cv::Mat& image, const cv::Mat& filtre) {
+    // On verifie si le filtre est de taille 3x3
+    if (filtre.rows != 3 || filtre.cols != 3) {
+        std::cerr << "Le filtre doit être de taille 3x3." << std::endl;
+        return cv::Mat();
+    }
+
+    // On crée une image résultante
+    cv::Mat resultat = cv::Mat::zeros(image.size(), image.type());
+
+    // On applique le filtre par convolution
+    for (int i = 1; i < image.rows - 1; ++i) {
+        for (int j = 1; j < image.cols - 1; ++j) {
+            double valeur = 0.0;
+
+            // On applique la convolution avec le filtre 3x3
+            for (int m = -1; m <= 1; ++m) {
+                for (int n = -1; n <= 1; ++n) {
+                    valeur += image.at<uchar>(i + m, j + n) * filtre.at<double>(m + 1, n + 1);
+                }
+            }
+
+            // On met à jour la valeur dans l'image résultante
+            resultat.at<uchar>(i, j) = static_cast<uchar>(valeur);
+        }
+    }
+
+    return resultat;
+}
+
+
+
 int main() {
     std::string image_path = "Images/lena.png";
     cv::Mat image = cv::imread(image_path);
@@ -293,7 +338,7 @@ int main() {
 
         cv::Mat imageEqualiseeOpenCV;
         // On égalise l'histogramme avec openCV
-        equalizeHistOpenCV(image, imageEqualiseeOpenCV);
+        egalizeHistOpenCV(image, imageEqualiseeOpenCV);
         // On met en gris l'image égalisée
         cv::cvtColor(imageEqualiseeOpenCV, imageEqualiseeOpenCV, cv::COLOR_GRAY2BGR);
         // On affiche l'image égalisée
@@ -301,11 +346,39 @@ int main() {
         
         // On applique notre fonction d'égalisation
         cv::Mat imageEgalisee;
-        equalizeHist(image, imageEgalisee);
+        egaliseHist(image, imageEgalisee);
         // On met en gris l'image égalisée
         cv::cvtColor(imageEgalisee, imageEgalisee, cv::COLOR_GRAY2BGR);
         // On affiche l'image égalisée
         cv::imshow("Image Egalisee", imageEgalisee);
+
+
+        // On applique notre fonction d'égalisation avec la formule
+        cv::Mat imageEgaliseeFormule;
+        egalizeHistFormule(image, imageEgaliseeFormule);
+        // On met en gris l'image égalisée
+        cv::cvtColor(imageEgaliseeFormule, imageEgaliseeFormule, cv::COLOR_GRAY2BGR);
+        // On affiche l'image égalisée
+        cv::imshow("Image Egalisee Formule", imageEgaliseeFormule);
+
+        // On applique un filtre de détection de contours
+        cv::Mat filtreContours = (cv::Mat_<double>(3, 3) << -1, -1, -1, -1, 8, -1, -1, -1, -1);
+        // On applique le filtre
+        cv::Mat imageContours = appliquerFiltre(image, filtreContours);
+        // On met en "couleur" l'image des contours
+        cv::cvtColor(imageContours, imageContours, cv::COLOR_GRAY2BGR);
+        // On affiche l'image des contours
+        cv::imshow("Image Contours", imageContours);
+
+        // On applique un filtre masques (noyeux) a taille reduite
+        cv::Mat filtreMasque = (cv::Mat_<double>(3, 3) << 1, 1, 1, 1, 1, 1, 1, 1, 1);
+        filtreMasque *= 9;
+        // On applique le filtre
+        cv::Mat imageMasque = appliquerFiltre(image, filtreMasque);
+        // On met en "couleur" l'image des contours
+        cv::cvtColor(imageMasque, imageMasque, cv::COLOR_GRAY2BGR);
+        // On affiche l'image des contours
+        cv::imshow("Image Masque", imageMasque);
 
         // On attend que l'utilisateur appuie sur une touche pour quitter
         cv::waitKey(0);
