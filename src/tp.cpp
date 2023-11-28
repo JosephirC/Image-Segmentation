@@ -2,13 +2,26 @@
 #include <iostream>
 #include <string>
 
-void minMaxIm(const cv::Mat& image, double& minVal, double& maxVal) {
-    // On s'assure que l'image est en niveaux de gris
-    if (image.channels() != 1) {
-        std::cerr << "L'image doit être en niveaux de gris." << std::endl;
-        return;
-    }
+#include <iostream>
+#include <vector>
 
+void minMaxHist(const cv::Mat& hist, double& minVal, double& maxVal) {
+    minVal = std::numeric_limits<double>::max();
+    maxVal = std::numeric_limits<double>::min();
+
+    for (int i = 0; i < hist.cols; ++i) {
+        float binValue = hist.at<float>(0, i);
+        if (binValue < minVal) {
+            minVal = binValue;
+        }
+        if (binValue > maxVal) {
+            maxVal = binValue;
+        }
+    }
+}
+
+
+void minMaxIm(const cv::Mat& image, double& minVal, double& maxVal) {
     // On initialise les valeurs min et max
     minVal = std::numeric_limits<double>::max();
     maxVal = std::numeric_limits<double>::lowest();
@@ -29,6 +42,8 @@ void minMaxIm(const cv::Mat& image, double& minVal, double& maxVal) {
             }
         }
     }
+    std::cout << "min :" << minVal << std::endl;
+    std::cout << "max :" << maxVal << std::endl;
 }
 
 void calculerHistogrammeCumule(const cv::Mat& hist, cv::Mat& histCumule) {
@@ -125,7 +140,7 @@ void egalizeHistFormule(const cv::Mat& image, cv::Mat& resultat) {
     // On trouve la valeur maximale de l'histogramme cumulé
     double maxHistCumule;
     double minHistCumule;
-    minMaxIm(histCumule, minHistCumule, maxHistCumule);
+    minMaxHist(histCumule, minHistCumule, maxHistCumule);
 
     // cv::minMaxLoc(histCumule, &minHistCumule, &maxHistCumule, nullptr, nullptr);
 
@@ -141,9 +156,9 @@ void egalizeHistFormule(const cv::Mat& image, cv::Mat& resultat) {
 
             // On appplique la formule d'égalisation mise à jour
             int nouvelleIntensite = static_cast<int>((pow(2, dynamique) - 1) * histCumule.at<float>(0, intensite) / (image.rows * image.cols));
-            std::cout << "la fonction de cumule" << histCumule.at<float>(0, intensite) << std::endl;
+            // std::cout << "la fonction de cumule" << histCumule.at<float>(0, intensite) << std::endl;
 
-            std::cout << "nouvelle instensité" << nouvelleIntensite << std::endl;
+            // std::cout << "nouvelle instensité" << nouvelleIntensite << std::endl;
 
             // On met à jour la valeur du pixel dans l'image résultante
             resultat.at<uchar>(i, j) = static_cast<uchar>(nouvelleIntensite);
@@ -188,15 +203,22 @@ void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, i
 void normalizeHistGris(const cv::Mat& hist, cv::Mat& normalizedHist, int targetHeight) {
     // Trouver la valeur maximale de l'histogramme pour l'échelle
     double maxVal;
+    double minVal;
     // On ne garde que la valeur maximal.
-    minMaxIm(hist, maxVal, maxVal);
-    // cv::minMaxLoc(hist, nullptr, &maxVal, nullptr, nullptr);
+    minMaxHist(hist, minVal, maxVal);
+    // std::cout << "maxVal :" << maxVal << std::endl;
+    // std::cout << "min :" << minVal << std::endl;
+    // cv::minMaxLoc(hist, &minVal, &maxVal, nullptr, nullptr);
+    // std::cout << "maxVal open cv :" << maxVal << std::endl;
+    // std::cout << "min open cv :" << minVal << std::endl;
 
     // On crait une matrice pour l'histogramme normalisé
     normalizedHist = cv::Mat::zeros(1, hist.cols, CV_32F);
 
     // On parcour l'histogramme
     for (int i = 0; i < hist.cols; ++i) {
+        // std::cout << "hist.at<float>(0, i) :" << hist.at<float>(0, i) << std::endl;
+
         // Et on normalise chaque compartiment
         normalizedHist.at<float>(0, i) = hist.at<float>(0, i) * targetHeight / maxVal;
     }
@@ -223,7 +245,6 @@ void afficherHistogramme(const std::string titre, const cv::Mat& hist) {
 
     // Afficher l'histogramme
     cv::imshow(titre, histImage);
-    // cv::waitKey(0);
 }
 
 void HistogrammeGris(cv::Mat & image) {
@@ -370,11 +391,10 @@ int main() {
         // On affiche l'image des contours
         cv::imshow("Image Contours", imageContours);
 
-        // On applique un filtre masques (noyeux) a taille reduite
-        cv::Mat filtreMasque = (cv::Mat_<double>(3, 3) << 1, 1, 1, 1, 1, 1, 1, 1, 1);
-        filtreMasque *= 9;
+        // On applique un filtre de blur (noyeux) a taille reduite
+        cv::Mat filtreBlur = (cv::Mat_<double>(3, 3) << 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9);
         // On applique le filtre
-        cv::Mat imageMasque = appliquerFiltre(image, filtreMasque);
+        cv::Mat imageMasque = appliquerFiltre(image, filtreBlur);
         // On met en "couleur" l'image des contours
         cv::cvtColor(imageMasque, imageMasque, cv::COLOR_GRAY2BGR);
         // On affiche l'image des contours
