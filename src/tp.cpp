@@ -132,6 +132,9 @@ void egalizeHistFormule(const cv::Mat& image, cv::Mat& resultat) {
     // On calcule l'histogramme de l'image
     cv::Mat hist;
     monCalcHist(image, hist);
+    double maxHist;
+    double minHist;
+    minMaxHist(hist, minHist, maxHist);
 
     // On calcule l'histogramme cumulé
     cv::Mat histCumule;
@@ -142,30 +145,38 @@ void egalizeHistFormule(const cv::Mat& image, cv::Mat& resultat) {
     double minHistCumule;
     minMaxHist(histCumule, minHistCumule, maxHistCumule);
 
-    // cv::minMaxLoc(histCumule, &minHistCumule, &maxHistCumule, nullptr, nullptr);
+    double dynamique = 255.;
 
-    // Avec le min et le max on calcul la dynamqiue de l'image
-    double dynamique = maxHistCumule - minHistCumule;
+    // afficher la dynamique
+    std::cout << "==============dynamique :" << dynamique << std::endl;
+    std::cout << "==============maxHistCumule :" << maxHistCumule << std::endl;
+    std::cout << "==============minHistCumule :" << minHistCumule << std::endl;
+
+    // double dynamiqueCalculer = (pow(2, dynamique) - 1) ;
+    double dynamiqueCalculer = 255;
 
     // On applique la transformation d'égalisation
     resultat = cv::Mat(image.size(), image.type());
     for (int i = 0; i < image.rows; ++i) {
         for (int j = 0; j < image.cols; ++j) {
-            // On recupère l'intensité du pixel (i, j)
+            // On récupère l'intensité du pixel (i, j)
             int intensite = static_cast<int>(image.at<uchar>(i, j));
 
-            // On appplique la formule d'égalisation mise à jour
-            int nouvelleIntensite = static_cast<int>((pow(2, dynamique) - 1) * histCumule.at<float>(0, intensite) / (image.rows * image.cols));
-            // std::cout << "la fonction de cumule" << histCumule.at<float>(0, intensite) << std::endl;
-
-            // std::cout << "nouvelle instensité" << nouvelleIntensite << std::endl;
+            // On applique la formule d'égalisation mise à jour
+            int nouvelleIntensite = static_cast<int>(dynamiqueCalculer * histCumule.at<float>(0, intensite) / (image.rows * image.cols));
+            
+            // affichage des élément de la formule
+            
+            std::cout << "histCumule.at<float>(0, intensite) :" << histCumule.at<float>(0, intensite) << std::endl;
+            std::cout << "nouvelle instensité :" << nouvelleIntensite << std::endl;
 
             // On met à jour la valeur du pixel dans l'image résultante
             resultat.at<uchar>(i, j) = static_cast<uchar>(nouvelleIntensite);
         }
     }
+    std::cout << "pow(2, dynamique) - 1 :" << pow(2, dynamique) - 1 << std::endl;
+    std::cout << "image.rows * image.cols :" << image.rows * image.cols << std::endl;
 }
-
 
 void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, int newMax) {
 
