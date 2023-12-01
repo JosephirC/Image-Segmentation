@@ -19,14 +19,13 @@ La fonction `egaliseHist` effectue l'égalisation d'histogramme en calculant l'h
 ### E. Affichage d'histogramme
 La fonction `afficherHistogramme` dessine et affiche l'histogramme d'une image. Elle utilise la bibliothèque OpenCV pour créer une représentation visuelle de l'histogramme.
 
-## II. Filtres et Convolution
-### A. Filtrage par convolution
+### F. Filtrage par convolution
 La fonction `appliquerFiltre` applique un filtre générique 3x3 sur une image en utilisant l'opération de convolution. Elle parcourt l'image, multiplie les valeurs des pixels par les coefficients du filtre, et génère une nouvelle image filtrée.
 
-### B. Filtre de contours
+- Filtre de contours
 Pour détecter les contours, un filtre spécifique est utilisé (`filtreContours`). La convolution avec ce filtre met en évidence les changements brusques d'intensité dans l'image, révélant ainsi les contours.
 
-### C. Filtre de flou
+- Filtre de flou
 Un filtre de flou (`filtreBlur`) est appliqué pour créer un effet de flou sur l'image. Ce filtre utilise une moyenne pondérée pour lisser les transitions entre les pixels adjacents.
 
 ## Conclusion
