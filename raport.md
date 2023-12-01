@@ -14,7 +14,7 @@ La fonction `normalizeHistGris` normalise l'histogramme en le mettant à l'éche
 La fonction `etirerHistogramme` étire l'histogramme d'une image entre deux valeurs spécifiées (`newMin` et `newMax`). Elle parcourt l'image, ajuste les valeurs des pixels en fonction de l'intervalle spécifié, et génère une nouvelle image étirée.
 
 ### D. Égalisation d'histogramme
-La fonction `egaliseHist` effectue l'égalisation d'histogramme en calculant l'histogramme cumulé et en appliquant une transformation aux pixels de l'image. La méthode `egalizeHistOpenCV` utilise la fonction OpenCV pour effectuer le même processus.
+La fonction `egalizeHistFormule` effectue l'égalisation d'histogramme en calculant l'histogramme cumulé et en appliquant vue en cour. Avant de réussir a comprendre nous avons fait une autre fonction `egalizeFormule`, qui applique aussi une autre manière de faire des histogrammes égalisé.
 
 ### E. Affichage d'histogramme
 La fonction `afficherHistogramme` dessine et affiche l'histogramme d'une image. Elle utilise la bibliothèque OpenCV pour créer une représentation visuelle de l'histogramme.
@@ -22,11 +22,8 @@ La fonction `afficherHistogramme` dessine et affiche l'histogramme d'une image. 
 ### F. Filtrage par convolution
 La fonction `appliquerFiltre` applique un filtre générique 3x3 sur une image en utilisant l'opération de convolution. Elle parcourt l'image, multiplie les valeurs des pixels par les coefficients du filtre, et génère une nouvelle image filtrée.
 
-- Filtre de contours
-Pour détecter les contours, un filtre spécifique est utilisé (`filtreContours`). La convolution avec ce filtre met en évidence les changements brusques d'intensité dans l'image, révélant ainsi les contours.
-
 - Filtre de flou
-Un filtre de flou (`filtreBlur`) est appliqué pour créer un effet de flou sur l'image. Ce filtre utilise une moyenne pondérée pour lisser les transitions entre les pixels adjacents.
+Un filtre de flou (`filtreBlur`) est appliqué pour créer un effet de flou sur l'image. Ce filtre utilise une moyenne pondérée pour lisser les transitions entre les pixels adjacents. Cette matrice est reprise du cour
 
 ## Conclusion
-Ce projet a permis de mettre en pratique divers concepts d'analyse d'image, du calcul d'histogrammes à l'application de filtres par convolution. Les différentes fonctions implémentées illustrent les opérations de base utilisées dans le traitement d'images, offrant ainsi une compréhension approfondie des techniques fondamentales en vision par ordinateur.
+Ce projet a permis de mettre en pratique divers concepts d'analyse d'image vue en cour, du calcul d'histogrammes à l'application de filtres par convolution. Les différentes fonctions implémentées illustrent les opérations de base utilisées dans le traitement d'images. Chaque résultat de fonction a été comparé à des fonctions d'openCV.
