@@ -173,7 +173,7 @@ void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, i
     }
 }
 
-void normalizeHistGris(const cv::Mat& hist, cv::Mat& normalizedHist, int targetHeight) {
+void normalizeHist(const cv::Mat& hist, cv::Mat& normalizedHist, int targetHeight) {
     // Trouver la valeur maximale de l'histogramme pour l'échelle
     double maxVal;
     double minVal;
@@ -201,7 +201,7 @@ void afficherHistogramme(const std::string titre, const cv::Mat& hist) {
 
     // Normaliser l'histogramme avec la fonction personnalisée
     cv::Mat normalizedHist;
-    normalizeHistGris(hist, normalizedHist, hist_h);
+    normalizeHist(hist, normalizedHist, hist_h);
 
     // Dessiner les compartiments de l'histogramme normalisé
     for (int i = 1; i < histSize; i++) {
@@ -290,7 +290,7 @@ int main() {
         // Créer une fenêtre pour afficher l'image
         cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
         // On agrandit la fenêtre pour voir l'histogramme
-        cv::namedWindow("Image Originale", cv::WINDOW_NORMAL);
+        // cv::namedWindow("Image Originale", cv::WINDOW_NORMAL);
         cv::imshow("Image Originale", image);
 
         // On calcule l'histogramme de l'image avec openCV
@@ -311,19 +311,31 @@ int main() {
         // On étire l'histogramme
         cv::Mat imageEtiree;
         etirerHistogramme(image, imageEtiree, 200, 255);
-
         // On met en gris l'image étirée
         cv::cvtColor(imageEtiree, imageEtiree, cv::COLOR_GRAY2BGR);
         // On affiche l'image étirée
         cv::imshow("Image Etiree", imageEtiree);
 
-
         cv::Mat histEtiree;
-
         // On met en gris l'image étirée
         cv::cvtColor(imageEtiree, imageEtiree, cv::COLOR_BGR2GRAY);
         // On calcule l'histogramme de l'image étirée
         monCalcHist(imageEtiree, histEtiree);
+        // Et on l'affiche 
+        afficherHistogramme("Histogramme etire", histEtiree);
+
+
+        // On étire l'histogramme verison sombre
+        cv::Mat imageEtireev2;
+        etirerHistogramme(image, imageEtireev2, 10, 100);
+        // On met en gris l'image étirée
+        cv::cvtColor(imageEtireev2, imageEtireev2, cv::COLOR_GRAY2BGR);
+        // On affiche l'image étirée
+        cv::imshow("Image Etiree version sombre", imageEtireev2);       
+        // On met en gris l'image étirée vesion sombre
+        cv::cvtColor(imageEtireev2, imageEtireev2, cv::COLOR_BGR2GRAY);
+        // On calcule l'histogramme de l'image étirée
+        monCalcHist(imageEtireev2, histEtiree);
         // Et on l'affiche 
         afficherHistogramme("Histogramme etire", histEtiree);
 
@@ -369,6 +381,12 @@ int main() {
         cv::cvtColor(imageMasque, imageMasque, cv::COLOR_GRAY2BGR);
         // On affiche l'image floutée
         cv::imshow("Image filtre", imageMasque);
+
+        // On applique un filtre de blur (noyeux) a taille reduite d'oepncv
+        cv::Mat imageBlur;
+        cv::GaussianBlur(image, imageBlur, cv::Size(3, 3), 0);
+        // On affiche l'image floutée
+        cv::imshow("Image filtre OpenCV", imageBlur);
 
         // On attend que l'utilisateur appuie sur une touche pour quitter
         cv::waitKey(0);

@@ -22,7 +22,7 @@ Ce code en C++ utilise la bibliothèque OpenCV pour effectuer diverses opératio
 
 9. **etirerHistogramme** : Étire l'histogramme d'une image pour améliorer le contraste.
 
-10. **normalizeHistGris** : Normalise l'histogramme d'une image en niveaux de gris.
+10. **normalizeHist** : Normalise l'histogramme d'une image en niveaux de gris.
 
 11. **afficherHistogramme** : Affiche un histogramme à partir d'une matrice d'histogramme.
 
