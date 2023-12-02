@@ -20,7 +20,6 @@ void minMaxHist(const cv::Mat& hist, double& minVal, double& maxVal) {
     }
 }
 
-
 void minMaxIm(const cv::Mat& image, double& minVal, double& maxVal) {
     // On initialise les valeurs min et max
     minVal = std::numeric_limits<double>::max();
@@ -42,8 +41,6 @@ void minMaxIm(const cv::Mat& image, double& minVal, double& maxVal) {
             }
         }
     }
-    std::cout << "min :" << minVal << std::endl;
-    std::cout << "max :" << maxVal << std::endl;
 }
 
 void calculerHistogrammeCumule(const cv::Mat& hist, cv::Mat& histCumule) {
@@ -293,8 +290,8 @@ int main() {
         // Créer une fenêtre pour afficher l'image
         cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
         // On agrandit la fenêtre pour voir l'histogramme
-        cv::namedWindow("Image", cv::WINDOW_NORMAL);
-        cv::imshow("Image", image);
+        cv::namedWindow("Image Originale", cv::WINDOW_NORMAL);
+        cv::imshow("Image Originale", image);
 
         // On calcule l'histogramme de l'image avec openCV
         HistogrammeGrisOpenCV(image);
@@ -336,7 +333,7 @@ int main() {
         // On met en gris l'image égalisée
         cv::cvtColor(imageEqualiseeOpenCV, imageEqualiseeOpenCV, cv::COLOR_GRAY2BGR);
         // On affiche l'image égalisée
-        cv::imshow("Image Equalisee OpenCV", imageEqualiseeOpenCV);
+        cv::imshow("Image Egalise avec OpenCV", imageEqualiseeOpenCV);
         
         // On applique notre fonction d'égalisation
         cv::Mat imageEgalisee;
@@ -344,7 +341,7 @@ int main() {
         // On met en gris l'image égalisée
         cv::cvtColor(imageEgalisee, imageEgalisee, cv::COLOR_GRAY2BGR);
         // On affiche l'image égalisée
-        cv::imshow("Image Egalisee", imageEgalisee);
+        cv::imshow("Image Egalisee sans formule", imageEgalisee);
 
 
         // On applique notre fonction d'égalisation avec la formule
@@ -353,7 +350,7 @@ int main() {
         // On met en gris l'image égalisée
         cv::cvtColor(imageEgaliseeFormule, imageEgaliseeFormule, cv::COLOR_GRAY2BGR);
         // On affiche l'image égalisée
-        cv::imshow("Image Egalisee Formule", imageEgaliseeFormule);
+        cv::imshow("Image Egalisee avec Formule", imageEgaliseeFormule);
 
         // On applique un filtre de détection de contours
         cv::Mat filtreContours = (cv::Mat_<double>(3, 3) << -1, -1, -1, -1, 8, -1, -1, -1, -1);
