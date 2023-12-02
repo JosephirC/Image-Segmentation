@@ -26,7 +26,7 @@ Ce code en C++ utilise la bibliothèque OpenCV pour effectuer diverses opératio
 
 11. **afficherHistogramme** : Affiche un histogramme à partir d'une matrice d'histogramme.
 
-12. **HistogrammeGris** : Calcule et affiche l'histogramme d'une image en niveaux de gris.
+12. **HistogrammeGrisOpenCV** : Calcule et affiche l'histogramme d'une image en niveaux de gris.
 
 13. **appliquerFiltre** : Applique un filtre à une image en utilisant une opération de convolution.
 
