@@ -314,7 +314,7 @@ int main() {
         // On met en gris l'image étirée
         cv::cvtColor(imageEtiree, imageEtiree, cv::COLOR_GRAY2BGR);
         // On affiche l'image étirée
-        cv::imshow("Image Etiree", imageEtiree);
+        cv::imshow("Image Etiree version claire", imageEtiree);
 
         cv::Mat histEtiree;
         // On met en gris l'image étirée
@@ -322,7 +322,7 @@ int main() {
         // On calcule l'histogramme de l'image étirée
         monCalcHist(imageEtiree, histEtiree);
         // Et on l'affiche 
-        afficherHistogramme("Histogramme etire", histEtiree);
+        afficherHistogramme("Histogramme etire claire", histEtiree);
 
 
         // On étire l'histogramme verison sombre
@@ -337,7 +337,7 @@ int main() {
         // On calcule l'histogramme de l'image étirée
         monCalcHist(imageEtireev2, histEtiree);
         // Et on l'affiche 
-        afficherHistogramme("Histogramme etire", histEtiree);
+        afficherHistogramme("Histogramme etire sombre", histEtiree);
 
         cv::Mat imageEqualiseeOpenCV;
         // On égalise l'histogramme avec openCV
