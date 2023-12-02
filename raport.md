@@ -1,7 +1,7 @@
 # Rapport sur le Projet d'Analyse d'Image
 
 ## Introduction
-Le projet d'analyse d'image vise à explorer et mettre en pratique les concepts fondamentaux du traitement d'images à l'aide de la bibliothèque OpenCV en langage C++. Ce rapport détaillera les différentes fonctionnalités implémentées, notamment le calcul d'histogrammes, la normalisation et l'étirement d'histogrammes, l'égalisation d'histogrammes, ainsi que l'application de filtres de convolution sur une image.
+Le projet d'analyse d'image vise à explorer et mettre en pratique les concepts fondamentaux du traitement d'images à l'aide de la bibliothèque OpenCV en langage C++. Ce rapport détaillera les différentes fonctionnalités implémentées, notamment le calcul d'histogrammes, la normalisation et l'étirement d'histogrammes, l'égalisation d'histogrammes, ainsi que l'application de filtres de convolution sur une image. Voici le lien de notre git : [via https](https://forge.univ-lyon1.fr/p2024398/m1-analyse-image.git), ou [via ssh](git@forge.univ-lyon1.fr:p2024398/m1-analyse-image.git)
 
 ## I. Histogrammes
 ### A. Calcul de l'histogramme
@@ -24,6 +24,11 @@ La fonction `appliquerFiltre` applique un filtre générique 3x3 sur une image e
 
 - Filtre de flou
 Un filtre de flou (`filtreBlur`) est appliqué pour créer un effet de flou sur l'image. Ce filtre utilise une moyenne pondérée pour lisser les transitions entre les pixels adjacents. Cette matrice est reprise du cour
+
+### G. Difficulté
+Grosse difficulté à l'installation d'openCV. Impossible sous windows de réussir à installer cette librérie. Même avec l'aide d'un professeur et en cusltant plusieurs forum. Plus de 5h à d'installation, pour au final installer un autre os, debian.  
+Au niveau du code, les fonctions sont simple a mettre en place une fois que l'on comprends se qu'il faut faire. Petite difficulté pour l'égalisation, au début nous avons mal compris ce qu'es la dynamique d'une image. Nous pouvons aussi dire qu'il n'est pas évident de savoir si nous avons réussit corectement une fonction. Pour cela nous avons utilisé les fonctions openCV pour comparé nos résulat. Nous avons aussi discuté et comparé nos résultat entre groupe.
+
 
 ## Conclusion
 Ce projet a permis de mettre en pratique divers concepts d'analyse d'image vue en cour, du calcul d'histogrammes à l'application de filtres par convolution. Les différentes fonctions implémentées illustrent les opérations de base utilisées dans le traitement d'images. Chaque résultat de fonction a été comparé à des fonctions d'openCV.

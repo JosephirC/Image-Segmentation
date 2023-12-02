@@ -68,12 +68,6 @@ void calculerHistogrammeCumule(const cv::Mat& hist, cv::Mat& histCumule) {
 }
 
 void monCalcHist(const cv::Mat& image, cv::Mat& hist) {
-    // Assurez-vous que l'image est en niveaux de gris
-    if (image.channels() != 1) {
-        std::cerr << "L'image doit être en niveaux de gris." << std::endl;
-        return;
-    }
-
     // Nombre de bins dans l'histogramme
     int histSize = 256;
 
@@ -96,19 +90,20 @@ void imgToHistoCumul(const cv::Mat& image, cv::Mat& hist) {
 }
 
 void egalizeHistOpenCV(const cv::Mat& image, cv::Mat& newImage) {
-    // Appliquer la transformation
+    // On applique la fonction d'égalisation d'histogramme d'openCV
     cv::equalizeHist(image, newImage);
 }
 
 void egaliseHist(const cv::Mat& image, cv::Mat& newImage) {
-    // Calculer l'histogramme cumulé
+    // On calcule l'histogramme de l'image
     cv::Mat hist;
-    monCalcHist(image, hist); // Utilisez votre fonction monCalcHist() ici
+    monCalcHist(image, hist);
 
+    // On calcule l'histogramme cumulé
     cv::Mat histCumule;
     calculerHistogrammeCumule(hist, histCumule); // Utilisez votre fonction calculerHistogrammeCumule() ici
 
-    // Nombre total de pixels dans l'image
+    // On recupere le nombre de pixels dans l'image
     int totalPixels = image.rows * image.cols;
 
     // Calculer la transformation d'égalisation
@@ -117,8 +112,8 @@ void egaliseHist(const cv::Mat& image, cv::Mat& newImage) {
         transform.at<uchar>(0, i) = static_cast<uchar>((histCumule.at<float>(0, i) * 255.0) / totalPixels);
     }
 
-    // Appliquer la transformation aux pixels de l'image
-    newImage = image.clone(); // Copiez l'image originale pour y appliquer la transformation
+    // On applique la transformation d'égalisation
+    newImage = image.clone(); // On crée une copie de l'image
 
     for (int i = 0; i < image.rows; ++i) {
         for (int j = 0; j < image.cols; ++j) {
