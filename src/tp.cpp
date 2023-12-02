@@ -281,90 +281,86 @@ cv::Mat appliquerFiltre(const cv::Mat& image, const cv::Mat& filtre) {
     return resultat;
 }
 
-int main() {
-    std::string image_path = "Images/lena.png";
-    cv::Mat image = cv::imread(image_path);
+void comparaisonHist(cv::Mat& image, cv::Mat & hist) {
+     // On calcule l'histogramme de l'image avec openCV
+    HistogrammeGrisOpenCV(image);
 
-    // Vérifier si l'image a été chargée avec succès
-    if (!image.empty()) {
-        // Créer une fenêtre pour afficher l'image
-        cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
-        // On agrandit la fenêtre pour voir l'histogramme
-        // cv::namedWindow("Image Originale", cv::WINDOW_NORMAL);
-        cv::imshow("Image Originale", image);
+    // On cré nous même l'histogramme
+    // cv::Mat hist;
+    monCalcHist(image, hist);
+    // Et on l'affiche pour comparer avec open cv
+    afficherHistogramme("Histogramme fait nous meme", hist);
+}
 
-        // On calcule l'histogramme de l'image avec openCV
-        HistogrammeGrisOpenCV(image);
-
-        // On cré nous même l'histogramme
-        cv::Mat hist;
-        monCalcHist(image, hist);
-        // Et on l'affiche pour comparer avec open cv
-        afficherHistogramme("Histogramme fait nous meme", hist);
-
-        // On calcule l'histogramme cumulé
-        cv::Mat histCumule;
-        calculerHistogrammeCumule(hist, histCumule);
-        // On affiche l'histogramme cumulé 
-        afficherHistogramme("Histogramme cumule", histCumule);
-
-        // On étire l'histogramme
-        cv::Mat imageEtiree;
-        etirerHistogramme(image, imageEtiree, 200, 255);
-        // On met en gris l'image étirée
-        cv::cvtColor(imageEtiree, imageEtiree, cv::COLOR_GRAY2BGR);
-        // On affiche l'image étirée
-        cv::imshow("Image Etiree version claire", imageEtiree);
-
-        cv::Mat histEtiree;
-        // On met en gris l'image étirée
-        cv::cvtColor(imageEtiree, imageEtiree, cv::COLOR_BGR2GRAY);
-        // On calcule l'histogramme de l'image étirée
-        monCalcHist(imageEtiree, histEtiree);
-        // Et on l'affiche 
-        afficherHistogramme("Histogramme etire claire", histEtiree);
+void comparasonEtirement(cv::Mat& image, cv::Mat& hist) {
+    // On calcule l'histogramme cumulé
+    cv::Mat histCumule;
+    calculerHistogrammeCumule(hist, histCumule);
+    // On affiche l'histogramme cumulé 
+    afficherHistogramme("Histogramme cumule", histCumule);
 
 
-        // On étire l'histogramme verison sombre
-        cv::Mat imageEtireev2;
-        etirerHistogramme(image, imageEtireev2, 10, 100);
-        // On met en gris l'image étirée
-        cv::cvtColor(imageEtireev2, imageEtireev2, cv::COLOR_GRAY2BGR);
-        // On affiche l'image étirée
-        cv::imshow("Image Etiree version sombre", imageEtireev2);       
-        // On met en gris l'image étirée vesion sombre
-        cv::cvtColor(imageEtireev2, imageEtireev2, cv::COLOR_BGR2GRAY);
-        // On calcule l'histogramme de l'image étirée
-        monCalcHist(imageEtireev2, histEtiree);
-        // Et on l'affiche 
-        afficherHistogramme("Histogramme etire sombre", histEtiree);
+    // On étire l'histogramme version claire
+    cv::Mat imageEtiree;
+    etirerHistogramme(image, imageEtiree, 200, 255);
+    // On met en gris l'image étirée
+    cv::cvtColor(imageEtiree, imageEtiree, cv::COLOR_GRAY2BGR);
+    // On affiche l'image étirée
+    cv::imshow("Image Etiree version claire", imageEtiree);
 
-        cv::Mat imageEqualiseeOpenCV;
-        // On égalise l'histogramme avec openCV
-        egalizeHistOpenCV(image, imageEqualiseeOpenCV);
-        // On met en gris l'image égalisée
-        cv::cvtColor(imageEqualiseeOpenCV, imageEqualiseeOpenCV, cv::COLOR_GRAY2BGR);
-        // On affiche l'image égalisée
-        cv::imshow("Image Egalise avec OpenCV", imageEqualiseeOpenCV);
-        
-        // On applique notre fonction d'égalisation
-        cv::Mat imageEgalisee;
-        egaliseHist(image, imageEgalisee);
-        // On met en gris l'image égalisée
-        cv::cvtColor(imageEgalisee, imageEgalisee, cv::COLOR_GRAY2BGR);
-        // On affiche l'image égalisée
-        cv::imshow("Image Egalisee sans formule", imageEgalisee);
+    cv::Mat histEtiree;
+    // On met en gris l'image étirée
+    cv::cvtColor(imageEtiree, imageEtiree, cv::COLOR_BGR2GRAY);
+    // On calcule l'histogramme de l'image étirée
+    monCalcHist(imageEtiree, histEtiree);
+    // Et on l'affiche 
+    afficherHistogramme("Histogramme etire claire", histEtiree);
 
 
-        // On applique notre fonction d'égalisation avec la formule
-        cv::Mat imageEgaliseeFormule;
-        egalizeHistFormule(image, imageEgaliseeFormule);
-        // On met en gris l'image égalisée
-        cv::cvtColor(imageEgaliseeFormule, imageEgaliseeFormule, cv::COLOR_GRAY2BGR);
-        // On affiche l'image égalisée
-        cv::imshow("Image Egalisee avec Formule", imageEgaliseeFormule);
+    // On étire l'histogramme verison sombre
+    cv::Mat imageEtireev2;
+    etirerHistogramme(image, imageEtireev2, 10, 100);
+    // On met en gris l'image étirée
+    cv::cvtColor(imageEtireev2, imageEtireev2, cv::COLOR_GRAY2BGR);
+    // On affiche l'image étirée
+    cv::imshow("Image Etiree version sombre", imageEtireev2);       
+    // On met en gris l'image étirée vesion sombre
+    cv::cvtColor(imageEtireev2, imageEtireev2, cv::COLOR_BGR2GRAY);
+    // On calcule l'histogramme de l'image étirée
+    monCalcHist(imageEtireev2, histEtiree);
+    // Et on l'affiche 
+    afficherHistogramme("Histogramme etire sombre", histEtiree);
+}
 
-        // On applique un filtre de détection de contours
+void comparaisonEgalisation(cv::Mat& image) {
+    cv::Mat imageEqualiseeOpenCV;
+    // On égalise l'histogramme avec openCV
+    egalizeHistOpenCV(image, imageEqualiseeOpenCV);
+    // On met en gris l'image égalisée
+    cv::cvtColor(imageEqualiseeOpenCV, imageEqualiseeOpenCV, cv::COLOR_GRAY2BGR);
+    // On affiche l'image égalisée
+    cv::imshow("Image Egalise avec OpenCV", imageEqualiseeOpenCV);
+    
+    // On applique notre fonction d'égalisation
+    cv::Mat imageEgalisee;
+    egaliseHist(image, imageEgalisee);
+    // On met en gris l'image égalisée
+    cv::cvtColor(imageEgalisee, imageEgalisee, cv::COLOR_GRAY2BGR);
+    // On affiche l'image égalisée
+    cv::imshow("Image Egalisee sans formule", imageEgalisee);
+
+
+    // On applique notre fonction d'égalisation avec la formule
+    cv::Mat imageEgaliseeFormule;
+    egalizeHistFormule(image, imageEgaliseeFormule);
+    // On met en gris l'image égalisée
+    cv::cvtColor(imageEgaliseeFormule, imageEgaliseeFormule, cv::COLOR_GRAY2BGR);
+    // On affiche l'image égalisée
+    cv::imshow("Image Egalisee avec Formule", imageEgaliseeFormule);
+}
+
+void comparaisonConvolution(cv::Mat& image) {
+    // On applique un filtre de détection de contours
         cv::Mat filtreContours = (cv::Mat_<double>(3, 3) << -1, -1, -1, -1, 8, -1, -1, -1, -1);
         // On applique le filtre
         cv::Mat imageContours = appliquerFiltre(image, filtreContours);
@@ -387,6 +383,25 @@ int main() {
         cv::GaussianBlur(image, imageBlur, cv::Size(3, 3), 0);
         // On affiche l'image floutée
         cv::imshow("Image filtre OpenCV", imageBlur);
+}
+
+int main() {
+    std::string image_path = "Images/lena.png";
+    cv::Mat image = cv::imread(image_path);
+
+    // Vérifier si l'image a été chargée avec succès
+    if (!image.empty()) {
+        // Créer une fenêtre pour afficher l'image
+        cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
+        // On agrandit la fenêtre pour voir l'histogramme
+        // cv::namedWindow("Image Originale", cv::WINDOW_NORMAL);
+        cv::imshow("Image Originale", image);
+        cv::Mat hist;
+
+        comparaisonHist(image, hist);
+        comparasonEtirement(image, hist);
+        comparaisonEgalisation(image);
+        comparaisonConvolution(image);
 
         // On attend que l'utilisateur appuie sur une touche pour quitter
         cv::waitKey(0);
