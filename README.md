@@ -45,3 +45,5 @@ g++ -o mon_programme mon_code.cpp `pkg-config --cflags --libs opencv`
 ```
 
 Un makefile est mise a votre disposition pour une meillieur compilation. (Faire make dans votre terminal).
+
+

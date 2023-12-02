@@ -14,7 +14,7 @@ La fonction `normalizeHistGris` normalise l'histogramme en le mettant à l'éche
 La fonction `etirerHistogramme` étire l'histogramme d'une image entre deux valeurs spécifiées (`newMin` et `newMax`). Elle parcourt l'image, ajuste les valeurs des pixels en fonction de l'intervalle spécifié, et génère une nouvelle image étirée.
 
 ### D. Égalisation d'histogramme
-La fonction `egalizeHistFormule` effectue l'égalisation d'histogramme en calculant l'histogramme cumulé et en appliquant vue en cour. Avant de réussir a comprendre nous avons fait une autre fonction `egalizeFormule`, qui applique aussi une autre manière de faire des histogrammes égalisé.
+La fonction `egalizeHistFormule` effectue l'égalisation d'histogramme en calculant l'histogramme cumulé et en appliquant la formule vue en cour. Avant de réussir a comprendre nous avons fait une autre fonction `egaliseHist`, qui applique aussi une autre manière de faire des histogrammes égalisé.
 
 ### E. Affichage d'histogramme
 La fonction `afficherHistogramme` dessine et affiche l'histogramme d'une image. Elle utilise la bibliothèque OpenCV pour créer une représentation visuelle de l'histogramme.
@@ -26,9 +26,8 @@ La fonction `appliquerFiltre` applique un filtre générique 3x3 sur une image e
 Un filtre de flou (`filtreBlur`) est appliqué pour créer un effet de flou sur l'image. Ce filtre utilise une moyenne pondérée pour lisser les transitions entre les pixels adjacents. Cette matrice est reprise du cour
 
 ### G. Difficulté
-Grosse difficulté à l'installation d'openCV. Impossible sous windows de réussir à installer cette librérie. Même avec l'aide d'un professeur et en cusltant plusieurs forum. Plus de 5h à d'installation, pour au final installer un autre os, debian.  
-Au niveau du code, les fonctions sont simple a mettre en place une fois que l'on comprends se qu'il faut faire. Petite difficulté pour l'égalisation, au début nous avons mal compris ce qu'es la dynamique d'une image. Nous pouvons aussi dire qu'il n'est pas évident de savoir si nous avons réussit corectement une fonction. Pour cela nous avons utilisé les fonctions openCV pour comparé nos résulat. Nous avons aussi discuté et comparé nos résultat entre groupe.
-
+Difficulté à l'installation d'openCV. Impossible sous windows de réussir à installer cette librairie. Même avec l'aide d'un professeur et en consultant plusieurs forums. Plus de 5 h d'installation, pour au final installer un autre OS, Debian.  
+Au niveau du code, les fonctions sont simples à mettre en place une fois que l'on comprend ce qu'il faut faire. Petite difficulté pour l'égalisation, au début, nous avons mal compris ce qu'est la dynamique d'une image. Nous pouvons aussi dire qu'il n'est pas évident de savoir si nous avons réussi correctement une fonction. Pour cela, nous avons utilisé les fonctions openCV pour comparer nos résultats.
 
 ## Conclusion
 Ce projet a permis de mettre en pratique divers concepts d'analyse d'image vue en cour, du calcul d'histogrammes à l'application de filtres par convolution. Les différentes fonctions implémentées illustrent les opérations de base utilisées dans le traitement d'images. Chaque résultat de fonction a été comparé à des fonctions d'openCV.

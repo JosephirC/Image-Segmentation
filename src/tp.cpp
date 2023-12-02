@@ -101,20 +101,21 @@ void egaliseHist(const cv::Mat& image, cv::Mat& newImage) {
 
     // On calcule l'histogramme cumulé
     cv::Mat histCumule;
-    calculerHistogrammeCumule(hist, histCumule); // Utilisez votre fonction calculerHistogrammeCumule() ici
+    calculerHistogrammeCumule(hist, histCumule);
 
     // On recupere le nombre de pixels dans l'image
     int totalPixels = image.rows * image.cols;
 
-    // Calculer la transformation d'égalisation
+    // On calcule la transformation d'égalisation
     cv::Mat transform(1, 256, CV_8U);
     for (int i = 0; i < 256; ++i) {
         transform.at<uchar>(0, i) = static_cast<uchar>((histCumule.at<float>(0, i) * 255.0) / totalPixels);
     }
 
     // On applique la transformation d'égalisation
-    newImage = image.clone(); // On crée une copie de l'image
+    newImage = image.clone(); 
 
+    // On parcour l'image et on applique la transformation
     for (int i = 0; i < image.rows; ++i) {
         for (int j = 0; j < image.cols; ++j) {
             int pixelValue = static_cast<int>(image.at<uchar>(i, j));
@@ -142,11 +143,6 @@ void egalizeHistFormule(const cv::Mat& image, cv::Mat& resultat) {
 
     double dynamique = 255.;
 
-    // afficher la dynamique
-    std::cout << "==============dynamique :" << dynamique << std::endl;
-    std::cout << "==============maxHistCumule :" << maxHistCumule << std::endl;
-    std::cout << "==============minHistCumule :" << minHistCumule << std::endl;
-
     // double dynamiqueCalculer = (pow(2, dynamique) - 1) ;
     double dynamiqueCalculer = 255;
 
@@ -159,28 +155,14 @@ void egalizeHistFormule(const cv::Mat& image, cv::Mat& resultat) {
 
             // On applique la formule d'égalisation mise à jour
             int nouvelleIntensite = static_cast<int>(dynamiqueCalculer * histCumule.at<float>(0, intensite) / (image.rows * image.cols));
-            
-            // affichage des élément de la formule
-            
-            std::cout << "histCumule.at<float>(0, intensite) :" << histCumule.at<float>(0, intensite) << std::endl;
-            std::cout << "nouvelle instensité :" << nouvelleIntensite << std::endl;
 
             // On met à jour la valeur du pixel dans l'image résultante
             resultat.at<uchar>(i, j) = static_cast<uchar>(nouvelleIntensite);
         }
     }
-    std::cout << "pow(2, dynamique) - 1 :" << pow(2, dynamique) - 1 << std::endl;
-    std::cout << "image.rows * image.cols :" << image.rows * image.cols << std::endl;
 }
 
 void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, int newMax) {
-
-    // Assurez-vous que l'image est en niveaux de gris
-    if (image.channels() != 1) {
-        std::cerr << "L'image doit être en niveaux de gris." << std::endl;
-        return;
-    }
-
     // On crée une image vide pour stocker le résultat
     imageEtiree = cv::Mat::zeros(image.size(), CV_8U);
 
@@ -403,8 +385,8 @@ int main() {
         cv::Mat imageMasque = appliquerFiltre(image, filtreBlur);
         // On met en "couleur" l'image des contours
         cv::cvtColor(imageMasque, imageMasque, cv::COLOR_GRAY2BGR);
-        // On affiche l'image des contours
-        cv::imshow("Image Masque", imageMasque);
+        // On affiche l'image floutée
+        cv::imshow("Image filtre", imageMasque);
 
         // On attend que l'utilisateur appuie sur une touche pour quitter
         cv::waitKey(0);
