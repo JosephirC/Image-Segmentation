@@ -1,2 +1,0 @@
-L'etirement sur une image gris se fait facilement, alors que pour faire l'etirement sur une image rgb cela fait des effets bizarre
-il faudra donc faire l'etirement sur la LUMINENCE de chaque canal pour chaque couleur (R G B), 
