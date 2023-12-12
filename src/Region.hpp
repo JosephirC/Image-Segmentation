@@ -23,15 +23,15 @@ public:
      * Default constructor
     */
     Region() : image(new cv::Mat()),
-                outline(new std::vector<cv::Point>),
+                outline(new std::queue<cv::Point>),
                 colors(new std::vector<cv::Vec3b>) {};
 
     /**
      * Constructor
     */
-    Region(cv::Point p, cv::Vec3b col, cv::Mat img): color(col), 
+    Region(cv::Point p, cv::Mat img): color(img.at<cv::Vec3b>(p)), 
                     image(new cv::Mat(img.size(), img.type())),
-                    outline(new std::vector<cv::Point>),
+                    outline(new std::queue<cv::Point>),
                     colors(new std::vector<cv::Vec3b>) {
         image = new cv::Mat(img.size(), img.type());
         // We make the image black
@@ -40,30 +40,31 @@ public:
                 image->at<cv::Vec3b>(i, j) = cv::Vec3b(0,0,0);
             }
         }
-        colors->push_back(col);
+        colors->push_back(color);
         averageColorSeuil();
         // We add the first point to the region
-        grow(p, col);
-    }
+        std::queue<cv::Point> _outlines;
+        _outlines.push(p);
+        grow(_outlines, img);
+    };
 
     /**
      * Copy constructor
     */
     Region(const Region& r) {
         image = new cv::Mat(r.image->size(), r.image->type());
-        outline = new std::vector<cv::Point>();
+        outline = new std::queue<cv::Point>();
         colors = new std::vector<cv::Vec3b>();
         color = r.color;
         color_seuil_inf = r.color_seuil_inf;
         color_seuil_sup = r.color_seuil_sup;
-        for (int i = 0; i < r.outline->size(); i++) {
-            outline->push_back(r.outline->at(i));
-        }
+        // We copy the outline and the colors
+        // std::queue<cv::Point> _outlinesCopie = r.getContour();
         for (int i = 0; i < r.colors->size(); i++) {
             colors->push_back(r.colors->at(i));
         }
         *image = r.image->clone();
-    }
+    };
 
     /**
      * Destructor
@@ -83,58 +84,61 @@ public:
             delete outline;
             delete colors;
             image = new cv::Mat(r.image->size(), r.image->type());
-            outline = new std::vector<cv::Point>();
+            outline = new std::queue<cv::Point>();
             colors = new std::vector<cv::Vec3b>();
             color = r.color;
             color_seuil_inf = r.color_seuil_inf;
             color_seuil_sup = r.color_seuil_sup;
-            for (int i = 0; i < r.outline->size(); i++) {
-                outline->push_back(r.outline->at(i));
-            }
-            for (int i = 0; i < r.colors->size(); i++) {
-                colors->push_back(r.colors->at(i));
-            }
-            *image = r.image->clone();
-        }
+            // We copy the outline and the colors
+            // std::queue<cv::Point> _outlinesCopie = r.getContour();
+
+            // while (!_outlinesCopie.empty()) {
+            //     cv::Point p = _outlinesCopie.front();
+            //     _outlinesCopie.pop();
+            //     outline->push(p);
+            // }
         return *this;
-    }
+        }
+    };
 
     /**
      * This function is used to add a point to the region
-     * @param p The point to add
+     * @param p The points to add
      * @param col The color of the point
      * @return true if the point has been added to the region
     */
-    bool grow(cv::Point p, cv::Vec3b col) {
-        // We verify if the point can be added to the region
-        // In a first time we verify if the point is not in the region
-        if (image->at<cv::Vec3b>(p) == cv::Vec3b(0,0,0) || image->at<cv::Vec3b>(p) == cv::Vec3b(255,1,1)) {
-            // If not we verrify if the color of the point is the same as the region with the seuil
-            // std::cout << "Verify color " << std::endl;
-            // displayColor(col);
-            // std::cout << "  Color averge " << std::endl;
-            // displayColor(color);
-            // std::cout << "      Color seuil inf " << std::endl;
-            // displayColor(color_seuil_inf);
-            // std::cout << "      Color seuil sup " << std::endl;
-            // displayColor(color_seuil_sup);
-            
-            if (verifyColor(col)) {
-                // If yes we add the point to the region
-                image->at<cv::Vec3b>(p) = col;
-                colors->push_back(col);
-                // We update the average color of the region
-                averageColor();
-                averageColorSeuil();
-
-                // And we update the contour of the region
-                updateContour(p);
-                std::cout << "Point added " <<p.x<<"/ "<<p.y<<std::endl;
-                return true;
+    void grow(const std::queue<cv::Point> & param, cv::Mat & img) {
+        std::queue<cv::Point> _outlines = param;
+        // We get all Point in queue
+        while (!_outlines.empty()) {
+            cv::Point p = _outlines.front();
+            _outlines.pop();
+            cv::Vec3b col = img.at<cv::Vec3b>(p);
+            // We verify if the point is in the image
+            if (p.x < 0 || p.x >= image->rows || p.y < 0 || p.y >= image->cols) {
+                std::cout << "Point not in the image" << std::endl;
             }
-        }
+            // We verify if the point is not in the region
+            if (image->at<cv::Vec3b>(p) == cv::Vec3b(0,0,0) || image->at<cv::Vec3b>(p) == cv::Vec3b(255,1,1)) {
+                if (verifyColor(col)) {
+                    std::cout << "Point in the region" << std::endl;
+                    // If yes we add the point to the region
+                    image->at<cv::Vec3b>(p) = col;
+                    colors->push_back(col);
+                    // We update the average color of the region
+                    averageColor();
+                    averageColorSeuil();
+
+                    // And we update the contour of the region
+                    updateContour(p);
+                    std::cout << "Point added " <<p.x<<"/ "<<p.y<<std::endl;
+                } else {
+                    image->at<cv::Vec3b>(p) = cv::Vec3b(1,1,255);
+                    // We remove the point from the contour of the region
+                }
+           }
         std::cout << "Point not added " <<p.x<<"/ "<<p.y << std::endl;
-        return false;
+        }
     };
 
     /**
@@ -148,57 +152,58 @@ public:
         }
         // We verify if the two regions have the same color with the seuil
         return verifyColor(r.color);
-    }
+    };
 
     /**
      * Get the contour of the region
      * @return the contour of the region
     */
-    std::vector<cv::Point> getContour() {
-        return *outline;
-
-        // // We verify if the contour of the region is empty
-        // if (points->size() == 0) {
-        //     // If yes we calculate the contour of the region
-        //     for (int i = 1; i < image->rows - 1; ++i) {
-        //         for (int j = 1; j < image->cols - 1; ++j) {
-        //             verifyContour(cv::Point(i, j));
-        //         }
-        //     }
-        // }
-        // return *points;
-    }
+    std::queue<cv::Point> * getContour() {
+        // Display the contour
+        std::queue<cv::Point> _outlines = *outline;
+        std::cout << "It's queue of contour =============" << _outlines.size() <<std::endl;
+        while (!_outlines.empty()) {
+            cv::Point p = _outlines.front();
+            std::cout<<"size " << _outlines.size();
+            _outlines.pop();
+            std::cout << "Point in Contour " << p.x << "/" << p.y << std::endl;
+        }
+        std::cout << "End of queue of contour" << std::endl;
+        return new std::queue<cv::Point>(*outline);
+    };
 
     /**
      * This function is used to fuse two regions
     */
-    Region& operator + (const Region& r) {
-        // We verify if the two regions in the same image
-        if (image->size() != r.image->size()) {
-            std::cout << "The two regions are not in the same image" << std::endl;
-            return *this;
-        }
-        // We create a new region
-        Region * new_region = new Region();
-        // We add the points of the two regions
-        for (int i = 0; i < outline->size(); i++) {
-            new_region->outline->push_back(outline->at(i));
-        }
-        for (int i = 0; i < r.outline->size(); i++) {
-            new_region->outline->push_back(r.outline->at(i));
-        }
-        // We add the colors of the two regions
-        for (int i = 0; i < colors->size(); i++) {
-            new_region->colors->push_back(colors->at(i));
-        }
-        for (int i = 0; i < r.colors->size(); i++) {
-            new_region->colors->push_back(r.colors->at(i));
-        }
-        // We calculate the average color of the new region
-        new_region->averageColor();
-        new_region->averageColorSeuil();
-        return *new_region;
-    }
+    // Region& operator + (const Region& r) {
+    //     // We verify if the two regions in the same image
+    //     if (image->size() != r.image->size()) {
+    //         std::cout << "The two regions are not in the same image" << std::endl;
+    //         return *this;
+    //     }
+    //     // We create a new region
+    //     Region * new_region = new Region();
+    //     // We add the points of the two regions
+    //     while (!this->outline.empty()) {
+    //         cv::Point p = outline.front();
+    //         outline.pop();
+    //         new_region->outline->push(outline));
+    //     }
+    //     for (int i = 0; i < r.outline->size(); i++) {
+    //         new_region->outline->push(r.outline->at(i));
+    //     }
+    //     // We add the colors of the two regions
+    //     for (int i = 0; i < colors->size(); i++) {
+    //         new_region->colors->push_back(colors->at(i));
+    //     }
+    //     for (int i = 0; i < r.colors->size(); i++) {
+    //         new_region->colors->push_back(r.colors->at(i));
+    //     }
+    //     // We calculate the average color of the new region
+    //     new_region->averageColor();
+    //     new_region->averageColorSeuil();
+    //     return *new_region;
+    // }
 
     /**
      * This function display the region.
@@ -216,7 +221,7 @@ public:
         }
         cv::imshow(title, *image);
         // cv::waitKey(0);
-    }
+    };
 
     /**
      * Display the contour of image
@@ -236,11 +241,11 @@ public:
     // }
 
 private:
-    cv::Mat * image;
+    cv::Mat * image; // Content the region, Point traiter, Point to traiter
     cv::Vec3b color;
     cv::Vec3b color_seuil_inf;
     cv::Vec3b color_seuil_sup;
-    std::vector<cv::Point> * outline; // Content the points of outlin in the region
+    std::queue<cv::Point> * outline; // Content the points of outlin in the region
     // std::vector<cv::Point> * points; // Content the points of contour of the region
     std::vector<cv::Vec3b> * colors; // Content the colors of the region
     
@@ -314,26 +319,13 @@ private:
         // We verify if the point is not in the region
         if (image->at<cv::Vec3b>(p) == cv::Vec3b(0,0,0)) {
             // We verify if the point is in the contour of the region
-            if (image->at<cv::Vec3b>(p.x + 1, p.y) != cv::Vec3b(0,0,0) 
+            return (image->at<cv::Vec3b>(p.x + 1, p.y) != cv::Vec3b(0,0,0) 
                 || image->at<cv::Vec3b>(p.x - 1, p.y) != cv::Vec3b(0,0,0)
                 || image->at<cv::Vec3b>(p.x, p.y + 1) != cv::Vec3b(0,0,0)
-                || image->at<cv::Vec3b>(p.x, p.y - 1) != cv::Vec3b(0,0,0)) {
-                    outline->push_back(p);
-            }
+                || image->at<cv::Vec3b>(p.x, p.y - 1) != cv::Vec3b(0,0,0));
+        } else {
+            return false;
         }
-    }
-
-    /**
-     * Find a point in points
-     * return indice of the point in points
-    */
-    int findPointOutline(cv::Point p) {
-        for (int i = 0; i < outline->size(); i++) {
-            if (outline->at(i) == p) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     /**
@@ -341,40 +333,39 @@ private:
      * @param p The point add to the region
     */
     void updateContour(cv::Point p) {
-        // If the point is in the contour of the region, 
-        // We remove it from the contour
-        // if (findPoint(p) != -1) {
-        //     std::cout << "Point get " << outline->at(findPoint(p)).x << "/" << points->at(findPoint(p)).y << std::endl;
-        //     points->erase(points->begin() + findPoint(p));
-        //     std::cout << "Point remove " << p.x << "/" << p.y << std::endl;
-        // }
-
-        // Display all point of the contour
-        std::cout << "Contour size " << outline->size() << std::endl;
-        for (int i = 0; i < outline->size(); i++) {
-            std::cout << "Point " << i << std::endl;
-            std::cout << "Point " << outline->at(i).x << "/" << outline->at(i).y << std::endl;
-        }
-        std::cout << "END " << std::endl;
-
-        // We parcour the 4 points around the point
+        // We parcour the 4 points around the point,
+        // if a point is a new outline, we add it to the outline
         if (image->at<cv::Vec3b>(p.x + 1, p.y) == cv::Vec3b(0,0,0)) {
             image->at<cv::Vec3b>(cv::Point(p.x + 1, p.y)) = cv::Vec3b(255,1,1);
-            outline->push_back(cv::Point(p.x + 1, p.y));
+            std::cout << "Point add to contour " << p.x + 1 << "/" << p.y << std::endl;
+            outline->push(cv::Point(p.x + 1, p.y));
         }
         if (image->at<cv::Vec3b>(p.x - 1, p.y) == cv::Vec3b(0,0,0)) {
             image->at<cv::Vec3b>(cv::Point(p.x - 1, p.y)) = cv::Vec3b(255,1,1);
-            outline->push_back(cv::Point(p.x - 1, p.y));
+            std::cout << "Point add to contour " << p.x - 1 << "/" << p.y << std::endl;
+            outline->push(cv::Point(p.x - 1, p.y));
         }
         if (image->at<cv::Vec3b>(p.x, p.y + 1) == cv::Vec3b(0,0,0)) {
             image->at<cv::Vec3b>(cv::Point(p.x, p.y + 1)) = cv::Vec3b(255,1,1);
-            outline->push_back(cv::Point(p.x, p.y + 1));
+            std::cout << "Point add to contour " << p.x << "/" << p.y + 1 << std::endl;
+            outline->push(cv::Point(p.x, p.y + 1));
         }
         if (image->at<cv::Vec3b>(p.x, p.y - 1) == cv::Vec3b(0,0,0)) {
             image->at<cv::Vec3b>(cv::Point(p.x, p.y - 1)) = cv::Vec3b(255,1,1);
-            outline->push_back(cv::Point(p.x, p.y - 1));
+            std::cout << "Point add to contour " << p.x << "/" << p.y - 1 << std::endl;
+            outline->push(cv::Point(p.x, p.y - 1));
         }
+        // Display the contour
+        std::queue<cv::Point> _outlines = *outline;
+        std::cout << "It's queue of contour " << _outlines.size() <<std::endl;
+        while (!_outlines.empty()) {
+            cv::Point p = _outlines.front();
+            std::cout<<"size " << _outlines.size();
+            _outlines.pop();
+            std::cout << "Point in Contour " << p.x << "/" << p.y << std::endl;
+        }
+        std::cout << "End of queue of contour" << std::endl;
     }
 };
 
-#endif
+#endif // REGION_HPP

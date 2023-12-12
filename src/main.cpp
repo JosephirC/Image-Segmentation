@@ -16,12 +16,11 @@ int main() {
     regions.putSeeds(1);
 
     // We calculate the regions
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 5; i++) {
         regions.calculateRegions();
     }
     regions.display();
     // regions.displayContours();
-
 
     // // We calculate the regions
     // regions.calculateRegions();

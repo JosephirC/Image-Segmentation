@@ -51,7 +51,7 @@ public:
             Seed s(*image);
             seeds->push_back(s);
             // We put the seed in regions
-            Region r(s.getPoint(), image->at<cv::Vec3b>(s.getPoint()), *image);
+            Region r(s.getPoint(), *image);
             r.display();
             std::cout << "Region " << i << std::endl;
             regions->push_back(r);
@@ -73,17 +73,11 @@ public:
         std::cout << "Calculate regions" << std::endl;
         // For each region we calculate grow of this contour
         for (int i = 0; i < regions->size(); i++) {
-            std::vector<cv::Point> contour = regions->at(i).getContour();
-            std::cout << "Contour size" << contour.size() << std::endl;
-
+            std::queue<cv::Point>* contour = regions->at(i).getContour();
+            std::cout << "Contour size: " << contour->size() << std::endl;
             std::cout << "Region " << i << std::endl;
-            for (int j = 0; j < contour.size(); j++) {
-                std::cout << "Point " << j << std::endl;
-                // We get the color of the pixel
-                cv::Vec3b color = image->at<cv::Vec3b>(contour.at(j));
-                // We calculate the grow of the contour
-                regions->at(i).grow(contour.at(j), color);
-            }
+            // We calculate the grow of the region
+            regions->at(i).grow(*contour, *image);
         }
     }
 
@@ -114,7 +108,6 @@ private:
     cv::Mat * image;
     std::vector<Seed> * seeds;
     std::vector<Region> * regions;
-
 };
 
 #endif // CREATREGIONS_HPP
