@@ -11,15 +11,20 @@ int main() {
     // We display the image
     cv::imshow("Image", image);
     // We creat the regions
+
+    std::cout << "We creat the regions" << std::endl;
     CreatRegions regions(image);
     // We put the seeds in the image
     regions.putSeeds(1);
 
     // We calculate the regions
+    std::cout << "We calculate the regions" << std::endl;
     for (int i = 0; i < 5; i++) {
         regions.calculateRegions();
     }
-    regions.display();
+    // We display the regions
+    std::cout << "We display the regions" << std::endl;
+    // regions.display();
     // regions.displayContours();
 
     // // We calculate the regions
