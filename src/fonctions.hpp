@@ -280,7 +280,7 @@ cv::Mat appliquerFiltre(const cv::Mat& image, const cv::Mat& filtre) {
 }
 
 void comparaisonHist(cv::Mat& image, cv::Mat & hist) {
-     // On calcule l'histogramme de l'image avec openCV
+    // On calcule l'histogramme de l'image avec openCV
     HistogrammeGrisOpenCV(image);
 
     // On cré nous même l'histogramme
@@ -297,7 +297,6 @@ void comparasonEtirement(cv::Mat& image, cv::Mat& hist) {
     // On affiche l'histogramme cumulé 
     afficherHistogramme("Histogramme cumule", histCumule);
 
-
     // On étire l'histogramme version claire
     cv::Mat imageEtiree;
     etirerHistogramme(image, imageEtiree, 200, 255);
@@ -313,7 +312,6 @@ void comparasonEtirement(cv::Mat& image, cv::Mat& hist) {
     monCalcHist(imageEtiree, histEtiree);
     // Et on l'affiche 
     afficherHistogramme("Histogramme etire claire", histEtiree);
-
 
     // On étire l'histogramme verison sombre
     cv::Mat imageEtireev2;
@@ -347,7 +345,6 @@ void comparaisonEgalisation(cv::Mat& image) {
     // On affiche l'image égalisée
     cv::imshow("Image Egalisee sans formule", imageEgalisee);
 
-
     // On applique notre fonction d'égalisation avec la formule
     cv::Mat imageEgaliseeFormule;
     egalizeHistFormule(image, imageEgaliseeFormule);
@@ -359,26 +356,26 @@ void comparaisonEgalisation(cv::Mat& image) {
 
 void comparaisonConvolution(cv::Mat& image) {
     // On applique un filtre de détection de contours
-        cv::Mat filtreContours = (cv::Mat_<double>(3, 3) << -1, -1, -1, -1, 8, -1, -1, -1, -1);
-        // On applique le filtre
-        cv::Mat imageContours = appliquerFiltre(image, filtreContours);
-        // On met en "couleur" l'image des contours
-        cv::cvtColor(imageContours, imageContours, cv::COLOR_GRAY2BGR);
-        // On affiche l'image des contours
-        cv::imshow("Image Contours", imageContours);
+    cv::Mat filtreContours = (cv::Mat_<double>(3, 3) << -1, -1, -1, -1, 8, -1, -1, -1, -1);
+    // On applique le filtre
+    cv::Mat imageContours = appliquerFiltre(image, filtreContours);
+    // On met en "couleur" l'image des contours
+    cv::cvtColor(imageContours, imageContours, cv::COLOR_GRAY2BGR);
+    // On affiche l'image des contours
+    cv::imshow("Image Contours", imageContours);
 
-        // On applique un filtre de blur (noyeux) a taille reduite
-        cv::Mat filtreBlur = (cv::Mat_<double>(3, 3) << 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9);
-        // On applique le filtre
-        cv::Mat imageMasque = appliquerFiltre(image, filtreBlur);
-        // On met en "couleur" l'image des contours
-        cv::cvtColor(imageMasque, imageMasque, cv::COLOR_GRAY2BGR);
-        // On affiche l'image floutée
-        cv::imshow("Image filtre", imageMasque);
+    // On applique un filtre de blur (noyeux) a taille reduite
+    cv::Mat filtreBlur = (cv::Mat_<double>(3, 3) << 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9);
+    // On applique le filtre
+    cv::Mat imageMasque = appliquerFiltre(image, filtreBlur);
+    // On met en "couleur" l'image des contours
+    cv::cvtColor(imageMasque, imageMasque, cv::COLOR_GRAY2BGR);
+    // On affiche l'image floutée
+    cv::imshow("Image filtre", imageMasque);
 
-        // On applique un filtre de blur (noyeux) a taille reduite d'oepncv
-        cv::Mat imageBlur;
-        cv::GaussianBlur(image, imageBlur, cv::Size(3, 3), 0);
-        // On affiche l'image floutée
-        cv::imshow("Image filtre OpenCV", imageBlur);
+    // On applique un filtre de blur (noyeux) a taille reduite d'oepncv
+    cv::Mat imageBlur;
+    cv::GaussianBlur(image, imageBlur, cv::Size(3, 3), 0);
+    // On affiche l'image floutée
+    cv::imshow("Image filtre OpenCV", imageBlur);
 }
