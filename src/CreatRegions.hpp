@@ -45,6 +45,7 @@ public:
         seeds = new std::vector<Seed>();
         // We creat a new image to see the seeds
         cv::Mat * image_seeds = new cv::Mat(image->size(), image->type());
+        *image_seeds = image->clone();
 
         for (int i = 0; i < nb_seeds; i++) {
             Seed s(*image);
@@ -55,7 +56,7 @@ public:
             std::cout << "Region " << i << std::endl;
             regions->push_back(r);
             // We put the seed in the image
-            cv::circle(*image_seeds, s.getPoint(), 5, cv::Scalar(0, 0, 255), -1); // To see the seeds
+            cv::circle(*image_seeds, s.getPoint(), 1, cv::Scalar(0, 0, 255), -1); // To see the seeds
             std::cout << "Seed " << i << std::endl;
         }
         // We display the image with the seeds
@@ -94,6 +95,18 @@ public:
         for (int i = 0; i < regions->size(); i++) {
             std::cout << "Region " << i << std::endl;
             regions->at(i).display("Region :" + std::to_string(i));
+        }
+        cv::waitKey(0);
+    }
+
+    /**
+     * Display the contour regions
+    */
+    void displayContours() {
+        // We call the display function for each region
+        for (int i = 0; i < regions->size(); i++) {
+            std::cout << "Region " << i << std::endl;
+            // regions->at(i).displayContour("contour Region :" + std::to_string(i), *image);
         }
         cv::waitKey(0);
     }
