@@ -37,6 +37,7 @@ int main() {
     // We display the regions
     std::cout << "We display the regions" << std::endl;
     regions.display();
+    std::cout << "END" << std::endl; 
     // regions.displayContours();
 
     // // We calculate the regions

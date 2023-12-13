@@ -32,9 +32,9 @@ public:
         seeds = std::vector<Seed>(nb_seeds);
         regions = std::vector<Region *>(nb_seeds);
         tabInfo = new int*[img.cols];
-        for (int i = 0; i < img.cols; i++) {
-            tabInfo[i] = new int[img.rows];
-            for (int j = 0; j < img.rows; j++) {
+        for (int i = 0; i < size_x_tabInfo; i++) {
+            tabInfo[i] = new int[size_y_tabInfo];
+            for (int j = 0; j < size_y_tabInfo; j++) {
                 tabInfo[i][j] = 0;
             }
         }
@@ -44,19 +44,18 @@ public:
 
     /**
      * Destructor
-    */
+     */
     ~CreatRegions() {
-        
         delete image;
-        //delete seeds;
-        
-        //delete regions;
-        
-        // for (int i = 0; i < image->rows; ++i) {
-        //     delete tabInfo[i];
-        // }
-        // delete []tabInfo;
-        // std::cout << "End of CreatRegions" << std::endl;
+
+        for (int i = 0; i < nb_seeds; ++i) {
+            delete regions[i];
+        }
+
+        for (int i = 0; i < size_x_tabInfo; ++i) {
+            delete[] tabInfo[i];
+        }
+        delete[] tabInfo;
     }
 
     /**
@@ -71,13 +70,11 @@ public:
             // We creat a seed
             Seed s(*image);
             seeds.push_back(s);
-            std::cout << "Seed " << i << " : " << s.getPoint().x << "/" << s.getPoint().y << std::endl;
-            std::cout << tabInfo [173] [291] << std::endl;
             regions [i] = (new Region((i + 1), s.getPoint(), tabInfo, image));
             // We put the seed in the image
-            std::cout << "Seed " << i << " : " << s.getPoint().x << "/" << s.getPoint().y << std::endl;
+            // std::cout << "Seed " << i << " : " << s.getPoint().x << "/" << s.getPoint().y << std::endl;
             cv::circle(*image_seeds, s.getPoint(), 1, cv::Scalar(0, 0, 255), -1); // To see the seeds
-            std::cout << "Seed " << i << " : " << s.getPoint().x << "/" << s.getPoint().y << std::endl;
+            // std::cout << "Seed " << i << " : " << s.getPoint().x << "/" << s.getPoint().y << std::endl;
         }
         // We display the image with the seeds
         std::cout << "We display the image with the seeds" << std::endl;
@@ -121,22 +118,27 @@ public:
     void display() {
         // We call the display function for each region
         // we creat a new image to see the regions
-        cv::Mat * image_regions = new cv::Mat(image->size(), image->type());
+        cv::Mat * image_regions = new cv::Mat(image->clone());
         for (int i = 0; i < size_x_tabInfo - 1; i++) {
             for (int j = 0; j < size_y_tabInfo - 1; j++) {
-                if (tabInfo[i][j] != 0) {
-                    std::cout << "tabInfo[" << i << "][" << j << "] = " << tabInfo[i][j] << std::endl;
-                }
+                std::cout << "coo " << i << " / " <<  j << std :: endl;
+                std::cout << "tabInfo[" << i << "][" << j << "] = " << tabInfo[i][j] << std::endl;
                 int id = tabInfo[i][j];
                 if (id > 0) {
-                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = regions[id - 1]->getColor();
+                    // image_regions->at<cv::Vec3b>(cv::Point(i, j)) = regions[id - 1]->getColor();
+                    image_regions->at<cv::Vec3b>(i, j) = regions[id - 1]->getColor();
+
                 } else if (id < 0) {
-                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 255);
+                    // image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 255);
+                    image_regions->at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 255);
+
                 } else {
-                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 0);
+                    // image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 0);
+                    image_regions->at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
                 }
             }
         }
+        std::cout << "end display" << std::endl;
         // We display the image with the regions
         cv::imshow("Image with regions", *image_regions);
         cv::waitKey(0);
