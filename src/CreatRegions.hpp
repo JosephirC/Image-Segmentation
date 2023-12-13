@@ -73,7 +73,7 @@ public:
             seeds.push_back(s);
             std::cout << "Seed " << i << " : " << s.getPoint().x << "/" << s.getPoint().y << std::endl;
             std::cout << tabInfo [173] [291] << std::endl;
-            regions.push_back(new Region((i + 1), s.getPoint(), tabInfo, image));
+            regions [i] = (new Region((i + 1), s.getPoint(), tabInfo, image));
             // We put the seed in the image
             std::cout << "Seed " << i << " : " << s.getPoint().x << "/" << s.getPoint().y << std::endl;
             cv::circle(*image_seeds, s.getPoint(), 1, cv::Scalar(0, 0, 255), -1); // To see the seeds
@@ -111,7 +111,7 @@ public:
             // }
             // We calculate the grow of the region
             std::cout << "Region " << i << std::endl;
-            regions [i]->grow();
+            regions[i]->grow();
         }
     }
 

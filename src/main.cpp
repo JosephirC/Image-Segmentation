@@ -14,6 +14,8 @@ int main() {
 
     // We load the image
     cv::Mat image = cv::imread("Images/segmentation.png");
+    // cv::Mat image = cv::imread("Images/baboon_color.png");
+
     // cv::Mat image = cv::imread("Images/lena_color.png");
     std::cout << "size" << image.rows << " / " << image.cols <<std::endl;
 
@@ -23,13 +25,13 @@ int main() {
     
 
     std::cout << "We creat the regions" << std::endl;
-    CreatRegions regions(image, 10);
+    CreatRegions regions(image, 100);
     // We put the seeds in the image
     regions.putSeeds();
 
     // We calculate the regions
     std::cout << "We calculate the regions" << std::endl;
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 100; i++) {
         regions.calculateRegions();
     }
     // We display the regions
