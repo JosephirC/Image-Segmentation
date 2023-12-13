@@ -7,6 +7,7 @@
 #include <queue>
 
 const int SEUIL = 50;
+const float COEF = 1;
 
 // This function is used to display a color
 void displayColor (const cv::Vec3b& couleur) {
@@ -47,6 +48,7 @@ public:
                     image(imageOriginal),
                     outline(new std::queue<cv::Point>),
                     colors(new std::vector<cv::Vec3b>) {
+        
         std::cout << "Region constructor" << std::endl;
         colors->push_back(color);
         averageColorSeuil();
@@ -117,6 +119,7 @@ public:
         std::queue<cv::Point> _outlines = *outline;
         delete outline;
         outline = new std::queue<cv::Point>();
+        std::cout << "In grow" << std::endl;
         // We get all Point in queue
         while (!_outlines.empty()) {
             cv::Point p = _outlines.front();
@@ -124,14 +127,16 @@ public:
             cv::Vec3b col = image->at<cv::Vec3b>(p);
             // We verify if the point is in the image
             if (p.x < 0 || p.x >= image->rows || p.y < 0 || p.y >= image->cols) {
-                std::cout << "Point not in the image" << std::endl;
+                std::cout << "Point not in the image " << image->rows << " / " << image->cols << std::endl;
+                std::cout <<p.x<<"/ "<<p.y << std::endl;
             }
             // We verify if the point is not in an region
             if (tabInfo [p.x] [p.y] <= 0) {
                 if (verifyColor(col)) {
-                    std::cout << "Point in the region" << std::endl;
                     // If yes we add the point to the region
+                    std::cout << "Point add to the tab INFO " <<p.x<<"/ "<<p.y << std::endl;
                     tabInfo [p.x] [p.y] = id;
+                    std::cout << "Point add to the tab INFO " <<p.x<<"/ "<<p.y << std::endl;
                     colors->push_back(col);
                     // We update the average color of the region
                     averageColor();
@@ -139,15 +144,13 @@ public:
                     // And we update the contour of the region
                     updateContour(p);
                     // We verify updateConture
-                    std::cout << "We verify updateConture" << std::endl;
-                    std::queue<cv::Point> _outlines = *outline;
-                    std::cout << "It's queue of contour " << _outlines.size() <<std::endl;
-                    while (!_outlines.empty()) {
-                        cv::Point p = _outlines.front();
-                        std::cout<<"size " << _outlines.size();
-                        _outlines.pop();
-                        std::cout << "Point in Contour " << p.x << "/" << p.y << std::endl;
-                    }
+                    // std::queue<cv::Point> _outlines = *outline;
+                    // while (!_outlines.empty()) {
+                    //     cv::Point p = _outlines.front();
+                    //     std::cout<<"size " << _outlines.size();
+                    //     _outlines.pop();
+                    //     std::cout << "Point in Contour " << p.x << "/" << p.y << std::endl;
+                    // }
                     std::cout << "Point added " <<p.x<<"/ "<<p.y<<std::endl;
                 } else {
                     tabInfo [p.x] [p.y] = -1;
@@ -155,10 +158,11 @@ public:
                     // We remove the point from the contour of the region
                 }
            } else {
-                std::cout << "Point already in the region or traiter" << std::endl;
+                //std::cout << "Point already in the region or traiter" << std::endl;
            }
         
         }
+        std::cout << "END grow" << std::endl;
     };
 
     /**
@@ -244,6 +248,13 @@ public:
     };
 
     /**
+     * Get the color of the region
+    */
+    cv::Vec3b & getColor() {
+        return color;
+    };
+
+    /**
      * Display the contour of image
      * @param title The title of the image
      * @param img to display the contour in an image
@@ -298,21 +309,34 @@ private:
         int r = 0;
         int g = 0;
         int b = 0;
+        std::cout << "Colors size " << colors->size() << std::endl;
         if (colors->size() > 50) {
+            std::cout << "Seuil dynamic" << std::endl;
             // We calculate the standard deviation of the colors
             for (int i = 0; i < colors->size(); i++) {
                 r += pow(colors->at(i)[0] - color[0], 2);
                 g += pow(colors->at(i)[1] - color[1], 2);
                 b += pow(colors->at(i)[2] - color[2], 2);
             }
+
             r /= colors->size();
             g /= colors->size();
             b /= colors->size();
-            r = sqrt(r);
-            g = sqrt(g);
-            b = sqrt(b);
+            // Display the standard deviation
+            std::cout << "Standard deviation" << std::endl;
+            std::cout << "R : " << sqrt(r) << std::endl;
+            std::cout << "G : " << sqrt(g) << std::endl;
+            std::cout << "B : " << sqrt(b) << std::endl;
+            r = sqrt(r) * COEF;
+            g = sqrt(g) * COEF;
+            b = sqrt(b) * COEF;
             color_seuil_inf = cv::Vec3b(color[0] - r, color[1] - g, color[2] - b);
             color_seuil_sup = cv::Vec3b(color[0] + r, color[1] + g, color[2] + b);
+            // Display new seuil
+            std::cout << "Seuil inf" << std::endl;
+            displayColor(color_seuil_inf);
+            std::cout << "Seuil sup" << std::endl;
+            displayColor(color_seuil_sup);
         } else {
             // std::cout << "Seuil static" << std::endl;
             color_seuil_sup[0] = (static_cast<int>(color[0]) + SEUIL < 255) ? static_cast<int>(color[0]) + SEUIL : 255;
@@ -369,31 +393,31 @@ private:
         // We parcour the 4 points around the point,
         // if a point is a new outline, we add it to the outline
         if (verifyPoint(cv::Point(p.x + 1, p.y))) {
-            std::cout << "Point add to contour " << p.x + 1 << "/" << p.y << std::endl;
+            // std::cout << "Point add to contour " << p.x + 1 << "/" << p.y << std::endl;
             outline->push(cv::Point(p.x + 1, p.y));
         }
         if (verifyPoint(cv::Point(p.x - 1, p.y))) {
-            std::cout << "Point add to contour " << p.x - 1 << "/" << p.y << std::endl;
+            // std::cout << "Point add to contour " << p.x - 1 << "/" << p.y << std::endl;
             outline->push(cv::Point(p.x - 1, p.y));
         }
         if (verifyPoint(cv::Point(p.x, p.y + 1))) {
-            std::cout << "Point add to contour " << p.x << "/" << p.y + 1 << std::endl;
+            // std::cout << "Point add to contour " << p.x << "/" << p.y + 1 << std::endl;
             outline->push(cv::Point(p.x, p.y + 1));
         }
         if (verifyPoint(cv::Point(p.x, p.y - 1))) {
-            std::cout << "Point add to contour " << p.x << "/" << p.y - 1 << std::endl;
+            // std::cout << "Point add to contour " << p.x << "/" << p.y - 1 << std::endl;
             outline->push(cv::Point(p.x, p.y - 1));
         }
         std::cout<<"We are passed here"<<std::endl;
-        // // Display the contour
-        // std::queue<cv::Point> _outlines = *outline;
-        // std::cout << "It's queue of contour " << _outlines.size() <<std::endl;
-        // while (!_outlines.empty()) {
-        //     cv::Point p = _outlines.front();
-        //     std::cout<<"size " << _outlines.size();
-        //     _outlines.pop();
-        //     std::cout << "Point in Contour " << p.x << "/" << p.y << std::endl;
-        // }
+        // Display the contour
+        std::queue<cv::Point> _outlines = *outline;
+        std::cout << "It's queue of contour " << _outlines.size() <<std::endl;
+        while (!_outlines.empty()) {
+            cv::Point p = _outlines.front();
+            // std::cout<<"size " << _outlines.size();
+            _outlines.pop();
+            // std::cout << "Point in Contour " << p.x << "/" << p.y << std::endl;
+        }
         // std::cout << "End of queue of contour" << std::endl;
     }
 };
