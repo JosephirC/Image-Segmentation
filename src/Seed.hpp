@@ -21,7 +21,7 @@ public:
      * Constructor
     */
     Seed(cv::Mat img) {
-        // We choice a random point in the image
+        // We choose a random point in the image
         point = cv::Point(rand() % img.cols, rand() % img.rows);
     }
 

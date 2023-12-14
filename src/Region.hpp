@@ -269,6 +269,7 @@ private:
 
     /**
      * This function is used to calculate the seuil color of the region
+     * basee sur la moyenne et l'ecart type
     */
     void averageColorSeuil() {
         int r = 0;
