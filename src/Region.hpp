@@ -6,9 +6,6 @@
 #include <opencv2/opencv.hpp>
 #include <queue>
 
-const int SEUIL = 50;
-const float COEF = 1;
-
 // This function is used to display a color
 void displayColor (const cv::Vec3b& couleur) {
     std::cout << "Canal Bleu : " << static_cast<int>(couleur[0]) << std::endl;
@@ -39,22 +36,25 @@ public:
      * @param imageOriginal The original image
      * 
     */
-    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal):
+    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 50, float _coefSD = 10.5):
                     id(_id),
-                    size_x(imageOriginal->rows),
-                    size_y(imageOriginal->cols),
+                    size_x(imageOriginal->cols),
+                    size_y(imageOriginal->rows),
                     tabInfo(tabShare),
                     color(imageOriginal->at<cv::Vec3b>(p)), 
                     image(imageOriginal),
+                    threshold(_threshold),
+                    coefSD(_coefSD),
+                    isIncrease(false),
+                    border(new std::vector<cv::Point>),
                     outline(new std::queue<cv::Point>),
                     colors(new std::vector<cv::Vec3b>) {
-        
-        std::cout << "Region constructor" << std::endl;
+        // std::cout << "Region constructor" << std::endl;
         colors->push_back(color);
         averageColorSeuil();
         // We add the first point to the region
         outline->push(p);
-        std::cout << "We add the first point to the region" << std::endl;
+        // std::cout << "We add the first point to the region" << std::endl;
         grow();
     };
 
@@ -69,7 +69,7 @@ public:
         color_seuil_inf = r.color_seuil_inf;
         color_seuil_sup = r.color_seuil_sup;
         // We copy the outline and the colors
-        // std::queue<cv::Point> _outlinesCopie = r.getContour();
+        // std::queue<cv::Point> _outlinesCopie = r.getoutline();
         for (int i = 0; i < r.colors->size(); i++) {
             colors->push_back(r.colors->at(i));
         }
@@ -79,10 +79,10 @@ public:
      * Destructor
     */
     ~Region(){
-        std::cout << "Region destructor" << std::endl;
+        // std::cout << "Region destructor" << std::endl;
         delete outline;
         delete colors;
-        std::cout << "Region destructor" << std::endl;
+        // std::cout << "Region destructor" << std::endl;
     };
 
     /**
@@ -100,7 +100,7 @@ public:
             color_seuil_inf = r.color_seuil_inf;
             color_seuil_sup = r.color_seuil_sup;
             // We copy the outline and the colors
-            // std::queue<cv::Point> _outlinesCopie = r.getContour();
+            // std::queue<cv::Point> _outlinesCopie = r.getoutline();
 
             // while (!_outlinesCopie.empty()) {
             //     cv::Point p = _outlinesCopie.front();
@@ -119,14 +119,14 @@ public:
         std::queue<cv::Point> _outlines = *outline;
         delete outline;
         outline = new std::queue<cv::Point>();
-        std::cout << "In grow" << std::endl;
+        // std::cout << "In grow" << std::endl;
         // We get all Point in queue
         while (!_outlines.empty()) {
             cv::Point p = _outlines.front();
             _outlines.pop();
             cv::Vec3b col = image->at<cv::Vec3b>(p);
             // We verify if the point is in the image
-            if (p.x < 0 || p.x >= image->rows || p.y < 0 || p.y >= image->cols) {
+            if (p.x < 0 || p.x >= image->cols || p.y < 0 || p.y >= image->rows) {
                 std::cout << "Point not in the image " << image->rows << " / " << image->cols << std::endl;
                 std::cout <<p.x<<"/ "<<p.y << std::endl;
             }
@@ -134,35 +134,36 @@ public:
             if (tabInfo [p.x] [p.y] <= 0) {
                 if (verifyColor(col)) {
                     // If yes we add the point to the region
-                    std::cout << "Point add to the tab INFO " <<p.x<<"/ "<<p.y << std::endl;
+                    // std::cout << "Point add to the tab INFO " <<p.x<<"/ "<<p.y << std::endl;
                     tabInfo [p.x] [p.y] = id;
-                    std::cout << "Point add to the tab INFO " <<p.x<<"/ "<<p.y << std::endl;
+                    // std::cout << "Point add to the tab INFO " <<p.x<<"/ "<<p.y << std::endl;
                     colors->push_back(col);
                     // We update the average color of the region
                     averageColor();
                     averageColorSeuil();
-                    // And we update the contour of the region
-                    updateContour(p);
+                    // And we update the outline of the region
+                    updateoutline(p);
                     // We verify updateConture
                     // std::queue<cv::Point> _outlines = *outline;
                     // while (!_outlines.empty()) {
                     //     cv::Point p = _outlines.front();
                     //     std::cout<<"size " << _outlines.size();
                     //     _outlines.pop();
-                    //     std::cout << "Point in Contour " << p.x << "/" << p.y << std::endl;
+                    //     std::cout << "Point in outline " << p.x << "/" << p.y << std::endl;
                     // }
                     std::cout << "Point added " <<p.x<<"/ "<<p.y<<std::endl;
                 } else {
-                    tabInfo [p.x] [p.y] = -1;
+                    tabInfo [p.x] [p.y] = -1 * id;
+                    border->push_back(p);
                     std::cout << "Point not added " <<p.x<<"/ "<<p.y << std::endl;
-                    // We remove the point from the contour of the region
+                    // We remove the point from the outline of the region
                 }
            } else {
                 //std::cout << "Point already in the region or traiter" << std::endl;
            }
         
         }
-        std::cout << "END grow" << std::endl;
+        // std::cout << "END grow" << std::endl;
     };
 
     /**
@@ -175,25 +176,57 @@ public:
             return false;
         }
         // We verify if the two regions have the same color with the seuil
-        return verifyColor(r.color);
+        return verifyColor(r.color); // A REDEFINIR
     };
 
     /**
-     * Get the contour of the region
-     * @return the contour of the region
+     * Get the outline of the region
+     * @return the outline of the region
     */
-    std::queue<cv::Point> * getContour() {
-        // Display the contour
+    std::queue<cv::Point> * getoutline() {
+        // Display the outline
         std::queue<cv::Point> _outlines = *outline;
-        std::cout << "It's queue of contour =============" << _outlines.size() <<std::endl;
-        while (!_outlines.empty()) {
-            cv::Point p = _outlines.front();
-            std::cout<<"size " << _outlines.size();
-            _outlines.pop();
-            std::cout << "Point in Contour " << p.x << "/" << p.y << std::endl;
-        }
-        std::cout << "End of queue of contour" << std::endl;
+        // std::cout << "It's queue of outline =============" << _outlines.size() <<std::endl;
+        // while (!_outlines.empty()) {
+        //     cv::Point p = _outlines.front();
+        //     std::cout<<"size " << _outlines.size();
+        //     _outlines.pop();
+        //     std::cout << "Point in outline " << p.x << "/" << p.y << std::endl;
+        // }
+        // std::cout << "End of queue of outline" << std::endl;
         return new std::queue<cv::Point>(*outline);
+    };
+
+    /**
+     * Get the border of the region
+     * @return the border of the region
+    */
+    std::vector<cv::Point> * getborder() {
+        return new std::vector<cv::Point>(*border);
+    };
+
+    /**
+     * Set the outline of the region
+    */
+    void setoutline(std::queue<cv::Point> * _outline) {
+        outline = _outline;
+    };
+
+    /**
+     * Set the outline of the region
+    */
+    void setoutline(std::vector<cv::Point> * _outline) {
+        outline = new std::queue<cv::Point>();
+        for (int i = 0; i < _outline->size(); i++) {
+            outline->push(_outline->at(i));
+        }
+    };
+
+    /**
+     * Set the border of the region
+    */
+    void setborder(std::vector<cv::Point> * _border) {
+        border = _border;
     };
 
     /**
@@ -255,21 +288,48 @@ public:
     };
 
     /**
-     * Display the contour of image
+     * Display the outline of image
      * @param title The title of the image
-     * @param img to display the contour in an image
+     * @param img to display the outline in an image
     */
-    // void displayContour(const std::string title, const cv::Mat & img) {
-    //     cv::Mat * image_contour = new cv::Mat(img.size(), img.type());
-    //     *image_contour = img.clone();
-    //     // We put the contour in the image
+    // void displayoutline(const std::string title, const cv::Mat & img) {
+    //     cv::Mat * image_outline = new cv::Mat(img.size(), img.type());
+    //     *image_outline = img.clone();
+    //     // We put the outline in the image
     //     for (int i = 0; i < points->size(); i++) {
-    //         image_contour->at<cv::Vec3b>(points->at(i)) = cv::Vec3b(255,1,1);
+    //         image_outline->at<cv::Vec3b>(points->at(i)) = cv::Vec3b(255,1,1);
     //     }
-    //     cv::imshow(title, *image_contour);
+    //     cv::imshow(title, *image_outline);
     //     cv::waitKey(0);
-    //     delete image_contour;
+    //     delete image_outline;
     // }
+
+    /**
+     * For increase the seuil
+    */
+    void increaseThreshold() {
+        std::cout << "Increase threshold" << std::endl;
+        if (colors->size() > 50) {
+            if (threshold + 10 < 255) {
+                threshold += 10;
+            } else {
+                isIncrease = false;
+            }
+        } else {
+            if (coefSD * 1.4 < 10) {
+                coefSD *= 1.2;
+            } else {
+                isIncrease = false;
+            }
+        }
+    }
+
+    /**
+     * Get the isIncrease
+    */
+    bool getIsIncrease() {
+        return isIncrease;
+    }
 
 private:
     int id; // The id of the region
@@ -280,9 +340,12 @@ private:
     cv::Vec3b color; // Is the average color of the region
     cv::Vec3b color_seuil_inf; // Is the seuil color of the region
     cv::Vec3b color_seuil_sup; // Is the seuil color of the region
-    std::queue<cv::Point> * outline; // Content the points of outlin in the region
-    // std::vector<cv::Point> * points; // Content the points of contour of the region
+    std::queue<cv::Point> * outline; // Content the points of outlin in the region, this points are not traited
+    std::vector<cv::Point> * border; // Content the points border of the region, this points are traited
     std::vector<cv::Vec3b> * colors; // Content the colors of the region
+    int threshold;
+    float coefSD;
+    bool isIncrease;
     
     /**
      * This function is used to calculate the average color of the region
@@ -309,9 +372,9 @@ private:
         int r = 0;
         int g = 0;
         int b = 0;
-        std::cout << "Colors size " << colors->size() << std::endl;
+        // std::cout << "Colors size " << colors->size() << std::endl;
         if (colors->size() > 50) {
-            std::cout << "Seuil dynamic" << std::endl;
+            // std::cout << "Seuil dynamic" << std::endl;
             // We calculate the standard deviation of the colors
             for (int i = 0; i < colors->size(); i++) {
                 r += pow(colors->at(i)[0] - color[0], 2);
@@ -322,29 +385,38 @@ private:
             r /= colors->size();
             g /= colors->size();
             b /= colors->size();
+            r = sqrt(r) * coefSD;
+            g = sqrt(g) * coefSD;
+            b = sqrt(b) * coefSD;
             // Display the standard deviation
-            std::cout << "Standard deviation" << std::endl;
-            std::cout << "R : " << sqrt(r) << std::endl;
-            std::cout << "G : " << sqrt(g) << std::endl;
-            std::cout << "B : " << sqrt(b) << std::endl;
-            r = sqrt(r) * COEF;
-            g = sqrt(g) * COEF;
-            b = sqrt(b) * COEF;
+            std::cout << "Dynamic seuil ecart" << std::endl;
+            std::cout << "R : " << r << std::endl;
+            std::cout << "G : " << g << std::endl;
+            std::cout << "B : " << b << std::endl;
             color_seuil_inf = cv::Vec3b(color[0] - r, color[1] - g, color[2] - b);
             color_seuil_sup = cv::Vec3b(color[0] + r, color[1] + g, color[2] + b);
+            std::cout << "Dynamic static" << std::endl;
+            std::cout << "R : " <<(int)color_seuil_inf[0] << "/" <<(int) color_seuil_sup[0] << std::endl;
+            std::cout << "G : " <<(int)color_seuil_inf[1] << "/" <<(int) color_seuil_sup[1] << std::endl;
+            std::cout << "B : " <<(int)color_seuil_inf[2] << "/" <<(int) color_seuil_sup[2] << std::endl;
             // Display new seuil
-            std::cout << "Seuil inf" << std::endl;
-            displayColor(color_seuil_inf);
-            std::cout << "Seuil sup" << std::endl;
-            displayColor(color_seuil_sup);
+            // std::cout << "Seuil inf" << std::endl;
+            // displayColor(color_seuil_inf);
+            // std::cout << "Seuil sup" << std::endl;
+            // displayColor(color_seuil_sup);
         } else {
             // std::cout << "Seuil static" << std::endl;
-            color_seuil_sup[0] = (static_cast<int>(color[0]) + SEUIL < 255) ? static_cast<int>(color[0]) + SEUIL : 255;
-            color_seuil_sup[1] = (static_cast<int>(color[1]) + SEUIL < 255) ? static_cast<int>(color[1]) + SEUIL : 255;
-            color_seuil_sup[2] = (static_cast<int>(color[2]) + SEUIL < 255) ? static_cast<int>(color[2]) + SEUIL : 255;
-            color_seuil_inf[0] = (static_cast<int>(color[0]) - SEUIL > 0) ? static_cast<int>(color[0]) - SEUIL : 0;
-            color_seuil_inf[1] = (static_cast<int>(color[1]) - SEUIL > 0) ? static_cast<int>(color[1]) - SEUIL : 0;
-            color_seuil_inf[2] = (static_cast<int>(color[2]) - SEUIL > 0) ? static_cast<int>(color[2]) - SEUIL : 0;
+            color_seuil_sup[0] = (static_cast<int>(color[0]) + threshold < 255) ? static_cast<int>(color[0]) + threshold : 255;
+            color_seuil_sup[1] = (static_cast<int>(color[1]) + threshold < 255) ? static_cast<int>(color[1]) + threshold : 255;
+            color_seuil_sup[2] = (static_cast<int>(color[2]) + threshold < 255) ? static_cast<int>(color[2]) + threshold : 255;
+            color_seuil_inf[0] = (static_cast<int>(color[0]) - threshold > 0) ? static_cast<int>(color[0]) - threshold : 0;
+            color_seuil_inf[1] = (static_cast<int>(color[1]) - threshold > 0) ? static_cast<int>(color[1]) - threshold : 0;
+            color_seuil_inf[2] = (static_cast<int>(color[2]) - threshold > 0) ? static_cast<int>(color[2]) - threshold : 0;
+            // Display new seuil
+            std::cout << "Seuil static" << std::endl;
+            std::cout << "R : " <<(int)color_seuil_inf[0] << "/" <<(int) color_seuil_sup[0] << std::endl;
+            std::cout << "G : " <<(int)color_seuil_inf[1] << "/" <<(int) color_seuil_sup[1] << std::endl;
+            std::cout << "B : " <<(int)color_seuil_inf[2] << "/" <<(int) color_seuil_sup[2] << std::endl;
         }
     }
 
@@ -360,13 +432,13 @@ private:
     }
 
     /**
-     * This function is used to verify a point is in the contour of the region
+     * This function is used to verify a point is in the outline of the region
      * @param p The point to verify
     */
-    bool verifyContour(cv::Point p) {
+    bool verifyoutline(cv::Point p) {
         // We verify if the point is not in the region
         if (tabInfo[p.x] [p.y] == id) {
-            // We verify if the point is in the contour of the region
+            // We verify if the point is in the outline of the region
             
             return (tabInfo [(p.x + 1 < size_x)? p.x + 1:size_x ] [p.y] != id ||
                 tabInfo [p.x - 1 > 0?p.x - 1:0] [p.y] != id ||
@@ -382,43 +454,43 @@ private:
      * This function is used to verify if a point is in the image and is free
     */
     bool verifyPoint(cv::Point p) {
-        return (p.x >= 0 && p.x < size_x && p.y >= 0 && p.y < size_y && tabInfo[p.x][p.y] == 0);
+        return (p.x >= 0 && p.x < size_x && p.y >= 0 && p.y < size_y && tabInfo[p.x][p.y] != id * -1 && tabInfo[p.x][p.y] != id);
     }
 
     /**
-     * To update contour of the region
+     * To update outline of the region
      * @param p The point add to the region
     */
-    void updateContour(cv::Point p) {
+    void updateoutline(cv::Point p) {
         // We parcour the 4 points around the point,
         // if a point is a new outline, we add it to the outline
         if (verifyPoint(cv::Point(p.x + 1, p.y))) {
-            // std::cout << "Point add to contour " << p.x + 1 << "/" << p.y << std::endl;
+            // std::cout << "Point add to outline " << p.x + 1 << "/" << p.y << std::endl;
             outline->push(cv::Point(p.x + 1, p.y));
         }
         if (verifyPoint(cv::Point(p.x - 1, p.y))) {
-            // std::cout << "Point add to contour " << p.x - 1 << "/" << p.y << std::endl;
+            // std::cout << "Point add to outline " << p.x - 1 << "/" << p.y << std::endl;
             outline->push(cv::Point(p.x - 1, p.y));
         }
         if (verifyPoint(cv::Point(p.x, p.y + 1))) {
-            // std::cout << "Point add to contour " << p.x << "/" << p.y + 1 << std::endl;
+            // std::cout << "Point add to outline " << p.x << "/" << p.y + 1 << std::endl;
             outline->push(cv::Point(p.x, p.y + 1));
         }
         if (verifyPoint(cv::Point(p.x, p.y - 1))) {
-            // std::cout << "Point add to contour " << p.x << "/" << p.y - 1 << std::endl;
+            // std::cout << "Point add to outline " << p.x << "/" << p.y - 1 << std::endl;
             outline->push(cv::Point(p.x, p.y - 1));
         }
-        std::cout<<"We are passed here"<<std::endl;
-        // Display the contour
+        // std::cout<<"We are passed here"<<std::endl;
+        // Display the outline
         std::queue<cv::Point> _outlines = *outline;
-        std::cout << "It's queue of contour " << _outlines.size() <<std::endl;
+        // std::cout << "It's queue of outline " << _outlines.size() <<std::endl;
         while (!_outlines.empty()) {
             cv::Point p = _outlines.front();
             // std::cout<<"size " << _outlines.size();
             _outlines.pop();
-            // std::cout << "Point in Contour " << p.x << "/" << p.y << std::endl;
+            // std::cout << "Point in outline " << p.x << "/" << p.y << std::endl;
         }
-        // std::cout << "End of queue of contour" << std::endl;
+        // std::cout << "End of queue of outline" << std::endl;
     }
 };
 

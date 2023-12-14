@@ -25,13 +25,13 @@ public:
     CreatRegions(cv::Mat img, int nb_seeds) {
         // We creat a tab to keep regions.
         
-        size_x_tabInfo = img.rows;
-        size_y_tabInfo = img.cols;
+        size_x_tabInfo = img.cols;
+        size_y_tabInfo = img.rows;
         nb_regions = nb_seeds;
         this->nb_seeds = nb_seeds;
         seeds = std::vector<Seed>(nb_seeds);
         regions = std::vector<Region *>(nb_seeds);
-        tabInfo = new int*[img.cols];
+        tabInfo = new int*[size_x_tabInfo];
         for (int i = 0; i < size_x_tabInfo; i++) {
             tabInfo[i] = new int[size_y_tabInfo];
             for (int j = 0; j < size_y_tabInfo; j++) {
@@ -62,10 +62,10 @@ public:
      * Put the seeds in the image
     */
     void putSeeds() {        
-        std::cout << "size PutSeeds" << image->rows << " / " << image->cols <<std::endl;
+        // std::cout << "size PutSeeds" << image->rows << " / " << image->cols <<std::endl;
         // We creat a new image to see the seeds
         cv::Mat * image_seeds = new cv::Mat(image->clone());
-        std::cout << "size" << image->rows << image->cols <<std::endl;
+        // std::cout << "size" << image->rows << image->cols <<std::endl;
         for (int i = 0; i < nb_seeds; i++) {
             // We creat a seed
             Seed s(*image);
@@ -77,9 +77,9 @@ public:
             // std::cout << "Seed " << i << " : " << s.getPoint().x << "/" << s.getPoint().y << std::endl;
         }
         // We display the image with the seeds
-        std::cout << "We display the image with the seeds" << std::endl;
+        // std::cout << "We display the image with the seeds" << std::endl;
         cv::imshow("Image with seeds 1", *image_seeds);
-        std::cout << "End of putSeeds" << std::endl;
+        // std::cout << "End of putSeeds" << std::endl;
         // We wait for a key to be pressed
         cv::waitKey(0);
         // delete image_seeds;
@@ -89,26 +89,20 @@ public:
      * Calculate the regions
     */
     void calculateRegions() {
-        std::cout << "size Calculate" << image->rows << " / " << image->cols <<std::endl;
-        std::cout << "Calculate regions" << std::endl;
-        // For each region we calculate grow of this contour
+        // std::cout << "size Calculate" << image->rows << " / " << image->cols <<std::endl;
+        // std::cout << "Calculate regions" << std::endl;
+        // For each region we calculate grow of this outline
         for (int i = 0; i < nb_regions; i++) {
-            // std::queue<cv::Point>* contour = regions [i].getContour();
-            // std::cout << "Contour size: " << contour->size() << std::endl;
-            // std::cout << "Region " << i << std::endl;
-
-            //Display the contour
-            // std::queue<cv::Point> _outlines = *contour;
-            // std::cout << "It's queue of contour " << _outlines.size() <<std::endl;
-            // while (!_outlines.empty()) {
-            //     cv::Point p = _outlines.front();
-            //     std::cout<<"size " << _outlines.size();
-            //     _outlines.pop();
-            //     std::cout << "Point in Contour " << p.x << "/" << p.y << std::endl;
-            // }
-            // We calculate the grow of the region
-            std::cout << "Region " << i << std::endl;
-            regions[i]->grow();
+            if (regions[i]->getoutline()->size() > 0) {
+                regions[i]->grow();
+            } else {
+                std::cout << "Region " << i << " is empty" << std::endl;
+                if (regions[i]->getIsIncrease()) {
+                    regions[i]->increaseThreshold();
+                    regions[i]->setoutline(regions[i]->getborder());
+                    regions[i]->getborder()->clear();
+                }
+            }
         }
     }
 
@@ -119,39 +113,39 @@ public:
         // We call the display function for each region
         // we creat a new image to see the regions
         cv::Mat * image_regions = new cv::Mat(image->clone());
-        for (int i = 0; i < size_x_tabInfo - 1; i++) {
-            for (int j = 0; j < size_y_tabInfo - 1; j++) {
-                std::cout << "coo " << i << " / " <<  j << std :: endl;
-                std::cout << "tabInfo[" << i << "][" << j << "] = " << tabInfo[i][j] << std::endl;
+        for (int i = 0; i < size_x_tabInfo; i++) {
+            for (int j = 0; j < size_y_tabInfo; j++) {
+                // std::cout << "coo " << i << " / " <<  j << std :: endl;
+                // std::cout << "tabInfo[" << i << "][" << j << "] = " << tabInfo[i][j] << std::endl;
                 int id = tabInfo[i][j];
                 if (id > 0) {
                     // image_regions->at<cv::Vec3b>(cv::Point(i, j)) = regions[id - 1]->getColor();
-                    image_regions->at<cv::Vec3b>(i, j) = regions[id - 1]->getColor();
+                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = regions[id - 1]->getColor();
 
                 } else if (id < 0) {
                     // image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 255);
-                    image_regions->at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 255);
+                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 255);
 
                 } else {
                     // image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 0);
-                    image_regions->at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
+                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = image->at<cv::Vec3b>(cv::Point(i, j));/* cv::Vec3b(0, 0, 0); */
                 }
             }
         }
-        std::cout << "end display" << std::endl;
+        // std::cout << "end display" << std::endl;
         // We display the image with the regions
         cv::imshow("Image with regions", *image_regions);
         cv::waitKey(0);
     }
 
     /**
-     * Display the contour regions
+     * Display the outline regions
     */
-    void displayContours() {
+    void displayoutlines() {
         // We call the display function for each region
         for (int i = 0; i < nb_regions; i++) {
-            std::cout << "Region " << i << std::endl;
-            // regions->at(i).displayContour("contour Region :" + std::to_string(i), *image);
+            // std::cout << "Region " << i << std::endl;
+            // regions->at(i).displayoutline("outline Region :" + std::to_string(i), *image);
         }
         cv::waitKey(0);
     }

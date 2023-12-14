@@ -24,8 +24,8 @@ public:
         // We choice a random point in the image
         // point = cv::Point(rand() % img.cols, rand() % img.rows);
         // point = cv::Point(rand() % (img.rows - 1), rand() % (img.cols - 1));
-        point.x = rand() % (img.rows - 1);
-        point.y = rand() % (img.cols - 1);
+        point.x = rand() % (img.cols - 1);
+        point.y = rand() % (img.rows - 1);
 
     }
 
@@ -38,7 +38,7 @@ public:
      * Get the point
     */
     cv::Point getPoint() {
-        std::cout<< "GET THE POINT" << point.x << "/" << point.y << std::endl;
+        // std::cout<< "GET THE POINT" << point.x << "/" << point.y << std::endl;
         return point;
     }
 

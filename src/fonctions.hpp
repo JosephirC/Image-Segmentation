@@ -355,20 +355,20 @@ void comparaisonEgalisation(cv::Mat& image) {
 }
 
 void comparaisonConvolution(cv::Mat& image) {
-    // On applique un filtre de détection de contours
-    cv::Mat filtreContours = (cv::Mat_<double>(3, 3) << -1, -1, -1, -1, 8, -1, -1, -1, -1);
+    // On applique un filtre de détection de outlines
+    cv::Mat filtreoutlines = (cv::Mat_<double>(3, 3) << -1, -1, -1, -1, 8, -1, -1, -1, -1);
     // On applique le filtre
-    cv::Mat imageContours = appliquerFiltre(image, filtreContours);
-    // On met en "couleur" l'image des contours
-    cv::cvtColor(imageContours, imageContours, cv::COLOR_GRAY2BGR);
-    // On affiche l'image des contours
-    cv::imshow("Image Contours", imageContours);
+    cv::Mat imageoutlines = appliquerFiltre(image, filtreoutlines);
+    // On met en "couleur" l'image des outlines
+    cv::cvtColor(imageoutlines, imageoutlines, cv::COLOR_GRAY2BGR);
+    // On affiche l'image des outlines
+    cv::imshow("Image outlines", imageoutlines);
 
     // On applique un filtre de blur (noyeux) a taille reduite
     cv::Mat filtreBlur = (cv::Mat_<double>(3, 3) << 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9, 1.0/9);
     // On applique le filtre
     cv::Mat imageMasque = appliquerFiltre(image, filtreBlur);
-    // On met en "couleur" l'image des contours
+    // On met en "couleur" l'image des outlines
     cv::cvtColor(imageMasque, imageMasque, cv::COLOR_GRAY2BGR);
     // On affiche l'image floutée
     cv::imshow("Image filtre", imageMasque);
