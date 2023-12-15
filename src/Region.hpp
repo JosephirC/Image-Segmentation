@@ -29,8 +29,22 @@ public:
     /**
      * Constructor
     */
+<<<<<<< Updated upstream
     Region(cv::Point p, cv::Mat img): color(img.at<cv::Vec3b>(p)), 
                     image(new cv::Mat(img.size(), img.type())),
+=======
+    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 50, float _coefSD = 1.1):
+                    id(_id),
+                    size_x(imageOriginal->cols),
+                    size_y(imageOriginal->rows),
+                    tabInfo(tabShare),
+                    color(imageOriginal->at<cv::Vec3b>(p)), 
+                    image(imageOriginal),
+                    threshold(_threshold),
+                    coefSD(_coefSD),
+                    isIncrease(false),
+                    border(new std::vector<cv::Point>),
+>>>>>>> Stashed changes
                     outline(new std::queue<cv::Point>),
                     colors(new std::vector<cv::Vec3b>) {
         image = new cv::Mat(img.size(), img.type());
@@ -240,6 +254,53 @@ public:
     //     delete image_contour;
     // }
 
+<<<<<<< Updated upstream
+=======
+    /**
+     * For increase the seuil
+    */
+    // void increaseThreshold() {
+    //     std::cout << "Increase threshold" << std::endl;
+    //     if (colors->size() > 50) {
+    //         if (threshold + 10 < 255) {
+    //             threshold += 10;
+    //         } else {
+    //             isIncrease = false;
+    //         }
+    //     } else {
+    //         if (coefSD * 1.4 < 10) {
+    //             coefSD *= 1.2;
+    //         } else {
+    //             isIncrease = false;
+    //         }
+    //     }
+    // }
+
+    void increaseThreshold() {
+        std::cout << "Increase threshold" << std::endl;
+        if (colors->size() > 50) {
+            if (coefSD * 1.1 < 10) {
+                coefSD *= 1.1;
+            } else {
+                isIncrease = false;
+            }
+        } else {
+             if (threshold + 10 < 255) {
+                threshold += 10;
+            } else {
+                isIncrease = false;
+            }
+        }
+    }
+
+    /**
+     * Get the isIncrease
+    */
+    bool getIsIncrease() {
+        return isIncrease;
+    }
+
+>>>>>>> Stashed changes
 private:
     cv::Mat * image; // Content the region, Point traiter, Point to traiter
     cv::Vec3b color;
@@ -300,6 +361,55 @@ private:
             color_seuil_inf[2] = (static_cast<int>(color[2]) - SEUIL > 0) ? static_cast<int>(color[2]) - SEUIL : 0;
         }
     }
+
+    void averageColorSeuil2() {
+        int r = 0;
+        int g = 0;
+        int b = 0;
+
+        for (int i = 0; i < colors->size(); i++) {
+            r += colors->at(i)[0];
+            g += colors->at(i)[1];
+            b += colors->at(i)[2];
+        }
+
+        r /= colors->size();
+        g /= colors->size();
+        b /= colors->size();
+
+        // calcule de l'ecart type
+        double sd_r = 0.0;
+        double sd_g = 0.0;
+        double sd_b = 0.0;
+
+        for (int i = 0; i < colors->size(); i++) {
+            sd_r += pow(colors->at(i)[0] - r, 2);
+            sd_g += pow(colors->at(i)[1] - g, 2);
+            sd_b += pow(colors->at(i)[2] - b, 2);
+        }
+
+        sd_r = sqrt(sd_r / colors->size());
+        sd_g = sqrt(sd_g / colors->size());
+        sd_b = sqrt(sd_b / colors->size());
+
+        // J'aggrandit mon seuil en fontion de la region
+        int dynamic_threshold = static_cast<int>(coefSD * std::max(std::max(sd_r, sd_g), sd_b));
+
+        color_seuil_inf[0] = (r - dynamic_threshold > 0) ? static_cast<int>(r - dynamic_threshold) : 0;
+        color_seuil_inf[1] = (g - dynamic_threshold > 0) ? static_cast<int>(g - dynamic_threshold) : 0;
+        color_seuil_inf[2] = (b - dynamic_threshold > 0) ? static_cast<int>(b - dynamic_threshold) : 0;
+
+        color_seuil_sup[0] = (r + dynamic_threshold < 255) ? static_cast<int>(r + dynamic_threshold) : 255;
+        color_seuil_sup[1] = (g + dynamic_threshold < 255) ? static_cast<int>(g + dynamic_threshold) : 255;
+        color_seuil_sup[2] = (b + dynamic_threshold < 255) ? static_cast<int>(b + dynamic_threshold) : 255;
+
+        // Affichage
+        std::cout << "Dynamic Seuil" << std::endl;
+        std::cout << "R : " << static_cast<int>(color_seuil_inf[0]) << "/" << static_cast<int>(color_seuil_sup[0]) << std::endl;
+        std::cout << "G : " << static_cast<int>(color_seuil_inf[1]) << "/" << static_cast<int>(color_seuil_sup[1]) << std::endl;
+        std::cout << "B : " << static_cast<int>(color_seuil_inf[2]) << "/" << static_cast<int>(color_seuil_sup[2]) << std::endl;
+    }
+
 
     /**
      * This function is used to verify if the color is in the seuil of the region
