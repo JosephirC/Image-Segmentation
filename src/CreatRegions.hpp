@@ -130,12 +130,14 @@ public:
 
                 } else {
                     // image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 0);
-                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = image->at<cv::Vec3b>(cv::Point(i, j));/* cv::Vec3b(0, 0, 0); */
+                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = /*image->at<cv::Vec3b>(cv::Point(i, j));*/ cv::Vec3b(0, 0, 0);
                 }
             }
         }
         // std::cout << "end display" << std::endl;
         // We display the image with the regions
+        // Increase the size of the image
+        // cv::resize(*image_regions, *image_regions, cv::Size(), 2, 2, cv::INTER_NEAREST);
         cv::imshow("Image with regions", *image_regions);
         cv::waitKey(0);
     }

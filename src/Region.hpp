@@ -132,7 +132,7 @@ public:
                 std::cout <<p.x<<"/ "<<p.y << std::endl;
             }
             // We verify if the point is not in an region
-            if (tabInfo [p.x] [p.y] <= 0) {
+            if (tabInfo [p.x] [p.y] == 0) {
                 if (verifyColor(col)) {
                     // If yes we add the point to the region
                     // std::cout << "Point add to the tab INFO " <<p.x<<"/ "<<p.y << std::endl;
@@ -152,17 +152,20 @@ public:
                     //     _outlines.pop();
                     //     std::cout << "Point in outline " << p.x << "/" << p.y << std::endl;
                     // }
-                    std::cout << "Point added " <<p.x<<"/ "<<p.y<<std::endl;
+                    // std::cout << "Point added " <<p.x<<"/ "<<p.y<<std::endl;
                 } else {
                     tabInfo [p.x] [p.y] = -1 * id;
                     border->push_back(p);
-                    std::cout << "Point not added " <<p.x<<"/ "<<p.y << std::endl;
+                    // std::cout << "Point not added " <<p.x<<"/ "<<p.y << std::endl;
                     // We remove the point from the outline of the region
                 }
-           } else {
-                //std::cout << "Point already in the region or traiter" << std::endl;
-           }
-        
+            } else {
+                if (tabInfo [p.x] [p.y] == id || tabInfo [p.x] [p.y] == -1 * id) {
+                    // std::cout << "Point already in the region or traited" << std::endl;
+                } else {
+                    // std::cout << "Point already in an other region" << std::endl;
+                }
+            }
         }
         // std::cout << "END grow" << std::endl;
     };
@@ -202,7 +205,7 @@ public:
      * Get the border of the region
      * @return the border of the region
     */
-    std::vector<cv::Point> * getborder() {
+    std::vector<cv::Point> * getborder() const {
         return new std::vector<cv::Point>(*border);
     };
 
@@ -293,8 +296,8 @@ public:
     /**
      * Get the color of the region
     */
-    cv::Vec3b & getColor() {
-        return color;
+    cv::Vec3b getColor() const {
+        return cv::Vec3b(color);
     };
 
     /**
@@ -394,7 +397,6 @@ private:
                 g += pow(colors->at(i)[1] - color[1], 2);
                 b += pow(colors->at(i)[2] - color[2], 2);
             }
-
             r /= colors->size();
             g /= colors->size();
             b /= colors->size();
