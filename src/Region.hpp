@@ -160,7 +160,7 @@ public:
                     // We remove the point from the outline of the region
                 }
             } else {
-                if (tabInfo [p.x] [p.y] == id || tabInfo [p.x] [p.y] == -1 * id) {
+                if (tabInfo [p.x] [p.y] != id && tabInfo [p.x] [p.y] != -1 * id) {
                     // std::cout << "Point already in the region or traited" << std::endl;
                 } else {
                     // std::cout << "Point already in an other region" << std::endl;
