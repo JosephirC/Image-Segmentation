@@ -98,9 +98,11 @@ public:
             } else {
                 std::cout << "Region " << i << " is empty" << std::endl;
                 if (regions[i]->getIsIncrease()) {
+                    std::cout << "Region " << i << " is increase" << std::endl;
                     regions[i]->increaseThreshold();
                     regions[i]->setoutline(regions[i]->getborder());
-                    regions[i]->getborder()->clear();
+                    regions[i]->clearborder();
+                    regions[i]->grow();
                 }
             }
         }

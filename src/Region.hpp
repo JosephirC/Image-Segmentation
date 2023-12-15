@@ -36,7 +36,7 @@ public:
      * @param imageOriginal The original image
      * 
     */
-    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 50, float _coefSD = 10.5):
+    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 50, float _coefSD = 1.3):
                     id(_id),
                     size_x(imageOriginal->cols),
                     size_y(imageOriginal->rows),
@@ -45,7 +45,7 @@ public:
                     image(imageOriginal),
                     threshold(_threshold),
                     coefSD(_coefSD),
-                    isIncrease(false),
+                    isIncrease(true),
                     border(new std::vector<cv::Point>),
                     outline(new std::queue<cv::Point>),
                     colors(new std::vector<cv::Vec3b>) {
@@ -123,6 +123,7 @@ public:
         // We get all Point in queue
         while (!_outlines.empty()) {
             cv::Point p = _outlines.front();
+
             _outlines.pop();
             cv::Vec3b col = image->at<cv::Vec3b>(p);
             // We verify if the point is in the image
@@ -226,7 +227,16 @@ public:
      * Set the border of the region
     */
     void setborder(std::vector<cv::Point> * _border) {
+        delete border;
         border = _border;
+    };
+
+    /**
+     * Clear the border of the region
+    */
+    void clearborder() {
+        delete border;
+        border = new std::vector<cv::Point>;
     };
 
     /**
@@ -309,19 +319,22 @@ public:
     */
     void increaseThreshold() {
         std::cout << "Increase threshold" << std::endl;
-        if (colors->size() > 50) {
+        if (colors->size() < 50) {
             if (threshold + 10 < 255) {
                 threshold += 10;
             } else {
+                std::cout<< "FAUX" << std::endl;
                 isIncrease = false;
             }
         } else {
-            if (coefSD * 1.4 < 10) {
-                coefSD *= 1.2;
+            if (coefSD * 1.5 < 4) {
+                coefSD *= 1.5;
             } else {
+                std::cout<< "FAUX" << std::endl;
                 isIncrease = false;
             }
         }
+        averageColorSeuil();
     }
 
     /**
@@ -389,16 +402,22 @@ private:
             g = sqrt(g) * coefSD;
             b = sqrt(b) * coefSD;
             // Display the standard deviation
-            std::cout << "Dynamic seuil ecart" << std::endl;
-            std::cout << "R : " << r << std::endl;
-            std::cout << "G : " << g << std::endl;
-            std::cout << "B : " << b << std::endl;
-            color_seuil_inf = cv::Vec3b(color[0] - r, color[1] - g, color[2] - b);
-            color_seuil_sup = cv::Vec3b(color[0] + r, color[1] + g, color[2] + b);
-            std::cout << "Dynamic static" << std::endl;
-            std::cout << "R : " <<(int)color_seuil_inf[0] << "/" <<(int) color_seuil_sup[0] << std::endl;
-            std::cout << "G : " <<(int)color_seuil_inf[1] << "/" <<(int) color_seuil_sup[1] << std::endl;
-            std::cout << "B : " <<(int)color_seuil_inf[2] << "/" <<(int) color_seuil_sup[2] << std::endl;
+            // std::cout << "Dynamic seuil ecart" << std::endl;
+            // std::cout << "R : " << r << std::endl;
+            // std::cout << "G : " << g << std::endl;
+            // std::cout << "B : " << b << std::endl;
+            color_seuil_inf = cv::Vec3b(
+                (color[0] - r > 0)? color[0] - r:0,
+                (color[1] - g > 0)? color[1] - g:0,
+                (color[2] - b > 0)? color[2] - b:0);
+            color_seuil_sup = cv::Vec3b(
+                (color[0] + r > 255)? 255:color[0] + r,
+                (color[1] + g > 255)? 255:color[1] + g,
+                (color[2] + b > 255)? 255:color[2] + b);
+            // std::cout << "Dynamic static" << std::endl;
+            // std::cout << "R : " <<(int)color_seuil_inf[0] << "/" <<(int) color_seuil_sup[0] << std::endl;
+            // std::cout << "G : " <<(int)color_seuil_inf[1] << "/" <<(int) color_seuil_sup[1] << std::endl;
+            // std::cout << "B : " <<(int)color_seuil_inf[2] << "/" <<(int) color_seuil_sup[2] << std::endl;
             // Display new seuil
             // std::cout << "Seuil inf" << std::endl;
             // displayColor(color_seuil_inf);
@@ -413,10 +432,10 @@ private:
             color_seuil_inf[1] = (static_cast<int>(color[1]) - threshold > 0) ? static_cast<int>(color[1]) - threshold : 0;
             color_seuil_inf[2] = (static_cast<int>(color[2]) - threshold > 0) ? static_cast<int>(color[2]) - threshold : 0;
             // Display new seuil
-            std::cout << "Seuil static" << std::endl;
-            std::cout << "R : " <<(int)color_seuil_inf[0] << "/" <<(int) color_seuil_sup[0] << std::endl;
-            std::cout << "G : " <<(int)color_seuil_inf[1] << "/" <<(int) color_seuil_sup[1] << std::endl;
-            std::cout << "B : " <<(int)color_seuil_inf[2] << "/" <<(int) color_seuil_sup[2] << std::endl;
+            // std::cout << "Seuil static" << std::endl;
+            // std::cout << "R : " <<(int)color_seuil_inf[0] << "/" <<(int) color_seuil_sup[0] << std::endl;
+            // std::cout << "G : " <<(int)color_seuil_inf[1] << "/" <<(int) color_seuil_sup[1] << std::endl;
+            // std::cout << "B : " <<(int)color_seuil_inf[2] << "/" <<(int) color_seuil_sup[2] << std::endl;
         }
     }
 

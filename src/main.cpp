@@ -32,7 +32,7 @@ int main() {
 
     // We calculate the regions
     std::cout << "We calculate the regions" << std::endl;
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 100; i++) {
         regions.calculateRegions();
     }
     // We display the regions
