@@ -127,7 +127,6 @@ public:
                 } else if (id < 0) {
                     // image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 255);
                     image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 255);
-
                 } else {
                     // image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 0);
                     image_regions->at<cv::Vec3b>(cv::Point(i, j)) = /*image->at<cv::Vec3b>(cv::Point(i, j));*/ cv::Vec3b(0, 0, 0);
@@ -137,10 +136,46 @@ public:
         // std::cout << "end display" << std::endl;
         // We display the image with the regions
         // Increase the size of the image
-        // cv::resize(*image_regions, *image_regions, cv::Size(), 2, 2, cv::INTER_NEAREST);
+        cv::resize(*image_regions, *image_regions, cv::Size(), 2, 2, cv::INTER_NEAREST);
         cv::imshow("Image with regions", *image_regions);
         cv::waitKey(0);
     }
+
+    void display2() {
+        // Créer une palette de couleurs
+        std::vector<cv::Vec3b> colorPalette;
+        for (int i = 0; i < 700; ++i) {
+            // Générer des couleurs uniques pour chaque région
+            uchar r = static_cast<uchar>(std::rand() % 256);
+            uchar g = static_cast<uchar>(std::rand() % 256);
+            uchar b = static_cast<uchar>(std::rand() % 256);
+            colorPalette.push_back(cv::Vec3b(b, g, r));  // Utilisez BGR au lieu de RGB
+        }
+
+        // Créer une nouvelle image pour afficher les régions colorées
+        cv::Mat *image_regions = new cv::Mat(image->clone());
+
+        for (int i = 0; i < size_x_tabInfo; i++) {
+            for (int j = 0; j < size_y_tabInfo; j++) {
+                int id = tabInfo[i][j];
+                if (id > 0) {
+                    // Utiliser la couleur correspondant à l'identifiant de la région
+                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = colorPalette[id - 1];
+                } else if (id < 0) {
+                    // Régions non attribuées, les laisser en noir ou utilisez une autre couleur
+                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 0);
+                }
+            }
+        }
+
+        // Ajuster la taille de l'image pour l'affichage
+        cv::resize(*image_regions, *image_regions, cv::Size(), 2, 2, cv::INTER_NEAREST);
+
+        // Afficher l'image avec les régions colorées
+        cv::imshow("Image with colored regions", *image_regions);
+        cv::waitKey(0);
+    }
+
 
     /**
      * Display the outline regions
