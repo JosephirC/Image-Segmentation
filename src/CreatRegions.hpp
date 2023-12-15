@@ -176,6 +176,68 @@ public:
         cv::waitKey(0);
     }
 
+    // void displayWithRegionId() {
+    //     // Créer une copie de l'image originale
+    //     cv::Mat * image_regions = new cv::Mat(image->clone());
+
+    //     for (int i = 0; i < size_x_tabInfo; i++) {
+    //         for (int j = 0; j < size_y_tabInfo; j++) {
+    //             int id = tabInfo[i][j];
+
+    //             if (id > 0) {
+    //                 auto it = allRegionColors->find(id);
+
+    //                 if (it != allRegionColors->end()) {
+    //                     // Colorier le pixel avec la couleur de la région
+    //                     image_regions->at<cv::Vec3b>(cv::Point(i, j)) = it->second;
+    //                 } else {
+    //                     // Gérer le cas où l'ID de la région n'est pas dans allRegionColors
+    //                     std::cerr << "Erreur : ID de région introuvable dans allRegionColors" << std::endl;
+    //                 }
+    //             } else if (id < 0) {
+    //                 // Régions non attribuées, les laisser en noir ou utilisez une autre couleur
+    //                 image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 0);
+    //             }
+    //         }
+    //     }
+
+    //     // Ajuster la taille de l'image pour l'affichage
+    //     cv::resize(*image_regions, *image_regions, cv::Size(), 2, 2, cv::INTER_NEAREST);
+
+    //     // Afficher l'image avec les régions colorées
+    //     cv::imshow("Image with colored regions", *image_regions);
+    //     cv::waitKey(0);
+    // }
+
+    //displayWithRegionId aussi
+    void display3() {
+        // Créer une copie de l'image originale
+        cv::Mat * image_regions = new cv::Mat(image->clone());
+
+        for (int i = 0; i < size_x_tabInfo; i++) {
+            for (int j = 0; j < size_y_tabInfo; j++) {
+                int id = tabInfo[i][j];
+
+                if (id > 0) {
+                    // Utiliser la fonction membre pour obtenir la couleur de la région
+                    cv::Vec3b regionColor = regions[id - 1]->getColorById(id);
+                    
+                    // Colorier le pixel avec la couleur de la région
+                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = regionColor;
+                } else if (id < 0) {
+                    // Régions non attribuées, les laisser en noir ou utilisez une autre couleur
+                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 0);
+                }
+            }
+        }
+
+        // Ajuster la taille de l'image pour l'affichage
+        cv::resize(*image_regions, *image_regions, cv::Size(), 2, 2, cv::INTER_NEAREST);
+
+        // Afficher l'image avec les régions colorées
+        cv::imshow("Image with colored regions", *image_regions);
+        cv::waitKey(0);
+    }
 
     /**
      * Display the outline regions
