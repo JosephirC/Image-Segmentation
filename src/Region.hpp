@@ -5,6 +5,7 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <queue>
+#include <algorithm>
 
 // This function is used to display a color
 void displayColor (const cv::Vec3b& couleur) {
@@ -26,8 +27,9 @@ public:
         outline = new std::queue<cv::Point>();
         border = new std::vector<cv::Point>();
         colors = new std::vector<cv::Vec3b>();
+        color = cv::Vec3b(0,0,0);
 
-        allRegionColors = new std::unordered_map<int, cv::Vec3b>();
+        // allRegionColors = new std::unordered_map<int, cv::Vec3b>();
     };
 
     /**
@@ -43,15 +45,15 @@ public:
                     size_x(imageOriginal->cols),
                     size_y(imageOriginal->rows),
                     tabInfo(tabShare),
-                    color(imageOriginal->at<cv::Vec3b>(p)), 
                     image(imageOriginal),
+                    color(imageOriginal->at<cv::Vec3b>(p)), 
+                    outline(new std::queue<cv::Point>),
+                    border(new std::vector<cv::Point>),
+                    colors(new std::vector<cv::Vec3b>),
+                    // allRegionColors(new std::unordered_map<int, cv::Vec3b>),
                     threshold(_threshold),
                     coefSD(_coefSD),
-                    isIncrease(true),
-                    border(new std::vector<cv::Point>),
-                    outline(new std::queue<cv::Point>),
-                    colors(new std::vector<cv::Vec3b>),
-                    allRegionColors(new std::unordered_map<int, cv::Vec3b>) {
+                    isIncrease(true) {
         // std::cout << "Region constructor" << std::endl;
         colors->push_back(color);
         averageColorSeuil();
@@ -72,14 +74,14 @@ public:
         colors = new std::vector<cv::Vec3b>();
         
         // pas sur si le constructeur par copie d'un unordered_map est bon comme ca
-        allRegionColors = new std::unordered_map<int, cv::Vec3b>(*r.allRegionColors);
+        // allRegionColors = new std::unordered_map<int, cv::Vec3b>(*r.allRegionColors);
 
         color = r.color;
         color_seuil_inf = r.color_seuil_inf;
         color_seuil_sup = r.color_seuil_sup;
         // We copy the outline and the colors
         // std::queue<cv::Point> _outlinesCopie = r.getoutline();
-        for (int i = 0; i < r.colors->size(); i++) {
+        for (unsigned int i = 0; i < r.colors->size(); i++) {
             colors->push_back(r.colors->at(i));
         }
     };
@@ -108,8 +110,8 @@ public:
             delete outline;
             delete colors;
 
-            delete allRegionColors;
-            allRegionColors = new std::unordered_map<int, cv::Vec3b>(*r.allRegionColors);
+            // delete allRegionColors;
+            // allRegionColors = new std::unordered_map<int, cv::Vec3b>(*r.allRegionColors);
 
             tabInfo = r.tabInfo;
             outline = new std::queue<cv::Point>();
@@ -160,7 +162,7 @@ public:
                     // We update the average color of the region
                     averageColor();
 
-                    (*allRegionColors)[id] = color; // je stocke la couleur moyenen de la region dans la map
+                    // (*allRegionColors)[id] = color; // je stocke la couleur moyenen de la region dans la map
                     
                     averageColorSeuil();
                     // And we update the outline of the region
@@ -176,38 +178,38 @@ public:
         // std::cout << "END grow" << std::endl;
     };
 
-    void regionFusion(cv::Point point) {
-        // id will never be equal to 0
-        if (tabInfo[point.x][point.y] != id && tabInfo[point.x][point.y] != -1 * id) {
-            // On est tombe sur un point qui etait deja traite dans une autre region
+    // void regionFusion(cv::Point point) {
+    //     // id will never be equal to 0
+    //     if (tabInfo[point.x][point.y] != id && tabInfo[point.x][point.y] != -1 * id) {
+    //         // On est tombe sur un point qui etait deja traite dans une autre region
             
-            int neighborId = tabInfo[point.x][point.y];
-            std::unordered_map<int, cv::Vec3b>::iterator it = allRegionColors->find(neighborId);
-            cv::Vec3b neighborColor;
-            // Peut etre ca sera mieux de faire un boucle for sur l'iterator comme vu en prog avance ? 
-            if (it != allRegionColors->end()) {
-                neighborColor = it->second;
-            } else {
-                std::cout << "ERROR : neighborId not found in allRegionColors" << std::endl;
-            }
+    //         int neighborId = tabInfo[point.x][point.y];
+    //         // std::unordered_map<int, cv::Vec3b>::iterator it = allRegionColors->find(neighborId);
+    //         cv::Vec3b neighborColor;
+    //         // Peut etre ca sera mieux de faire un boucle for sur l'iterator comme vu en prog avance ? 
+    //         if (it != allRegionColors->end()) {
+    //             neighborColor = it->second;
+    //         } else {
+    //             std::cout << "ERROR : neighborId not found in allRegionColors" << std::endl;
+    //         }
 
-            if (neighborColor[0] >= color_seuil_inf[0] && neighborColor[1] >= color_seuil_inf[1] && neighborColor[2] >= color_seuil_inf[2] &&
-                neighborColor[0] <= color_seuil_sup[0] && neighborColor[1] <= color_seuil_sup[1] && neighborColor[2] <= color_seuil_sup[2]) {
-                // Fusion logic
-                (*allRegionColors)[id] = neighborColor;
-            } else {
-                // Regions cannot be fused
-                std::cout << "ERROR: regions can't be fused" << std::endl;
-            }
-        } else { // On est dans le cas ou le point est dans la region courante
-            if (tabInfo[point.x][point.y] == id) {
-                std::cout << "il n y a rien a faire le point est deja dans la region" << std::endl;
-            } 
-            if (tabInfo[point.x][point.y] == -1 * id) {
-                std::cout << "il n y a rien a faire le point est deja traite et il ne doit pas etre dans la region" << std::endl;
-            }
-        }
-    }
+    //         if (neighborColor[0] >= color_seuil_inf[0] && neighborColor[1] >= color_seuil_inf[1] && neighborColor[2] >= color_seuil_inf[2] &&
+    //             neighborColor[0] <= color_seuil_sup[0] && neighborColor[1] <= color_seuil_sup[1] && neighborColor[2] <= color_seuil_sup[2]) {
+    //             // Fusion logic
+    //             (*allRegionColors)[id] = neighborColor;
+    //         } else {
+    //             // Regions cannot be fused
+    //             std::cout << "ERROR: regions can't be fused" << std::endl;
+    //         }
+    //     } else { // On est dans le cas ou le point est dans la region courante
+    //         if (tabInfo[point.x][point.y] == id) {
+    //             std::cout << "il n y a rien a faire le point est deja dans la region" << std::endl;
+    //         } 
+    //         if (tabInfo[point.x][point.y] == -1 * id) {
+    //             std::cout << "il n y a rien a faire le point est deja traite et il ne doit pas etre dans la region" << std::endl;
+    //         }
+    //     }
+    // }
 
     /**
      * This function verify if two regions can be fused
@@ -260,7 +262,7 @@ public:
     */
     void setoutline(std::vector<cv::Point> * _outline) {
         outline = new std::queue<cv::Point>();
-        for (int i = 0; i < _outline->size(); i++) {
+        for (unsigned int i = 0; i < _outline->size(); i++) {
             outline->push(_outline->at(i));
         }
     };
@@ -318,6 +320,9 @@ public:
      * This function display the region.
     */
     void display(const std::string title = "Region", bool average = false) {
+        if (average) {
+            return;
+        }
         // We create a new image
         cv::Mat * image = new cv::Mat(size_x, size_y, CV_8UC3, cv::Scalar(0,0,0));
         // We put the points of the region in the image
@@ -370,7 +375,6 @@ public:
             }
         } else {
             if (coefSD * 1.2 < 2) {
-            if (coefSD * 1.2 < 2) {
                 coefSD *= 1.2;
             } else {
                 std::cout<< "FAUX" << std::endl;
@@ -387,23 +391,55 @@ public:
         return isIncrease;
     }
 
-    cv::Vec3b getColorById(int id) const {
-        auto it = allRegionColors->find(id);
-        if (it != allRegionColors->end()) {
-            return it->second;
-        } else {
-            // Gérer le cas où l'ID de la région n'est pas dans allRegionColors
-            // Vous pouvez retourner une couleur par défaut ou lever une exception, selon votre choix
-            std::cerr << "Erreur : ID de région introuvable dans allRegionColors" << std::endl;
-            return cv::Vec3b(0, 0, 0); // Couleur par défaut
-        }
-    }
+    // cv::Vec3b getColorById(int id) const {
+    //     auto it = allRegionColors->find(id);
+    //     if (it != allRegionColors->end()) {
+    //         return it->second;
+    //     } else {
+    //         // Gérer le cas où l'ID de la région n'est pas dans allRegionColors
+    //         // Vous pouvez retourner une couleur par défaut ou lever une exception, selon votre choix
+    //         std::cerr << "Erreur : ID de région introuvable dans allRegionColors" << std::endl;
+    //         return cv::Vec3b(0, 0, 0); // Couleur par défaut
+    //     }
+    // }
 
     /**
      * Get the id of the region
     */
     int getId() const {
         return id;
+    }
+
+    /**
+     * Make fuse between two regions
+    */
+    void operator+= (Region & r2) {
+        // We creat a new region
+        // Region * new_region = new Region();
+        // We add the points of the two regions and we delete points in common*
+        for (const auto& element : *(r2.border)) {
+            auto it = std::find(border->begin(), border->end(), element);
+
+            if (it != border->end()) {
+                // Point arleady in the vector, we delete it
+                border->erase(it);
+            } else {
+                // Point not in the vector, we add it
+                border->push_back(element);
+            }
+        }
+        // We add all point in the outline of the two regions
+        while (!r2.outline->empty()) {
+            cv::Point p = r2.outline->front();
+            r2.outline->pop();
+            outline->push(p);
+        }
+
+        // We add the colors of the two regions
+        colors->insert(colors->end(), r2.colors->begin(), r2.colors->end());
+        // We calculate the average color of the new region
+        averageColor();
+        averageColorSeuil();
     }
 
 private:
@@ -422,7 +458,7 @@ private:
     float coefSD;
     bool isIncrease;
 
-    std::unordered_map<int, cv::Vec3b> * allRegionColors; // cela permet a toutes les regions de savoir les couleurs des autres regions
+    // std::unordered_map<int, cv::Vec3b> * allRegionColors; // cela permet a toutes les regions de savoir les couleurs des autres regions
     
     /**
      * This function is used to calculate the average color of the region
@@ -431,7 +467,7 @@ private:
         int r = 0;
         int g = 0;
         int b = 0;
-        for (int i = 0; i < colors->size(); i++) {
+        for (unsigned int i = 0; i < colors->size(); i++) {
             r += colors->at(i)[0];
             g += colors->at(i)[1];
             b += colors->at(i)[2];
@@ -453,7 +489,7 @@ private:
         if (colors->size() > 50) {
             // std::cout << "Seuil dynamic" << std::endl;
             // We calculate the standard deviation of the colors
-            for (int i = 0; i < colors->size(); i++) {
+            for (unsigned int i = 0; i < colors->size(); i++) {
                 r += pow(colors->at(i)[0] - color[0], 2);
                 g += pow(colors->at(i)[1] - color[1], 2);
                 b += pow(colors->at(i)[2] - color[2], 2);
@@ -564,14 +600,14 @@ private:
         }
         // std::cout<<"We are passed here"<<std::endl;
         // Display the outline
-        std::queue<cv::Point> _outlines = *outline;
+        // std::queue<cv::Point> _outlines = *outline;
         // std::cout << "It's queue of outline " << _outlines.size() <<std::endl;
-        while (!_outlines.empty()) {
-            cv::Point p = _outlines.front();
-            // std::cout<<"size " << _outlines.size();
-            _outlines.pop();
-            // std::cout << "Point in outline " << p.x << "/" << p.y << std::endl;
-        }
+        // while (!_outlines.empty()) {
+        //     cv::Point p = _outlines.front();
+        //     // std::cout<<"size " << _outlines.size();
+        //     _outlines.pop();
+        //     // std::cout << "Point in outline " << p.x << "/" << p.y << std::endl;
+        // }
         // std::cout << "End of queue of outline" << std::endl;
     }
 };

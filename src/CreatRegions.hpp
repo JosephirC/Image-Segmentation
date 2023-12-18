@@ -110,56 +110,12 @@ public:
         }
     }
 
-<<<<<<< HEAD
-
-    /**
-     * Fusion of region
-    */
-    void calculateRegionToFuse() {
-        std::unordered_map<int, std::unordered_set<int>> regionCalculate = std::unordered_map<int, std::unordered_set<int>>();
-        for (int i = 0; i < nb_regions; i++) {
-            std::vector<cv::Point> * listeBorder = regions[i]->getborder();
-            for (const auto &points : *listeBorder) {
-                Region * regionInBorder = getRegion(points);
-                if (regionInBorder != nullptr) {
-                    if (regions[i]->verifyFusion(*regionInBorder)) {
-                        // save the region to fuse if this region is not already in the map
-                        if (regionCalculate.find(regionInBorder->getId()) == regionCalculate.end()) {
-                            if (regionCalculate.find(i) == regionCalculate.end()) {
-                                // We check if the region is not already to fuse for this region
-
-                                // Put id region to fuse
-                                regionCalculate[i] = std::unordered_set<int>();
-                                regionCalculate[i].insert(regionInBorder->getId());
-                            } else {
-                                // Put id region to fuse
-                                regionCalculate[i].insert(regionInBorder->getId());
-                            }
-                        }
-                    }
-                }
-            }            
-        }
-    }
-
-    /**
-     * Fusion of region
-    */
-    void fuseRegion (std::unordered_map<int, std::vector<int>> regionCalculate) {
-        for (const auto &region : regionCalculate) {
-            // std::cout << "Region " << region.first << " to fuse with ";
-            for (const auto &regionToFuse : region.second) {
-                // std::cout << regionToFuse << " ";
-                regions[region.first] += (regions[regionToFuse - 1]);
-            }
-            // std::cout << std::endl;
-=======
     std::vector<Region *> calculateRegions(std::vector<Region *> allRegions) {
         // std::cout << "size Calculate" << image->rows << " / " << image->cols <<std::endl;
         // std::cout << "Calculate regions" << std::endl;
         // For each region we calculate grow of this outline
         std::vector<Region *> newRegions = std::vector<Region *>();
-        for (int i = 0; i < allRegions.size(); i++) {
+        for (unsigned int i = 0; i < allRegions.size(); i++) {
             if (allRegions[i]->getoutline()->size() > 0) {
                 allRegions[i]->grow();
                 newRegions.push_back(allRegions[i]);
@@ -186,10 +142,84 @@ public:
                 break;
             }
             allRegions = calculateRegions(allRegions);
->>>>>>> 5988c585d95c6a8f79c094929b54f7c4d6984437
         }
     }
 
+    /**
+     * Fuse regions with 
+    */
+    Region * mergeRegions(Region & regionAtMerge, std::unordered_map<int, std::unordered_set<int>> & infos) {
+        // Get all region to merge in one region
+        std::unordered_set<int> regionsToMerge = infos[regionAtMerge.getId()];
+        
+        for (const int& element : regionsToMerge) {
+            // We fuse the region
+            if (infos.find(element) != infos.end()) {
+                // We get the region to merge
+                Region * regionToMerge = mergeRegions(*regions[element - 1], infos);
+                // We fuse the region
+                regionAtMerge += *regionToMerge;
+                // We delete the region to merge
+                delete regionToMerge;
+                // We delete the region to merge in the map
+                infos.erase(element);
+            } else {
+                // We fuse the region
+                regionAtMerge += *regions[element - 1];
+            }
+        }
+        return &regionAtMerge;
+    }
+
+
+
+    /**
+     * Calcul region to fuse
+    */
+    std::unordered_map<int, std::unordered_set<int>> calculateRegionToFuse() {
+        std::unordered_map<int, std::unordered_set<int>> regionCalculate = std::unordered_map<int, std::unordered_set<int>>();
+        for (int i = 0; i < nb_regions; i++) {
+            std::vector<cv::Point> * listeBorder = regions[i]->getborder();
+            for (const auto &points : *listeBorder) {
+                Region * regionInBorder = getRegion(points);
+                if (regionInBorder != nullptr) {
+                    if (regions[i]->verifyFusion(*regionInBorder)) {
+                        // save the region to fuse if this region is not already in the map
+                        if (regionCalculate.find(regionInBorder->getId()) == regionCalculate.end()) {
+                            if (regionCalculate.find(i) == regionCalculate.end()) {
+                                // We check if the region is not already to fuse for this region
+                                // Put id region to fuse
+                                regionCalculate[i] = std::unordered_set<int>();
+                                regionCalculate[i].insert(regionInBorder->getId());
+                            } else {
+                                // Put id region to fuse
+                                regionCalculate[i].insert(regionInBorder->getId());
+                            }
+                        }
+                    }
+                }
+            }            
+        }
+        return regionCalculate;
+    }
+
+    /**
+     * Merge regions
+    */
+    void merge () {
+        std::unordered_map<int, std::unordered_set<int>> infoRegionMerge = calculateRegionToFuse();
+        for (auto &element : infoRegionMerge) {
+            // We get the region to merge
+            Region * regionToMerge = mergeRegions(*regions[element.first - 1], infoRegionMerge);
+            // // We fuse the region
+            // *regions[element.first - 1] += *regionToMerge;
+            // // We delete the region to merge
+            // delete regionToMerge;
+            // We delete the region to merge in the map
+            infoRegionMerge.erase(element.first);
+        }
+    }
+    
     /**
      * Display the regions
     */
@@ -292,34 +322,34 @@ public:
     // }
 
     //displayWithRegionId aussi
-    void display3() {
-        // Créer une copie de l'image originale
-        cv::Mat * image_regions = new cv::Mat(image->clone());
+    // void display3() {
+    //     // Créer une copie de l'image originale
+    //     cv::Mat * image_regions = new cv::Mat(image->clone());
 
-        for (int i = 0; i < size_x_tabInfo; i++) {
-            for (int j = 0; j < size_y_tabInfo; j++) {
-                int id = tabInfo[i][j];
+    //     for (int i = 0; i < size_x_tabInfo; i++) {
+    //         for (int j = 0; j < size_y_tabInfo; j++) {
+    //             int id = tabInfo[i][j];
 
-                if (id > 0) {
-                    // Utiliser la fonction membre pour obtenir la couleur de la région
-                    cv::Vec3b regionColor = regions[id - 1]->getColorById(id);
+    //             if (id > 0) {
+    //                 // Utiliser la fonction membre pour obtenir la couleur de la région
+    //                 cv::Vec3b regionColor = regions[id - 1]->getColorById(id);
                     
-                    // Colorier le pixel avec la couleur de la région
-                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = regionColor;
-                } else if (id < 0) {
-                    // Régions non attribuées, les laisser en noir ou utilisez une autre couleur
-                    image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 0);
-                }
-            }
-        }
+    //                 // Colorier le pixel avec la couleur de la région
+    //                 image_regions->at<cv::Vec3b>(cv::Point(i, j)) = regionColor;
+    //             } else if (id < 0) {
+    //                 // Régions non attribuées, les laisser en noir ou utilisez une autre couleur
+    //                 image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 0);
+    //             }
+    //         }
+    //     }
 
-        // Ajuster la taille de l'image pour l'affichage
-        cv::resize(*image_regions, *image_regions, cv::Size(), 2, 2, cv::INTER_NEAREST);
+    //     // Ajuster la taille de l'image pour l'affichage
+    //     cv::resize(*image_regions, *image_regions, cv::Size(), 2, 2, cv::INTER_NEAREST);
 
-        // Afficher l'image avec les régions colorées
-        cv::imshow("Image with colored regions", *image_regions);
-        cv::waitKey(0);
-    }
+    //     // Afficher l'image avec les régions colorées
+    //     cv::imshow("Image with colored regions", *image_regions);
+    //     cv::waitKey(0);
+    // }
 
     /**
      * Display the outline regions

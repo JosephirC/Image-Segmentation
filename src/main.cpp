@@ -36,12 +36,13 @@ int main() {
     regions.putSeeds();
     // We calculate the regions
     std::cout << "We calculate the regions" << std::endl;
-    // for (int i = 0; i < 500; i++) {
-    //     regions.calculateRegions();
-    // }
+    for (int i = 0; i < 500; i++) {
+        regions.calculateRegions();
+    }
     
-    regions.calculateAllRegions(500);
-    
+    // regions.calculateAllRegions(500);
+    std::cout << "We merge the regions" << std::endl;
+    regions.merge();
     // We display the regions
     std::cout << "We display the regions" << std::endl;
     regions.display();
