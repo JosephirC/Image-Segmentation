@@ -171,6 +171,38 @@ void etirerHistogramme(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, i
     }
 }
 
+void etirerHistogrammeCouleur(const cv::Mat& image, cv::Mat& imageEtiree, int newMin, int newMax) {
+    // Assurez-vous que l'image est au format BGR
+    CV_Assert(image.channels() == 3);
+
+    // On crée une image vide pour stocker le résultat
+    imageEtiree = cv::Mat::zeros(image.size(), image.type());
+
+    // On parcourt chaque canal de l'image
+    for (int c = 0; c < image.channels(); ++c) {
+        // On trouve les valeurs minimales et maximales du canal actuel
+        double minVal, maxVal;
+        // cv::minMaxLoc(image, &minVal, &maxVal);
+        minMaxIm(image, minVal, maxVal);
+
+        // On calcule l'écart entre les valeurs minimales et maximales dans le canal
+        double newRange = newMax - newMin;
+
+        // On parcourt l'image et applique la transformation d'étirement pour le canal actuel
+        for (int i = 0; i < image.rows; ++i) {
+            for (int j = 0; j < image.cols; ++j) {
+                int pixelValue = static_cast<int>(image.at<cv::Vec3b>(i, j)[c]);
+
+                // On applique la transformation d'étirement avec la formule vue en classe
+                int newPixelValue = static_cast<int>((newRange * (pixelValue - minVal) / (maxVal - minVal)) + newMin);
+
+                // On met à jour la valeur du pixel dans l'image de sortie pour le canal actuel
+                imageEtiree.at<cv::Vec3b>(i, j)[c] = static_cast<uchar>(newPixelValue);
+            }
+        }
+    }
+}
+
 void normalizeHist(const cv::Mat& hist, cv::Mat& normalizedHist, int targetHeight) {
     // Trouver la valeur maximale de l'histogramme pour l'échelle
     double maxVal;

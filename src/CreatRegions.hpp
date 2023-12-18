@@ -144,7 +144,7 @@ public:
     void display2() {
         // Créer une palette de couleurs
         std::vector<cv::Vec3b> colorPalette;
-        for (int i = 0; i < 700; ++i) {
+        for (int i = 0; i < nb_regions; ++i) {
             // Générer des couleurs uniques pour chaque région
             uchar r = static_cast<uchar>(std::rand() % 256);
             uchar g = static_cast<uchar>(std::rand() % 256);
