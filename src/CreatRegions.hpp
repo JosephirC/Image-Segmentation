@@ -6,6 +6,8 @@
 #include <opencv2/opencv.hpp>
 #include "Region.hpp"
 #include "Seed.hpp"
+#include <set>
+#include <unordered_set>
 
 /**
  * Class calculate region in an image
@@ -105,6 +107,51 @@ public:
                     regions[i]->grow();
                 }
             }
+        }
+    }
+
+
+    /**
+     * Fusion of region
+    */
+    void calculateRegionToFuse() {
+        std::unordered_map<int, std::unordered_set<int>> regionCalculate = std::unordered_map<int, std::unordered_set<int>>();
+        for (int i = 0; i < nb_regions; i++) {
+            std::vector<cv::Point> * listeBorder = regions[i]->getborder();
+            for (const auto &points : *listeBorder) {
+                Region * regionInBorder = getRegion(points);
+                if (regionInBorder != nullptr) {
+                    if (regions[i]->verifyFusion(*regionInBorder)) {
+                        // save the region to fuse if this region is not already in the map
+                        if (regionCalculate.find(regionInBorder->getId()) == regionCalculate.end()) {
+                            if (regionCalculate.find(i) == regionCalculate.end()) {
+                                // We check if the region is not already to fuse for this region
+
+                                // Put id region to fuse
+                                regionCalculate[i] = std::unordered_set<int>();
+                                regionCalculate[i].insert(regionInBorder->getId());
+                            } else {
+                                // Put id region to fuse
+                                regionCalculate[i].insert(regionInBorder->getId());
+                            }
+                        }
+                    }
+                }
+            }            
+        }
+    }
+
+    /**
+     * Fusion of region
+    */
+    void fuseRegion (std::unordered_map<int, std::vector<int>> regionCalculate) {
+        for (const auto &region : regionCalculate) {
+            // std::cout << "Region " << region.first << " to fuse with ";
+            for (const auto &regionToFuse : region.second) {
+                // std::cout << regionToFuse << " ";
+                regions[region.first] += (regions[regionToFuse - 1]);
+            }
+            // std::cout << std::endl;
         }
     }
 
@@ -250,6 +297,17 @@ public:
         }
         cv::waitKey(0);
     }
+
+
+    Region * getRegion(cv::Point p) {
+        int id = tabInfo[p.x][p.y];
+        if (id > 0) {
+            return regions[id - 1];
+        } else {
+            return nullptr;
+        }
+    }
+
 private:
     cv::Mat * image;
     std::vector<Seed> seeds;

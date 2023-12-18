@@ -165,28 +165,12 @@ public:
                     averageColorSeuil();
                     // And we update the outline of the region
                     updateoutline(p);
-                    // We verify updateConture
-                    // std::queue<cv::Point> _outlines = *outline;
-                    // while (!_outlines.empty()) {
-                    //     cv::Point p = _outlines.front();
-                    //     std::cout<<"size " << _outlines.size();
-                    //     _outlines.pop();
-                    //     std::cout << "Point in outline " << p.x << "/" << p.y << std::endl;
-                    // }
-                    // std::cout << "Point added " <<p.x<<"/ "<<p.y<<std::endl;
                 } else {
                     tabInfo [p.x] [p.y] = -1 * id;
                     border->push_back(p);
-                    // std::cout << "Point not added " <<p.x<<"/ "<<p.y << std::endl;
-                    // We remove the point from the outline of the region
                 }
             } else {
-                // if (tabInfo [p.x] [p.y] != id && tabInfo [p.x] [p.y] != -1 * id) {
-                //     // std::cout << "Point already in the region or traited" << std::endl;
-                // } else {
-                //     // std::cout << "Point already in an other region" << std::endl;
-                // }
-                regionFusion(p);
+                border->push_back(p);
             }
         }
         // std::cout << "END grow" << std::endl;
@@ -385,7 +369,7 @@ public:
                 isIncrease = false;
             }
         } else {
-            if (coefSD * 1.2 < 3) {
+            if (coefSD * 1.2 < 2) {
                 coefSD *= 1.2;
             } else {
                 std::cout<< "FAUX" << std::endl;
@@ -412,6 +396,13 @@ public:
             std::cerr << "Erreur : ID de région introuvable dans allRegionColors" << std::endl;
             return cv::Vec3b(0, 0, 0); // Couleur par défaut
         }
+    }
+
+    /**
+     * Get the id of the region
+    */
+    int getId() const {
+        return id;
     }
 
 private:

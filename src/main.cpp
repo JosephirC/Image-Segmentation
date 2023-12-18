@@ -31,7 +31,7 @@ int main() {
     
 
     std::cout << "We creat the regions" << std::endl;
-    CreatRegions regions(image2, 40);
+    CreatRegions regions(image2, 400);
     // We put the seeds in the image
     regions.putSeeds();
 
@@ -43,6 +43,7 @@ int main() {
     // We display the regions
     std::cout << "We display the regions" << std::endl;
     regions.display();
+    regions.display2();
     std::cout << "END" << std::endl; 
     // regions.displayoutlines();
 
