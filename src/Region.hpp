@@ -370,6 +370,7 @@ public:
             }
         } else {
             if (coefSD * 1.2 < 2) {
+            if (coefSD * 1.2 < 2) {
                 coefSD *= 1.2;
             } else {
                 std::cout<< "FAUX" << std::endl;

@@ -34,12 +34,14 @@ int main() {
     CreatRegions regions(image2, 400);
     // We put the seeds in the image
     regions.putSeeds();
-
     // We calculate the regions
     std::cout << "We calculate the regions" << std::endl;
-    for (int i = 0; i < 200; i++) {
-        regions.calculateRegions();
-    }
+    // for (int i = 0; i < 500; i++) {
+    //     regions.calculateRegions();
+    // }
+    
+    regions.calculateAllRegions(500);
+    
     // We display the regions
     std::cout << "We display the regions" << std::endl;
     regions.display();
