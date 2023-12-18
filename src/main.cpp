@@ -15,18 +15,23 @@ int main() {
     // We load the image
     // cv::Mat image = cv::imread("Images/bigSegmentation.png");
     cv::Mat image = cv::imread("Images/segmentation.png");
+    cv::Mat image2;
+    etirerHistogrammeCouleur(image, image2, 0, 255);
+
+    cv::Mat imageShow = image2.clone();
     // cv::Mat image = cv::imread("Images/baboon_color.png");
 
     // cv::Mat image = cv::imread("Images/lena_color.png");
     std::cout << "size" << image.rows << " / " << image.cols <<std::endl;
 
     // We display the image
-    cv::imshow("Image", image);
+    cv::resize(imageShow, imageShow, cv::Size(), 4, 4, cv::INTER_NEAREST);
+    cv::imshow("Image", imageShow);
     // We creat the regions
     
 
     std::cout << "We creat the regions" << std::endl;
-    CreatRegions regions(image, 1500);
+    CreatRegions regions(image2, 40);
     // We put the seeds in the image
     regions.putSeeds();
 

@@ -150,7 +150,7 @@ public:
                 std::cout <<p.x<<"/ "<<p.y << std::endl;
             }
             // We verify if the point is not in an region
-            if (tabInfo [p.x] [p.y] == 0) {
+            if (tabInfo [p.x] [p.y] <= 0) {
                 if (verifyColor(col)) {
                     // If yes we add the point to the region
                     // std::cout << "Point add to the tab INFO " <<p.x<<"/ "<<p.y << std::endl;
@@ -378,15 +378,15 @@ public:
     void increaseThreshold() {
         std::cout << "Increase threshold" << std::endl;
         if (colors->size() < 30) {
-            if (threshold + 10 < 100) {
-                threshold += 10;
+            if (threshold + 5 < 50) {
+                threshold += 5;
             } else {
                 std::cout<< "FAUX" << std::endl;
                 isIncrease = false;
             }
         } else {
-            if (coefSD * 1.5 < 5) {
-                coefSD *= 1.5;
+            if (coefSD * 1.2 < 3) {
+                coefSD *= 1.2;
             } else {
                 std::cout<< "FAUX" << std::endl;
                 isIncrease = false;
