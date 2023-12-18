@@ -108,6 +108,41 @@ public:
         }
     }
 
+    std::vector<Region *> calculateRegions(std::vector<Region *> allRegions) {
+        // std::cout << "size Calculate" << image->rows << " / " << image->cols <<std::endl;
+        // std::cout << "Calculate regions" << std::endl;
+        // For each region we calculate grow of this outline
+        std::vector<Region *> newRegions = std::vector<Region *>();
+        for (int i = 0; i < allRegions.size(); i++) {
+            if (allRegions[i]->getoutline()->size() > 0) {
+                allRegions[i]->grow();
+                newRegions.push_back(allRegions[i]);
+            } else {
+                std::cout << "Region " << i << " is empty" << std::endl;
+                if (allRegions[i]->getIsIncrease()) {
+                    std::cout << "Region " << i << " is increase" << std::endl;
+                    allRegions[i]->increaseThreshold();
+                    allRegions[i]->setoutline(allRegions[i]->getborder());
+                    allRegions[i]->clearborder();
+                    allRegions[i]->grow();
+                    newRegions.push_back(allRegions[i]);
+                }
+            }
+        }
+        return newRegions;
+    }
+
+    void calculateAllRegions(int nbr) {
+        std::vector<Region *> allRegions(regions);
+        for (int i = 0; i < nbr; i++) {
+            if(allRegions.size() == 0) {
+                std::cout << "All regions are empty at " << i << std::endl;
+                break;
+            }
+            allRegions = calculateRegions(allRegions);
+        }
+    }
+
     /**
      * Display the regions
     */

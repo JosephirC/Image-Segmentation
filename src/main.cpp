@@ -31,18 +31,20 @@ int main() {
     
 
     std::cout << "We creat the regions" << std::endl;
-    CreatRegions regions(image2, 40);
+    CreatRegions regions(image2, 10);
     // We put the seeds in the image
     regions.putSeeds();
-
     // We calculate the regions
     std::cout << "We calculate the regions" << std::endl;
-    for (int i = 0; i < 200; i++) {
-        regions.calculateRegions();
-    }
+    // for (int i = 0; i < 500; i++) {
+    //     regions.calculateRegions();
+    // }
+    
+    regions.calculateAllRegions(500);
+    
     // We display the regions
     std::cout << "We display the regions" << std::endl;
-    regions.display();
+    regions.display2();
     std::cout << "END" << std::endl; 
     // regions.displayoutlines();
 

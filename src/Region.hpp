@@ -186,7 +186,7 @@ public:
                 // } else {
                 //     // std::cout << "Point already in an other region" << std::endl;
                 // }
-                regionFusion(p);
+                // regionFusion(p);
             }
         }
         // std::cout << "END grow" << std::endl;
@@ -385,7 +385,7 @@ public:
                 isIncrease = false;
             }
         } else {
-            if (coefSD * 1.2 < 3) {
+            if (coefSD * 1.2 < 2) {
                 coefSD *= 1.2;
             } else {
                 std::cout<< "FAUX" << std::endl;
