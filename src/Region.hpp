@@ -38,7 +38,7 @@ public:
      * @param imageOriginal The original image
      * 
     */
-    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 50, float _coefSD = 1.3):
+    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 20, float _coefSD = 1.3):
                     id(_id),
                     size_x(imageOriginal->cols),
                     size_y(imageOriginal->rows),
@@ -377,15 +377,15 @@ public:
     */
     void increaseThreshold() {
         std::cout << "Increase threshold" << std::endl;
-        if (colors->size() < 50) {
-            if (threshold + 10 < 255) {
+        if (colors->size() < 30) {
+            if (threshold + 10 < 100) {
                 threshold += 10;
             } else {
                 std::cout<< "FAUX" << std::endl;
                 isIncrease = false;
             }
         } else {
-            if (coefSD * 1.5 < 4) {
+            if (coefSD * 1.5 < 5) {
                 coefSD *= 1.5;
             } else {
                 std::cout<< "FAUX" << std::endl;

@@ -26,7 +26,7 @@ int main() {
     
 
     std::cout << "We creat the regions" << std::endl;
-    CreatRegions regions(image, 700);
+    CreatRegions regions(image, 1500);
     // We put the seeds in the image
     regions.putSeeds();
 
