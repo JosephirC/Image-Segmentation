@@ -95,7 +95,7 @@ public:
         // std::cout << "Calculate regions" << std::endl;
         // For each region we calculate grow of this outline
         for (int i = 0; i < nb_regions; i++) {
-            if (regions[i]->getoutline()->size() > 0) {
+            if (regions[i]->getoutline().size() > 0) {
                 regions[i]->grow();
             } else {
                 std::cout << "Region " << i << " is empty" << std::endl;
@@ -116,7 +116,7 @@ public:
         // For each region we calculate grow of this outline
         std::vector<Region *> newRegions = std::vector<Region *>();
         for (unsigned int i = 0; i < allRegions.size(); i++) {
-            if (allRegions[i]->getoutline()->size() > 0) {
+            if (allRegions[i]->getoutline().size() > 0) {
                 allRegions[i]->grow();
                 newRegions.push_back(allRegions[i]);
             } else {
@@ -146,32 +146,38 @@ public:
     }
 
     /**
-     * Fuse regions with 
+     * Fuse regions with infos to merge
     */
-    Region * mergeRegions(Region & regionAtMerge, std::unordered_map<int, std::unordered_set<int>> & infos) {
+    Region & mergeRegions(Region & regionAtMerge, std::unordered_map<int, std::unordered_set<int>> & infos, std::vector<int> & idRegionMerged) {
         // Get all region to merge in one region
         std::unordered_set<int> regionsToMerge = infos[regionAtMerge.getId()];
-        
+        // If region have not region to merge
+        if (regionsToMerge.size() == 0) {
+            return regionAtMerge;
+        }
         for (const int& element : regionsToMerge) {
             // We fuse the region
             if (infos.find(element) != infos.end()) {
                 // We get the region to merge
-                Region * regionToMerge = mergeRegions(*regions[element - 1], infos);
-                // We fuse the region
-                regionAtMerge += *regionToMerge;
-                // We delete the region to merge
-                delete regionToMerge;
-                // We delete the region to merge in the map
-                infos.erase(element);
+                Region * regionToMerge = regions[element - 1];
+                if (regionToMerge != nullptr) {
+                    Region regionMerged = mergeRegions(*regionToMerge, infos, idRegionMerged);
+                    // We fuse the region
+                    regionAtMerge += regionMerged;
+                    // We delete the region to merge
+                    delete regionToMerge;
+                    regions[element - 1] = nullptr;
+                    idRegionMerged.push_back(element);
+                    // We delete the region to merge in the map
+                    infos.erase(element);
+                }
             } else {
                 // We fuse the region
                 regionAtMerge += *regions[element - 1];
             }
         }
-        return &regionAtMerge;
+        return regionAtMerge;
     }
-
-
 
     /**
      * Calcul region to fuse
@@ -179,22 +185,20 @@ public:
     std::unordered_map<int, std::unordered_set<int>> calculateRegionToFuse() {
         std::unordered_map<int, std::unordered_set<int>> regionCalculate = std::unordered_map<int, std::unordered_set<int>>();
         for (int i = 0; i < nb_regions; i++) {
-            std::vector<cv::Point> * listeBorder = regions[i]->getborder();
-            for (const auto &points : *listeBorder) {
+            std::vector<cv::Point> listeBorder = regions[i]->getborder();
+            for (const auto &points : listeBorder) {
                 Region * regionInBorder = getRegion(points);
-                if (regionInBorder != nullptr) {
-                    if (regions[i]->verifyFusion(*regionInBorder)) {
-                        // save the region to fuse if this region is not already in the map
-                        if (regionCalculate.find(regionInBorder->getId()) == regionCalculate.end()) {
-                            if (regionCalculate.find(i) == regionCalculate.end()) {
-                                // We check if the region is not already to fuse for this region
-                                // Put id region to fuse
-                                regionCalculate[i] = std::unordered_set<int>();
-                                regionCalculate[i].insert(regionInBorder->getId());
-                            } else {
-                                // Put id region to fuse
-                                regionCalculate[i].insert(regionInBorder->getId());
-                            }
+                if (regionInBorder != nullptr && regions[i]->verifyFusion(*regionInBorder)) {
+                    // save the region to fuse if this region is not already in the map
+                    if (regionCalculate.find(regionInBorder->getId()) == regionCalculate.end()) {
+                        if (regionCalculate.find(i) == regionCalculate.end()) {
+                            // We check if the region is not already to fuse for this region
+                            // Put id region to fuse
+                            regionCalculate[i] = std::unordered_set<int>();
+                            regionCalculate[i].insert(regionInBorder->getId());
+                        } else {
+                            // Put id region to fuse
+                            regionCalculate[i].insert(regionInBorder->getId());
                         }
                     }
                 }
@@ -210,13 +214,7 @@ public:
         std::unordered_map<int, std::unordered_set<int>> infoRegionMerge = calculateRegionToFuse();
         for (auto &element : infoRegionMerge) {
             // We get the region to merge
-            Region * regionToMerge = mergeRegions(*regions[element.first - 1], infoRegionMerge);
-            // // We fuse the region
-            // *regions[element.first - 1] += *regionToMerge;
-            // // We delete the region to merge
-            // delete regionToMerge;
-            // We delete the region to merge in the map
-            infoRegionMerge.erase(element.first);
+            Region regionToMerge = mergeRegions(*regions[element.first - 1] , infoRegionMerge);
         }
     }
     
@@ -363,7 +361,9 @@ public:
         cv::waitKey(0);
     }
 
-
+    /**
+     * Return region in a point
+    */
     Region * getRegion(cv::Point p) {
         int id = tabInfo[p.x][p.y];
         if (id > 0) {
@@ -371,6 +371,13 @@ public:
         } else {
             return nullptr;
         }
+    }
+
+    /**
+     * Return the id of regions
+    */
+    int getIdRegion(cv::Point p) {
+        return tabInfo[p.x][p.y];
     }
 
 private:
