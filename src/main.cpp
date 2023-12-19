@@ -10,7 +10,7 @@ int main() {
     std::cout << "We start the program" << std::endl;
 
     // We initialize the random number generator
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+    // std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
     // We load the image
     // cv::Mat image = cv::imread("Images/bigSegmentation.png");
@@ -31,15 +31,17 @@ int main() {
     
 
     std::cout << "We creat the regions" << std::endl;
-    CreatRegions regions(image2, 400);
+    CreatRegions regions(image2, 30);
     // We put the seeds in the image
     regions.putSeeds();
     // We calculate the regions
     std::cout << "We calculate the regions" << std::endl;
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 200; i++) {
         regions.calculateRegions();
     }
-    
+
+    regions.display();
+    regions.display2();
     // regions.calculateAllRegions(500);
     std::cout << "We merge the regions" << std::endl;
     regions.merge();

@@ -18,6 +18,7 @@ all: $(EXECUTABLE)
 
 clean:
 	rm -rf $(OBJ_DIR)/*.o $(EXECUTABLE)
+	rm -rf *.o
 
 .DEFAULT_GOAL := all
 

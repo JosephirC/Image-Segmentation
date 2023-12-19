@@ -155,7 +155,9 @@ public:
                     border->push_back(p);
                 }
             } else {
-                border->push_back(p);
+                std::cout << "I am " << id << "Point in an other region " << tabInfo [p.x] [p.y] << std::endl;
+                if (tabInfo [p.x] [p.y] != id)
+                    border->push_back(p);
             }
         }
         // std::cout << "END grow" << std::endl;
@@ -437,7 +439,7 @@ private:
      * This function is used to verify if a point is in the image and is free
     */
     bool verifyPoint(cv::Point p) const {
-        return (p.x >= 0 && p.x < size_x && p.y >= 0 && p.y < size_y && tabInfo[p.x][p.y] != id * -1 && tabInfo[p.x][p.y] != id);
+        return (p.x >= 0 && p.x < size_x && p.y >= 0 && p.y < size_y && tabInfo[p.x][p.y] != id * -1 && tabInfo[p.x][p.y] <= 0);
     }
 
     /**
@@ -445,23 +447,28 @@ private:
      * @param p The point add to the region
     */
     void updateoutline(cv::Point p) {
+        
         // We parcour the 4 points around the point,
         // if a point is a new outline, we add it to the outline
         if (verifyPoint(cv::Point(p.x + 1, p.y))) {
             // std::cout << "Point add to outline " << p.x + 1 << "/" << p.y << std::endl;
             outline->push(cv::Point(p.x + 1, p.y));
+            tabInfo [p.x + 1] [p.y] = id * -1;
         }
         if (verifyPoint(cv::Point(p.x - 1, p.y))) {
             // std::cout << "Point add to outline " << p.x - 1 << "/" << p.y << std::endl;
             outline->push(cv::Point(p.x - 1, p.y));
+            tabInfo [p.x - 1] [p.y] = id * -1;
         }
         if (verifyPoint(cv::Point(p.x, p.y + 1))) {
             // std::cout << "Point add to outline " << p.x << "/" << p.y + 1 << std::endl;
             outline->push(cv::Point(p.x, p.y + 1));
+            tabInfo [p.x] [p.y + 1] = id * -1;
         }
         if (verifyPoint(cv::Point(p.x, p.y - 1))) {
             // std::cout << "Point add to outline " << p.x << "/" << p.y - 1 << std::endl;
             outline->push(cv::Point(p.x, p.y - 1));
+            tabInfo [p.x] [p.y - 1] = id * -1;
         }
     }
 };

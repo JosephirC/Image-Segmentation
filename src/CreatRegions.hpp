@@ -148,7 +148,7 @@ public:
     /**
      * Fuse regions with infos to merge
     */
-    Region & mergeRegions(Region & regionAtMerge, std::unordered_map<int, std::unordered_set<int>> & infos, std::vector<int> & idRegionMerged) {
+    Region & mergeRegions(Region & regionAtMerge, std::unordered_map<int, std::unordered_set<int>> & infos) {
         // Get all region to merge in one region
         std::unordered_set<int> regionsToMerge = infos[regionAtMerge.getId()];
         // If region have not region to merge
@@ -156,27 +156,42 @@ public:
             return regionAtMerge;
         }
         for (const int& element : regionsToMerge) {
-            // We fuse the region
-            if (infos.find(element) != infos.end()) {
-                // We get the region to merge
-                Region * regionToMerge = regions[element - 1];
-                if (regionToMerge != nullptr) {
-                    Region regionMerged = mergeRegions(*regionToMerge, infos, idRegionMerged);
+            std::cout << "SOUS Merge region " << element << std::endl;
+            // We get the region to merge
+            Region * regionToMerge = regions[element - 1];
+            if (regionToMerge != nullptr) {
+                // We fuse the region
+                if (infos.find(element) != infos.end()) {
+                    std::cout << "SOUS SOUS Merge region " << std::endl;
+                    Region regionMerged = mergeRegions(*regionToMerge, infos);
                     // We fuse the region
                     regionAtMerge += regionMerged;
                     // We delete the region to merge
                     delete regionToMerge;
-                    regions[element - 1] = nullptr;
-                    idRegionMerged.push_back(element);
+                    regions[element - 1] = &regionAtMerge;
                     // We delete the region to merge in the map
                     infos.erase(element);
+                } else {
+                    // We fuse the region
+                    regionAtMerge += *regions[element - 1];
+                    regions[element - 1] = &regionAtMerge;
                 }
             } else {
-                // We fuse the region
-                regionAtMerge += *regions[element - 1];
+                // Region does'nt exist (maybe aleready fuse)
+                regionsToMerge.erase(element);
             }
         }
         return regionAtMerge;
+    }
+
+    /**
+     * Display list of point
+    */
+    void displayListPoint(std::vector<cv::Point> & listPoint) {
+        for (const auto &element : listPoint) {
+            std::cout << " Point " << element.x << " / " << element.y << " | " << tabInfo[element.x][element.y] << " /// ";
+        }
+        std::cout << std::endl;
     }
 
     /**
@@ -186,6 +201,8 @@ public:
         std::unordered_map<int, std::unordered_set<int>> regionCalculate = std::unordered_map<int, std::unordered_set<int>>();
         for (int i = 0; i < nb_regions; i++) {
             std::vector<cv::Point> listeBorder = regions[i]->getborder();
+            std::cout<< "border REGION " << i << " : " << std::endl;
+            displayListPoint(listeBorder);
             for (const auto &points : listeBorder) {
                 Region * regionInBorder = getRegion(points);
                 if (regionInBorder != nullptr && regions[i]->verifyFusion(*regionInBorder)) {
@@ -208,13 +225,28 @@ public:
     }
 
     /**
+     * Display  std::unordered_map<int, std::unordered_set<int>>
+    */
+    void displayMap(std::unordered_map<int, std::unordered_set<int>> & map) {
+        for (const auto &element : map) {
+            std::cout << "Region " << element.first << " : ";
+            for (const auto &element2 : element.second) {
+                std::cout << element2 << " / ";
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    /**
      * Merge regions
     */
     void merge () {
         std::unordered_map<int, std::unordered_set<int>> infoRegionMerge = calculateRegionToFuse();
+        displayMap(infoRegionMerge);
         for (auto &element : infoRegionMerge) {
             // We get the region to merge
-            Region regionToMerge = mergeRegions(*regions[element.first - 1] , infoRegionMerge);
+            std::cout << "Merge region " << element.first << std::endl;
+            Region regionToMerge = mergeRegions(*regions[element.first - 1], infoRegionMerge);
         }
     }
     
