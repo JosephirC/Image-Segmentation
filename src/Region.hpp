@@ -40,7 +40,7 @@ public:
      * @param imageOriginal The original image
      * 
     */
-    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 10, float _coefSD = 1.5):
+    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 20, float _coefSD = 2.2):
                     id(_id),
                     size_x(imageOriginal->cols),
                     size_y(imageOriginal->rows),
@@ -53,7 +53,7 @@ public:
                     // allRegionColors(new std::unordered_map<int, cv::Vec3b>),
                     threshold(_threshold),
                     coefSD(_coefSD),
-                    isIncrease(true) {
+                    isIncrease(false) {
         // std::cout << "Region constructor" << std::endl;
         colors->push_back(color);
         averageColorSeuil();
@@ -298,6 +298,13 @@ public:
     */
     int getId() const {
         return id;
+    }
+
+    /**
+     * Set new id to the region
+    */
+    void setId(const int _id) {
+        id = _id;
     }
 
     /**
