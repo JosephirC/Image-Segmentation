@@ -40,7 +40,7 @@ public:
      * @param imageOriginal The original image
      * 
     */
-    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 20, float _coefSD = 1.3):
+    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 10, float _coefSD = 1.5):
                     id(_id),
                     size_x(imageOriginal->cols),
                     size_y(imageOriginal->rows),
@@ -152,12 +152,14 @@ public:
                     updateoutline(p);
                 } else {
                     tabInfo [p.x] [p.y] = -1 * id;
+                    // std::cout << "We add :" << tabInfo[p.x][p.y] << " in border :" << id << std::endl;
                     border->push_back(p);
                 }
             } else {
-                std::cout << "I am " << id << "Point in an other region " << tabInfo [p.x] [p.y] << std::endl;
-                if (tabInfo [p.x] [p.y] != id)
+                if (tabInfo [p.x] [p.y] != id) {
+                    // std::cout << "We add :" << tabInfo[p.x][p.y] << " in border :" << id << std::endl;
                     border->push_back(p);
+                }
             }
         }
         // std::cout << "END grow" << std::endl;
@@ -167,7 +169,7 @@ public:
      * /!\ not finished This function verify if two regions can be fused
      *
     */
-    bool verifyFusion (const Region& r) {
+    bool verifyFusion (Region& r) {
         // We verify if the two regions in the same image
         if (size_x != r.size_x || size_y != r.size_y) {
             std::cout << "The two regions are not in the same image" << std::endl;
@@ -265,19 +267,19 @@ public:
      * For increase the seuil
     */
     void increaseThreshold() {
-        std::cout << "Increase threshold" << std::endl;
+        // std::cout << "Increase threshold" << std::endl;
         if (colors->size() < 30) {
             if (threshold + 5 < 50) {
                 threshold += 5;
             } else {
-                std::cout<< "FAUX" << std::endl;
+                // std::cout<< "FAUX" << std::endl;
                 isIncrease = false;
             }
         } else {
-            if (coefSD * 1.2 < 2) {
-                coefSD *= 1.2;
+            if (coefSD + 0.2 < 2.2) {
+                coefSD += 0.2;
             } else {
-                std::cout<< "FAUX" << std::endl;
+                // std::cout<< "FAUX" << std::endl;
                 isIncrease = false;
             }
         }
@@ -304,18 +306,21 @@ public:
     void operator+= (Region & r2) {
         // We creat a new region
         // Region * new_region = new Region();
-        // We add the points of the two regions and we delete points in common*
-        for (const auto& element : *(r2.border)) {
-            auto it = std::find(border->begin(), border->end(), element);
-
-            if (it != border->end()) {
-                // Point arleady in the vector, we delete it
-                border->erase(it);
-            } else {
-                // Point not in the vector, we add it
-                border->push_back(element);
+        // We remove in border the points in common
+        std::vector<cv::Point> * new_border = new std::vector<cv::Point>();
+        for (const auto& element : *(border)) {
+            if (tabInfo [element.x] [element.y] != r2.getId()){
+                new_border->push_back(element);
             }
         }
+        for (const auto& element : *(r2.border)) {
+            if (tabInfo [element.x] [element.y] != id){
+                new_border->push_back(element);
+            }
+        }
+        delete border;
+        border = new_border;
+        
         // We add all point in the outline of the two regions
         while (!r2.outline->empty()) {
             cv::Point p = r2.outline->front();
@@ -439,8 +444,19 @@ private:
      * This function is used to verify if a point is in the image and is free
     */
     bool verifyPoint(cv::Point p) const {
-        return (p.x >= 0 && p.x < size_x && p.y >= 0 && p.y < size_y && tabInfo[p.x][p.y] != id * -1 && tabInfo[p.x][p.y] <= 0);
+        if (p.x < 0 || p.x >= size_x || p.y < 0 || p.y >= size_y) {
+            return false;
+        } else if (tabInfo[p.x][p.y] > 0) {
+            if (tabInfo[p.x][p.y] != id) {
+                // std::cout << "We add :" << tabInfo[p.x][p.y] << " in border :" << id << " the point :" <<p.x << "/"<< p.y << std::endl;
+                border->push_back(p);
+            }
+            return false;
+        } else {
+            return tabInfo[p.x][p.y] != id * -1;
+        }
     }
+
 
     /**
      * To update outline of the region

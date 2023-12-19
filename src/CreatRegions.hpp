@@ -98,9 +98,9 @@ public:
             if (regions[i]->getoutline().size() > 0) {
                 regions[i]->grow();
             } else {
-                std::cout << "Region " << i << " is empty" << std::endl;
+                // std::cout << "Region " << regions[i]->getId() << " is empty" << std::endl;
                 if (regions[i]->getIsIncrease()) {
-                    std::cout << "Region " << i << " is increase" << std::endl;
+                    // std::cout << "Region " << regions[i]->getId() << " is increase" << std::endl;
                     regions[i]->increaseThreshold();
                     regions[i]->setoutline(regions[i]->getborder());
                     regions[i]->clearborder();
@@ -120,9 +120,9 @@ public:
                 allRegions[i]->grow();
                 newRegions.push_back(allRegions[i]);
             } else {
-                std::cout << "Region " << i << " is empty" << std::endl;
+                // std::cout << "Region " << i << " is empty" << std::endl;
                 if (allRegions[i]->getIsIncrease()) {
-                    std::cout << "Region " << i << " is increase" << std::endl;
+                    // std::cout << "Region " << i << " is increase" << std::endl;
                     allRegions[i]->increaseThreshold();
                     allRegions[i]->setoutline(allRegions[i]->getborder());
                     allRegions[i]->clearborder();
@@ -171,23 +171,75 @@ public:
     }
 
     /**
-     * Merge regions
+     * Merge with vector of point border of region
     */
-    void merge () {
-        for (int i = 0; i < nb_regions; i++) {
-            std::vector<cv::Point> listeBorder = regions[i]->getborder();
-            std::cout<< "border REGION " << i << " : " << std::endl;
-            displayListPoint(listeBorder);
-            for (const auto &point : listeBorder) {
-                int id = getIdRegion(point);
-                std::cout << "id " << id << "fuse ? "<< i +1 << std::endl;
-                if (id > 0 && regions[id - 1] != nullptr && regions[i]->verifyFusion(*regions[id - 1])) {
-                    std::cout << "Fusion " << i << " / " << id - 1 << std::endl;
-                    *regions[i] += *regions[id - 1];
-                    regions[id - 1] = regions[i];
+    void mergeBorder(Region &r, std::unordered_set<int> & alereadyMerge) {
+        std::cout << "Merge border" << std::endl;
+        std::vector<cv::Point> listeBorder = r.getborder();
+        // displayListPoint(listeBorder);
+        while (!listeBorder.empty()) {
+            cv::Point p = listeBorder.back();
+            listeBorder.pop_back();
+            int id = getIdRegion(p);
+            if (id > 0 && alereadyMerge.find(id) == alereadyMerge.end()) {
+                alereadyMerge.insert(id);
+                if (r.verifyFusion(*regions[id - 1])) {
+                    mergeBorder(*regions[id - 1], alereadyMerge);
+                    std::cout << "Fusion " << r.getId() << " / " << id << std::endl;
+                    std::cout << "before " << regions[id - 1]->getId() << std::endl;
+                    *regions[id - 1] += r;
+                    regions[r.getId() - 1] = regions[id - 1];
+                    std::cout << "after " << regions[id - 1]->getId() << std::endl;
+                } else {
+                    mergeBorder(*regions[id - 1], alereadyMerge);
                 }
             }
         }
+    }
+
+    /**
+     * Merge regions
+    */
+    void merge () {
+        std::unordered_set<int> alereadyMerge;
+        std::unordered_set<int> notMerge;
+        for (int i = 0; i < nb_regions; i++) {
+            notMerge.insert(regions[i]->getId());
+        }
+        while (!notMerge.empty()) {
+            // We get the first element
+            int id = *notMerge.begin();
+            std::cout << "Element to merge " << id << std::endl;
+            alereadyMerge.insert(id);
+            mergeBorder(*regions[id - 1], alereadyMerge);
+            // std::cout << "size of alerdy merge" << alereadyMerge.size() << std::endl;
+            while (!alereadyMerge.empty()) {
+                int idMerged = *alereadyMerge.begin();
+                std::cout<<"Element to remove" << idMerged << std::endl;
+                notMerge.erase(idMerged);
+                alereadyMerge.erase(idMerged);
+            }
+        }
+        for (auto& region : regions) {
+            std::cout << "Region " << region->getId() << std::endl;
+        }
+
+
+        // for (int i = 0; i < nb_regions; i++) {
+        //     std::vector<cv::Point> listeBorder = regions[i]->getborder();
+        //     std::cout<< "border REGION " << regions[i]->getId() << "size is "<< listeBorder.size() << " : " << std::endl;
+        //     displayListPoint(listeBorder);
+        //     for (const auto &point : listeBorder) {
+        //         int id = getIdRegion(point);
+        //         // std::cout << "id " << id << "fuse ? "<< i +1 << " for point" << point.x << "/" << point.y << std::endl;
+        //         if (id > 0 /* && regions[id - 1]->getId() != regions[i]->getId() */ && regions[i]->verifyFusion(*regions[id - 1])) {
+        //             std::cout << "Fusion " << i + 1 << " / " << id << std::endl;
+        //             // alereadyMerge.insert(id);
+        //             *regions[i] += *regions[id - 1];
+        //             regions[id - 1] = regions[i];
+        //         }
+        //     }
+        // }
         std::cout << "End of merge" << std::endl;
     }
     
@@ -353,7 +405,7 @@ public:
         if (tabInfo[p.x][p.y] == 0) {
             return 0;
         } else if (tabInfo[p.x][p.y] < 0) {
-            return -1;
+            return regions[(tabInfo[p.x][p.y] + 1) * -1]->getId() * -1;
         } else {
             return regions[tabInfo[p.x][p.y] - 1]->getId();
         }
