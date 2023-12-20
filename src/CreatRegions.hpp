@@ -181,7 +181,7 @@ public:
      * Merge with vector of point border of region
     */
     Region * mergeBorder(Region * r, const int indexRegion, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice) {
-        std::cout << "Merge border" << std::endl;
+        // std::cout << "Merge border" << std::endl;
         std::vector<cv::Point> listeBorder = r->getborder();
         // displayListPoint(listeBorder);
         while (!listeBorder.empty()) {
@@ -204,7 +204,7 @@ public:
                     mergeBorder(r2, indice - 1, alereadyMerge, mergeInidice2);
                     while (!mergeInidice2.empty()) {
                         int idMerged = *mergeInidice2.begin();
-                        std::cout<<"Element to remove" << idMerged << std::endl;
+                        // std::cout<<"Element to remove" << idMerged << std::endl;
                         mergeInidice2.erase(idMerged);
                         delete regions[idMerged];
                         regions[idMerged] = r2;
@@ -212,7 +212,7 @@ public:
                 }
             }
         }
-        std::cout << "End of merge border for region : " << r->getId() << std::endl;
+        // std::cout << "End of merge border for region : " << r->getId() << std::endl;
         return r;
     }
 
@@ -229,26 +229,24 @@ public:
         while (!notMerge.empty()) {
             // We get the first element
             int id = *notMerge.begin();
-            std::cout << "Element to merge " << id << std::endl;
+            // std::cout << "Element to merge " << id << std::endl;
             alereadyMerge.insert(id);
             notMerge.erase(id);
             Region * r = mergeBorder(regions[id - 1], id - 1, alereadyMerge, mergeInidice);
-            std::cout << "Region Finish merge" << r->getId() << " color averge" << r->getColor() <<std::endl;
+            // std::cout << "Region Finish merge" << r->getId() << " color averge" << r->getColor() <<std::endl;
             while (!mergeInidice.empty()) {
                 int idMerged = *mergeInidice.begin();
-                std::cout<<"Element to remove" << idMerged << std::endl;
+                // std::cout<<"Element to remove" << idMerged << std::endl;
                 notMerge.erase(idMerged);
                 mergeInidice.erase(idMerged);
                 delete regions[idMerged];
                 regions[idMerged] = r;
             }
         }
-        for (auto& region : regions) {
-            std::cout << "Region " << region->getId() << " color averge" << region->getColor() <<std::endl;
-        }
-        std::cout << "End of merge" << std::endl;
-
-        std::cout << " Vraiment End of merge" << std::endl;
+        // for (auto& region : regions) {
+        //     std::cout << "Region " << region->getId() << " color averge" << region->getColor() <<std::endl;
+        // }
+        // std::cout << "End of merge" << std::endl;
     }
     
     /**
