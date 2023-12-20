@@ -302,7 +302,7 @@ public:
         cv::waitKey(0);
     }
 
-    void display2() {
+    void display2(const std::string & name = "Image with regions") {
         // Créer une palette de couleurs
         std::vector<cv::Vec3b> colorPalette;
         for (int i = 0; i < nb_regions; ++i) {
@@ -333,7 +333,7 @@ public:
         cv::resize(*image_regions, *image_regions, cv::Size(), 2, 2, cv::INTER_NEAREST);
 
         // Afficher l'image avec les régions colorées
-        cv::imshow("Image with colored regions", *image_regions);
+        cv::imshow(name, *image_regions);
         cv::waitKey(0);
     }
 

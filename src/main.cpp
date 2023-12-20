@@ -31,7 +31,7 @@ int main() {
     
 
     std::cout << "We creat the regions" << std::endl;
-    CreatRegions regions(image2, 50);
+    CreatRegions regions(image2, 150);
     // We put the seeds in the image
     regions.putSeeds();
     // We calculate the regions
@@ -41,14 +41,14 @@ int main() {
     }
 
     regions.display();
-    regions.display2();
+    regions.display2("1fst step");
     // regions.calculateAllRegions(500);
     std::cout << "We merge the regions" << std::endl;
     regions.merge();
     // We display the regions
     std::cout << "We display the regions" << std::endl;
     regions.display();
-    regions.display2();
+    regions.display2("merge");
     std::cout << "END" << std::endl; 
     // regions.displayoutlines();
 
