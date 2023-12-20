@@ -90,9 +90,18 @@ public:
      * Destructor
     */
     ~Region(){
-        // std::cout << "Region destructor" << std::endl;
-        delete outline;
-        delete colors;
+        if (outline != nullptr) {
+            delete outline;
+        }
+        outline = nullptr;
+        if (border != nullptr) {
+            delete border;
+        }
+        border = nullptr;
+        if (colors != nullptr) {
+            delete colors;
+        }
+        colors = nullptr;
     };
 
     /**
@@ -340,6 +349,20 @@ public:
         // We calculate the average color of the new region
         averageColor();
         averageColorSeuil();
+    }
+
+    /** 
+     * Define the operator < for the class Region
+    */
+    bool operator<(const Region& other) const {
+        return id < other.id;
+    }
+
+    /**
+     * Define the operator == for the class Region
+    */
+    bool operator==(const Region& other) const {
+        return id == other.id;
     }
 
 private:

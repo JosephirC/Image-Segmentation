@@ -50,10 +50,15 @@ public:
     ~CreatRegions() {
         delete image;
 
-        for (int i = 0; i < nb_seeds; ++i) {
-            delete regions[i];
-        }
+        std::sort(regions.begin(), regions.end());
+        regions.erase(std::unique(regions.begin(), regions.end()), regions.end());
 
+        for (unsigned int i = 0; i < regions.size() - 1; i++) {
+            if (regions[i] != nullptr) {
+                delete regions[i];
+            }
+            regions[i] = nullptr;
+        }
         for (int i = 0; i < size_x_tabInfo; ++i) {
             delete[] tabInfo[i];
         }
@@ -170,31 +175,7 @@ public:
         }
     }
 
-    /**
-     * vector Region refactor (for unicity of regions and put good id in tabInfos)
-    */
-    void refactRegions () {
-        for (int x = 0; x < size_x_tabInfo; x++) {
-            for (int y = 0; y < size_y_tabInfo; y++) {
-                int id = tabInfo[x][y];
-                if (id > 0) {
-                    tabInfo[x][y] = regions[id - 1]->getId();
-                }
-            }
-        }
-        std::set<int> map;
-        std::vector<Region *> newRegions = std::vector<Region *>();
-        nb_regions = 0;
-        for (auto& region : regions) {
-            if (map.find(region->getId()) == map.end()) {
-                nb_regions++;
-                map.insert(region->getId());
-                region->setId(nb_regions);
-                newRegions.push_back(region);
-            }
-        }
-        regions = newRegions;
-    }
+    
 
     /**
      * Merge with vector of point border of region
@@ -214,15 +195,20 @@ public:
                 Region * r2 = regions[indice - 1];
                 //alereadyMerge.insert(r2->getId());
                 alereadyMerge.insert(indice);
-                if (r->verifyFusion(*r2) || true) {
-                    std::cout << "R2 BEFORE " << r2->getId() << std::endl;
+                if (r->verifyFusion(*r2)) {
                     r2 = mergeBorder(r2, indice - 1, alereadyMerge, mergeInidice);
-                    std::cout << "Fusion " << r2->getId() << " / " << r->getId() << std::endl;
-                    std::cout << "before " << regions[indexRegion]->getId() << std::endl;
                     *r += *r2;
                     mergeInidice.insert(indice -1);
                 } else {
-                    mergeBorder(r2, indice - 1, alereadyMerge, mergeInidice);
+                    std::unordered_set<int> mergeInidice2;
+                    mergeBorder(r2, indice - 1, alereadyMerge, mergeInidice2);
+                    while (!mergeInidice2.empty()) {
+                        int idMerged = *mergeInidice2.begin();
+                        std::cout<<"Element to remove" << idMerged << std::endl;
+                        mergeInidice2.erase(idMerged);
+                        delete regions[idMerged];
+                        regions[idMerged] = r2;
+                    }
                 }
             }
         }
@@ -261,10 +247,6 @@ public:
             std::cout << "Region " << region->getId() << " color averge" << region->getColor() <<std::endl;
         }
         std::cout << "End of merge" << std::endl;
-        refactRegions();
-        for (auto& region : regions) {
-            std::cout << "Region " << region->getId() << " color averge" << region->getColor() <<std::endl;
-        }
 
         std::cout << " Vraiment End of merge" << std::endl;
     }
