@@ -310,7 +310,7 @@ public:
     /**
      * Make fuse between two regions
     */
-    void operator+= (Region & r2) {
+    void operator+= (const Region & r2) {
         // We creat a new region
         // Region * new_region = new Region();
         // We remove in border the points in common
