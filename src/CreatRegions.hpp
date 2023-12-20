@@ -180,7 +180,7 @@ public:
     /**
      * Merge with vector of point border of region
     */
-    Region * mergeBorder(Region * r, const int indexRegion, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice) {
+    Region * mergeBorder(Region * r, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice) {
         // std::cout << "Merge border" << std::endl;
         std::vector<cv::Point> listeBorder = r->getborder();
         // displayListPoint(listeBorder);
@@ -196,12 +196,12 @@ public:
                 //alereadyMerge.insert(r2->getId());
                 alereadyMerge.insert(indice);
                 if (r->verifyFusion(*r2)) {
-                    r2 = mergeBorder(r2, indice - 1, alereadyMerge, mergeInidice);
+                    r2 = mergeBorder(r2, alereadyMerge, mergeInidice);
                     *r += *r2;
                     mergeInidice.insert(indice -1);
                 } else {
                     std::unordered_set<int> mergeInidice2;
-                    mergeBorder(r2, indice - 1, alereadyMerge, mergeInidice2);
+                    mergeBorder(r2, alereadyMerge, mergeInidice2);
                     while (!mergeInidice2.empty()) {
                         int idMerged = *mergeInidice2.begin();
                         // std::cout<<"Element to remove" << idMerged << std::endl;
@@ -232,7 +232,7 @@ public:
             // std::cout << "Element to merge " << id << std::endl;
             alereadyMerge.insert(id);
             notMerge.erase(id);
-            Region * r = mergeBorder(regions[id - 1], id - 1, alereadyMerge, mergeInidice);
+            Region * r = mergeBorder(regions[id - 1], alereadyMerge, mergeInidice);
             // std::cout << "Region Finish merge" << r->getId() << " color averge" << r->getColor() <<std::endl;
             while (!mergeInidice.empty()) {
                 int idMerged = *mergeInidice.begin();
