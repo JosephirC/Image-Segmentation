@@ -1,38 +1,36 @@
-#ifndef CREATREGIONS_HPP
-#define CREATREGIONS_HPP
+#ifndef COMPUTREGIONS_HPP
+#define COMPUTREGIONS_HPP
 
 #include <iostream>
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include "Region.hpp"
-#include "Seed.hpp"
+#include "ComputeSeed.hpp"
 #include <set>
 #include <unordered_set>
 
 /**
  * Class calculate region in an image
 */
-class CreatRegions {
+class ComputeRegions {
 public:
     /**
      * Default constructor
     */
-    CreatRegions() {
+    ComputeRegions() {
         image = new cv::Mat();
     }
 
     /**
      * Constructor
     */
-    CreatRegions(cv::Mat img, int nb_seeds) {
+    ComputeRegions(cv::Mat img, int _nbRegions) {
         // We creat a tab to keep regions.
         
         size_x_tabInfo = img.cols;
         size_y_tabInfo = img.rows;
-        nb_regions = nb_seeds;
-        this->nb_seeds = nb_seeds;
-        seeds = std::vector<Seed>(nb_seeds);
-        regions = std::vector<Region *>(nb_seeds);
+        nb_regions = _nbRegions;
+        regions = std::vector<Region *>(_nbRegions);
         tabInfo = new int*[size_x_tabInfo];
         for (int i = 0; i < size_x_tabInfo; i++) {
             tabInfo[i] = new int[size_y_tabInfo];
@@ -47,7 +45,7 @@ public:
     /**
      * Destructor
      */
-    ~CreatRegions() {
+    ~ComputeRegions() {
         delete image;
 
         std::sort(regions.begin(), regions.end());
@@ -68,28 +66,24 @@ public:
     /**
      * Put the seeds in the image
     */
-    void putSeeds() {        
+    void putSeeds(int nbSeed = 0, int rep = 16) {        
         // std::cout << "size PutSeeds" << image->rows << " / " << image->cols <<std::endl;
         // We creat a new image to see the seeds
         cv::Mat * image_seeds = new cv::Mat(image->clone());
-        // std::cout << "size" << image->rows << image->cols <<std::endl;
-        for (int i = 0; i < nb_seeds; i++) {
-            // We creat a seed
-            Seed s(*image);
-            seeds.push_back(s);
-            regions [i] = (new Region((i + 1), s.getPoint(), tabInfo, image));
-            // We put the seed in the image
-            // std::cout << "Seed " << i << " : " << s.getPoint().x << "/" << s.getPoint().y << std::endl;
-            cv::circle(*image_seeds, s.getPoint(), 1, cv::Scalar(0, 0, 255), -1); // To see the seeds
-            // std::cout << "Seed " << i << " : " << s.getPoint().x << "/" << s.getPoint().y << std::endl;
+        ComputeSeed seedRandImg (image->rows, image->cols, nbSeed, rep);
+        // We put the seeds in the image
+        int i = 0;
+        for (const auto &seed : seedRandImg.getSeedVector()) {
+            i++;
+            image_seeds->at<cv::Vec3b>(seed.getPoint().x, seed.getPoint().y) = cv::Vec3b(0, 0, 255);
+            // We creat a new region
+            // Region * r = new Region(i, seed.getPoint(), tabInfo, image);
+            // We add the region in the list of regions
+            //regions.push_back(r);
         }
         // We display the image with the seeds
-        // std::cout << "We display the image with the seeds" << std::endl;
         cv::imshow("Image with seeds 1", *image_seeds);
-        // std::cout << "End of putSeeds" << std::endl;
-        // We wait for a key to be pressed
         cv::waitKey(0);
-        // delete image_seeds;
     }
 
     /**
@@ -421,9 +415,7 @@ public:
 
 private:
     cv::Mat * image;
-    std::vector<Seed> seeds;
     std::vector<Region *> regions;
-    int nb_seeds;
     int nb_regions;
     int ** tabInfo;
     int size_x_tabInfo;
@@ -431,4 +423,4 @@ private:
 
 };
 
-#endif // CREATREGIONS_HPP
+#endif // COMPUTREGIONS_HPP

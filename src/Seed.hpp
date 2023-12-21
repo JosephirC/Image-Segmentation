@@ -20,13 +20,10 @@ public:
     /**
      * Constructor
     */
-    Seed(const cv::Mat & img) {
-        // We choice a random point in the image
-        // point = cv::Point(rand() % img.cols, rand() % img.rows);
-        // point = cv::Point(rand() % (img.rows - 1), rand() % (img.cols - 1));
-        point.x = rand() % (img.cols - 1);
-        point.y = rand() % (img.rows - 1);
-
+    Seed(const int rows, const int cols) {
+        // We initialize the random number generator
+        point.x = rand() % (cols - 1);
+        point.y = rand() % (rows - 1);
     }
 
     /**
@@ -34,12 +31,46 @@ public:
     */
     ~Seed() {};
 
+    struct HashFunction {
+        size_t operator()(const Seed& seed) const {
+            return std::hash<int>()(seed.point.x) ^ (std::hash<int>()(seed.point.y) << 1);
+        }
+    };
+
     /**
      * Get the point
     */
-    cv::Point getPoint() {
+    cv::Point getPoint() const {
         // std::cout<< "GET THE POINT" << point.x << "/" << point.y << std::endl;
         return point;
+    }
+
+    /**
+     * Set the point
+    */
+    void setPoint(const cv::Point& point) {
+        this->point = point;
+    }
+
+    /**
+     * get the x coordinate
+    */
+    int getX() {
+        return point.x;
+    }
+
+    /**
+     * get the y coordinate
+    */
+    int getY() {
+        return point.y;
+    }
+
+    /**
+     * operator ==
+    */
+    bool operator==(const Seed& seed) const {
+        return (point.x == seed.point.x && point.y == seed.point.y);
     }
 
 private:
