@@ -7,6 +7,8 @@
 #include "Seed.hpp"
 #include <set>
 #include <unordered_set>
+#include <math.h>
+#include <memory>
 
 /**
  * Class creating a seed
@@ -29,26 +31,30 @@ public:
     */
     ComputeSeed(const int rows, const int cols, unsigned int nbSeed = 0, const int rep = 16) {
         if (nbSeed == 0) {
-            nbSeed = rows * cols * 0.3;
+            nbSeed = rows * cols * 0.001;
         }
         std::cout << "cols and rows" << cols << "/" << rows<< std::endl;
+        std::cout << "nbSeed" << nbSeed<< std::endl;
         // We initialize the random number generator
         std::srand(static_cast<unsigned int>(std::time(nullptr)));
         // We divise the image in rep parts
-        int rowsPart = rows / rep;
-        int colsPart = cols / rep;
+        int nb_part_col_rows = sqrt(rep);
+        int rowsPart = rows / nb_part_col_rows;
+        int colsPart = cols / nb_part_col_rows + 1; 
         int rowsIndex = 0;
         int colsIndex = 0;
         // We create the seeds
-        for (int i = 0; i < rep; i++) {
-            for (int j = 0; j < rep; j++) {
-                for (int unsigned x = 0; x < nbSeed / rep; x++) {
-                    // We create a seed
+        for (int i = 0; i < nb_part_col_rows; i++) {
+            for (int j = 0; j < nb_part_col_rows; j++) {
+                for (int unsigned x = 0; x < nbSeed; x++) {
+                    // We creat a point in the part of the image
+                    int xPoint = std::rand() % (rowsPart);
+                    int yPoint = std::rand() % (colsPart);
                     Seed seed (colsPart, rowsPart);
                     std::cout << "seed" << seed.getX() << "/" << seed.getY() << std::endl;
-                    seed.setPoint(cv::Point(rowsIndex * rowsPart + seed.getX(), colsIndex * colsPart + seed.getY()));
+                    Seed * seedPointeur = new Seed(rowsIndex * rowsPart + xPoint, colsIndex * colsPart + yPoint);
                     std::cout << "seed" << seed.getX() << "/" << seed.getY() << std::endl;
-                    seedVector.push_back(seed);
+                    seedVector.push_back(seedPointeur);
                 }
                 colsIndex ++;
             }
@@ -58,14 +64,24 @@ public:
     }
 
     /**
+     * Destructor
+    */
+    ~ComputeSeed() {
+        for (const auto& seed : seedVector) {
+            delete seed;
+        }
+        seedVector.clear();
+    };
+
+    /**
      * get the vector of seeds
     */
-    std::vector<Seed> getSeedVector() const {
+    std::vector<Seed *> getSeedVector() const {
         return seedVector;
     }
 
 private:
-std::vector<Seed> seedVector;
+std::vector<Seed *> seedVector;
     
 };
 

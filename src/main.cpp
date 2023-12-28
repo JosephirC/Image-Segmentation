@@ -26,16 +26,17 @@ int main() {
     // We display the image
     cv::resize(imageShow, imageShow, cv::Size(), 4, 4, cv::INTER_NEAREST);
     cv::imshow("Image", imageShow);
+    cv::waitKey(0);
     // We creat the regions
     
 
     std::cout << "We creat the regions" << std::endl;
-    ComputeRegions regions(image2, 300);
+    ComputeRegions regions(image2, 10, 16);
     // We put the seeds in the image
     regions.putSeeds();
     // We calculate the regions
     std::cout << "We calculate the regions" << std::endl;
-    for (int i = 0; i < 300; i++) {
+    for (int i = 0; i < 50; i++) {
         regions.calculateRegions();
     }
 

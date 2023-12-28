@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++11 -I/usr/local/include/opencv4
+CXXFLAGS = -Wall -Wextra -std=c++11 -I/usr/local/include/opencv4 -g -O0
 
 SRC_DIR = src
 OBJ_DIR = obj
@@ -9,7 +9,7 @@ SRC_FILES = $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
 $(EXECUTABLE): $(OBJ_FILES)
-	$(CXX) $(CXXFLAGS) -o $@ $^ -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_videoio -lopencv_imgproc
+	$(CXX) $(CXXFLAGS) -g -o $@ $^ -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_videoio -lopencv_imgproc
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

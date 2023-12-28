@@ -42,8 +42,8 @@ public:
     */
     Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 20, float _coefSD = 2.2):
                     id(_id),
-                    size_x(imageOriginal->cols),
-                    size_y(imageOriginal->rows),
+                    size_x(imageOriginal->rows),
+                    size_y(imageOriginal->cols),
                     tabInfo(tabShare),
                     image(imageOriginal),
                     color(imageOriginal->at<cv::Vec3b>(p)), 
@@ -136,19 +136,23 @@ public:
         std::queue<cv::Point> _outlines = *outline;
         delete outline;
         outline = new std::queue<cv::Point>();
-        // std::cout << "In grow" << std::endl;
+        std::cout << "In grow" << std::endl;
         // We get all Point in queue
         while (!_outlines.empty()) {
+            std::cout << "In while" << std::endl;
             cv::Point p = _outlines.front();
 
             _outlines.pop();
+            std::cout << "Point " << p.x << "/" << p.y << std::endl;
             cv::Vec3b col = image->at<cv::Vec3b>(p);
+            std::cout << "Color " << static_cast<int>(col[0]) << "/" << static_cast<int>(col[1]) << "/" << static_cast<int>(col[2]) << std::endl;
             // We verify if the point is in the image
-            if (p.x < 0 || p.x >= image->cols || p.y < 0 || p.y >= image->rows) {
+            if (p.x < 0 || p.x >= image->rows || p.y < 0 || p.y >= image->cols) {
                 std::cout << "Point not in the image " << image->rows << " / " << image->cols << std::endl;
                 std::cout <<p.x<<"/ "<<p.y << std::endl;
             }
             // We verify if the point is not in an region
+            std::cout << "tabInfo " << tabInfo [p.x] [p.y] << std::endl;
             if (tabInfo [p.x] [p.y] <= 0) {
                 if (verifyColor(col)) {
                     // If yes we add the point to the region
@@ -160,11 +164,13 @@ public:
                     // And we update the outline of the region
                     updateoutline(p);
                 } else {
+                    std::cout << "Point not in the color " << std::endl;
                     tabInfo [p.x] [p.y] = -1 * id;
                     // std::cout << "We add :" << tabInfo[p.x][p.y] << " in border :" << id << std::endl;
                     border->push_back(p);
                 }
             } else {
+                std::cout << "Point in the image " << std::endl;
                 if (tabInfo [p.x] [p.y] != id) {
                     // std::cout << "We add :" << tabInfo[p.x][p.y] << " in border :" << id << std::endl;
                     border->push_back(p);
@@ -493,6 +499,7 @@ private:
      * @param p The point add to the region
     */
     void updateoutline(cv::Point p) {
+        std::cout << "In update outline" << std::endl;
         
         // We parcour the 4 points around the point,
         // if a point is a new outline, we add it to the outline

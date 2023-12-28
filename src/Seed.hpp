@@ -20,10 +20,15 @@ public:
     /**
      * Constructor
     */
-    Seed(const int rows, const int cols) {
-        // We initialize the random number generator
-        point.x = rand() % (cols - 1);
-        point.y = rand() % (rows - 1);
+    Seed(const int x, const int y) {
+        point = cv::Point(x, y);
+    }
+
+    /**
+     * Constructor
+    */
+    Seed(const cv::Point& point) {
+        this->point = point;
     }
 
     /**
