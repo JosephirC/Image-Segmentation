@@ -82,7 +82,7 @@ public:
         int i = 0;
         for (const auto &seed : seedRandImg.getSeedVector()) {
             i++;
-            image_seeds->at<cv::Vec3b>(seed->getPoint().x, seed->getPoint().y) = cv::Vec3b(0, 0, 255);
+            image_seeds->at<cv::Vec3b>(seed->getPoint()) = cv::Vec3b(0, 0, 255);
             // We creat a new region
             std::cout << "Region " << i << "/" << this->nb_regions<<std::endl;
             Region * r = new Region(i, seed->getPoint(), tabInfo, image);
