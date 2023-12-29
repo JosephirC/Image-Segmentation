@@ -40,7 +40,7 @@ public:
         // We divise the image in rep parts
         int nb_part_col_rows = sqrt(rep);
         int rowsPart = rows / nb_part_col_rows;
-        int colsPart = cols / nb_part_col_rows + 1; 
+        int colsPart = cols / nb_part_col_rows; 
         int rowsIndex = 0;
         int colsIndex = 0;
         // We create the seeds
@@ -52,7 +52,7 @@ public:
                     int yPoint = std::rand() % (colsPart);
                     Seed seed (colsPart, rowsPart);
                     std::cout << "seed" << seed.getX() << "/" << seed.getY() << std::endl;
-                    Seed * seedPointeur = new Seed(rowsIndex * rowsPart + xPoint, colsIndex * colsPart + yPoint);
+                    Seed * seedPointeur = new Seed(colsIndex * colsPart + yPoint, rowsIndex * rowsPart + xPoint);
                     std::cout << "seed" << seed.getX() << "/" << seed.getY() << std::endl;
                     seedVector.push_back(seedPointeur);
                 }
@@ -67,11 +67,12 @@ public:
      * Destructor
     */
     ~ComputeSeed() {
-        for (const auto& seed : seedVector) {
+        for (auto& seed : seedVector) {
             delete seed;
+            seed = nullptr;
         }
         seedVector.clear();
-    };
+    }
 
     /**
      * get the vector of seeds

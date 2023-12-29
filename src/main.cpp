@@ -39,7 +39,8 @@ int main() {
     for (int i = 0; i < 50; i++) {
         regions.calculateRegions();
     }
-
+    cv::imshow("teste tempo a sup", image);
+    cv::waitKey(0);
     regions.display();
     regions.display2("1fst step");
     // regions.calculateAllRegions(500);

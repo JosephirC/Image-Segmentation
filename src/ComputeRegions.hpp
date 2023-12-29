@@ -32,8 +32,8 @@ public:
         }
         this->pourcent = _pourcent;
         this->rep = _rep;
-        size_x_tabInfo = img.rows;
-        size_y_tabInfo = img.cols;
+        size_x_tabInfo = img.cols;
+        size_y_tabInfo = img.rows;
         this->nb_pixels = size_x_tabInfo * size_y_tabInfo;
         this->nb_pixels_by_region = nb_pixels / _rep;
         nb_regions = nb_pixels_by_region * _pourcent / 100 * _rep;
@@ -254,10 +254,6 @@ public:
                 regions[idMerged] = r;
             }
         }
-        // for (auto& region : regions) {
-        //     std::cout << "Region " << region->getId() << " color averge" << region->getColor() <<std::endl;
-        // }
-        // std::cout << "End of merge" << std::endl;
     }
     
     /**
@@ -288,11 +284,15 @@ public:
             }
         }
         // We show in cout pixel
-        for (int i = 0; i < image_regions->size().width; i++) {
-            for (int j = 0; j < image_regions->size().height; j++) {
+        for (int i = 0; i < image_regions->cols; i++) {
+            for (int j = 0; j < image_regions->rows; j++) {
                 std::cout << "color " << i << " / " << j << " : " << image_regions->at<cv::Vec3b>(cv::Point(i, j)) << std::endl;
             }
         }
+
+        std::cout << ".??????????????????" << std::endl;
+        cv::imshow("mais", *image);
+        cv::waitKey(0);
        
         // We display the image with the regions
         // Increase the size of the image
