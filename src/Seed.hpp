@@ -21,7 +21,8 @@ public:
      * Constructor
     */
     Seed(const int x, const int y) {
-        point = cv::Point(x, y);
+        point.x = x;
+        point.y = y;
     }
 
     /**

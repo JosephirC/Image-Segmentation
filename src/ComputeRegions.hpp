@@ -24,7 +24,7 @@ public:
     /**
      * Constructor
     */
-    ComputeRegions(cv::Mat img, unsigned int _pourcent, unsigned int _rep = 16) {
+    ComputeRegions(cv::Mat img, float _pourcent, unsigned int _rep = 16) {
         // We check the repartition is correct
         if (_rep % 4 != 0) {
             std::cout << "The repartition is not correct :" << _rep << std::endl;
@@ -35,8 +35,9 @@ public:
         size_x_tabInfo = img.cols;
         size_y_tabInfo = img.rows;
         this->nb_pixels = size_x_tabInfo * size_y_tabInfo;
-        this->nb_pixels_by_region = nb_pixels / _rep;
+        float nb_pixels_by_region = nb_pixels / _rep;
         nb_regions = nb_pixels_by_region * _pourcent / 100 * _rep;
+        std::cout << "nb_regions :" << nb_regions << std::endl;
         // regions = std::vector<Region *>(nb_regions);
         tabInfo = new int*[size_x_tabInfo];
         for (int i = 0; i < size_x_tabInfo; i++) {
@@ -77,7 +78,7 @@ public:
         // std::cout << "size PutSeeds" << image->rows << " / " << image->cols <<std::endl;
         // We creat a new image to see the seeds
         cv::Mat * image_seeds = new cv::Mat(image->clone());
-        ComputeSeed seedRandImg (image->rows, image->cols, nb_regions / this->rep, this->rep);
+        ComputeSeed seedRandImg (image->rows, image->cols, nb_regions, this->rep);
         // We put the seeds in the image
         int i = 0;
         for (const auto &seed : seedRandImg.getSeedVector()) {
@@ -92,9 +93,8 @@ public:
             std::cout << "regions size" << regions.size() << std::endl;
         }
         // We display the image with the seeds
-        cv::resize(*image_seeds, *image_seeds, cv::Size(), 3, 3, cv::INTER_NEAREST);
+        // cv::resize(*image_seeds, *image_seeds, cv::Size(), 3, 3, cv::INTER_NEAREST);
         cv::imshow("Image with seeds div", *image_seeds);
-        cv::waitKey(0);
     }
 
     /**
@@ -105,11 +105,11 @@ public:
         std::cout << "Calculate regions" << std::endl;
         // For each region we calculate grow of this outline
         for (int i = 0; i < nb_regions; i++) {
-            std::cout << "Region " << i << std::endl;
+            std::cout << "In ComputeRegion Region " << i << std::endl;
             regions[i]->getoutline();
             std::cout << "done" << std::endl;
             if (regions[i]->getoutline().size() > 0) {
-                std::cout << "Region " << i << " is not empty" << std::endl;
+                std::cout << "Region " <<  regions[i]->getId() << " is not empty" << std::endl;
                 regions[i]->grow();
             } else {
                 std::cout << "Region " << regions[i]->getId() << " is empty" << std::endl;
@@ -185,13 +185,17 @@ public:
         }
     }
 
-    
+    /**
+     * update regions and tabInfos, remove double regions
+    */
+    void updateRegions () {
+        
+    } 
 
     /**
-     * Merge with vector of point border of region
+     * Merge a Region 
     */
-    Region * mergeBorder(Region * r, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice) {
-        // std::cout << "Merge border" << std::endl;
+    Region * mergeRegion(Region * r, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice) {
         std::vector<cv::Point> listeBorder = r->getborder();
         // displayListPoint(listeBorder);
         while (!listeBorder.empty()) {
@@ -199,19 +203,16 @@ public:
             listeBorder.pop_back();
             // int id = getIdRegion(p);
             int indice = tabInfo[p.x][p.y];
-            // std :: cout << "Point " << p.x << " / " << p.y << " indice " << indice << std::endl;
             if (indice > 0 && alereadyMerge.find(indice) == alereadyMerge.end()) {
-                // std::cout << "We put this region " << indice << std::endl;
                 Region * r2 = regions[indice - 1];
-                //alereadyMerge.insert(r2->getId());
                 alereadyMerge.insert(indice);
-                if (r->verifyFusion(*r2)) {
-                    r2 = mergeBorder(r2, alereadyMerge, mergeInidice);
+                if (r->verifyFusion(*r2) /* || true */) {
+                    r2 = mergeRegion(r2, alereadyMerge, mergeInidice);
                     *r += *r2;
                     mergeInidice.insert(indice -1);
                 } else {
                     std::unordered_set<int> mergeInidice2;
-                    mergeBorder(r2, alereadyMerge, mergeInidice2);
+                    mergeRegion(r2, alereadyMerge, mergeInidice2);
                     while (!mergeInidice2.empty()) {
                         int idMerged = *mergeInidice2.begin();
                         // std::cout<<"Element to remove" << idMerged << std::endl;
@@ -222,7 +223,6 @@ public:
                 }
             }
         }
-        // std::cout << "End of merge border for region : " << r->getId() << std::endl;
         return r;
     }
 
@@ -243,7 +243,7 @@ public:
             // std::cout << "Element to merge " << id << std::endl;
             alereadyMerge.insert(id);
             notMerge.erase(id);
-            Region * r = mergeBorder(regions[id - 1], alereadyMerge, mergeInidice);
+            Region * r = mergeRegion(regions[id - 1], alereadyMerge, mergeInidice);
             // std::cout << "Region Finish merge" << r->getId() << " color averge" << r->getColor() <<std::endl;
             while (!mergeInidice.empty()) {
                 int idMerged = *mergeInidice.begin();
@@ -270,17 +270,12 @@ public:
                 std::cout << "tabInfo[" << i << "][" << j << "] = " << tabInfo[i][j] << std::endl;
                 int id = tabInfo[i][j];
                 if (id > 0) {
-                    // image_regions->at<cv::Vec3b>(cv::Point(i, j)) = regions[id - 1]->getColor();
                     image_regions->at<cv::Vec3b>(cv::Point(i, j)) = regions[id - 1]->getColor();
-
                 } else if (id < 0) {
-                    // image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 255);
                     image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 255);
                 } else {
-                    // image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 0);
                     image_regions->at<cv::Vec3b>(cv::Point(i, j)) = /*image->at<cv::Vec3b>(cv::Point(i, j)); */ cv::Vec3b(0, 0, 0);
                 }
-                std::cout << "color put " << image_regions->at<cv::Vec3b>(cv::Point(i, j)) << std::endl;
             }
         }
         // We show in cout pixel
@@ -289,30 +284,18 @@ public:
                 std::cout << "color " << i << " / " << j << " : " << image_regions->at<cv::Vec3b>(cv::Point(i, j)) << std::endl;
             }
         }
-
-        std::cout << ".??????????????????" << std::endl;
-        cv::imshow("mais", *image);
-        cv::waitKey(0);
        
         // We display the image with the regions
-        // Increase the size of the image
-        std::cout << "end display" << std::endl;
-        std::cout << "size display " << image_regions->rows << " / " << image_regions->cols <<std::endl;
-        // cv::resize(*image_regions, *image_regions, cv::Size(), 2, 2, cv::INTER_NEAREST);
-        // cv::imshow(title, *image_regions);
-        // cv::imshow(title, *image);
         if (!image_regions->empty()) {
             cv::imshow(title, *image_regions);
-            cv::waitKey(0);
         } else {
-            std::cerr << "Error: Empty or invalid image." << std::endl;
+            std::cerr << "Error: Empty or invalid image. (Error in display)" << std::endl;
         }
-        cv::waitKey(0);
         std::cout << "end display" << std::endl;
         // delete image_regions;
     }
 
-    void display2(const std::string & name = "Image with regions") {
+    void display2(const std::string & name = "Image with regions", int resize = 1) {
         // Créer une palette de couleurs
         std::vector<cv::Vec3b> colorPalette;
         for (int i = 0; i < nb_regions; ++i) {
@@ -340,11 +323,10 @@ public:
         }
 
         // Ajuster la taille de l'image pour l'affichage
-        cv::resize(*image_regions, *image_regions, cv::Size(), 2, 2, cv::INTER_NEAREST);
+        cv::resize(*image_regions, *image_regions, cv::Size(), resize, resize, cv::INTER_NEAREST);
 
         // Afficher l'image avec les régions colorées
         cv::imshow(name, *image_regions);
-        cv::waitKey(0);
     }
 
     // void displayWithRegionId() {
@@ -419,7 +401,6 @@ public:
             // std::cout << "Region " << i << std::endl;
             // regions->at(i).displayoutline("outline Region :" + std::to_string(i), *image);
         }
-        cv::waitKey(0);
     }
 
     /**
@@ -453,14 +434,12 @@ private:
     cv::Mat * image;
     std::vector<Region *> regions;
     int nb_regions;
-    unsigned int pourcent;
+    float pourcent;
     unsigned int rep;
     int ** tabInfo;
     int size_x_tabInfo;
     int size_y_tabInfo;
-    int nb_pixels_by_region;
     int nb_pixels;
-
 };
 
 #endif // COMPUTREGIONS_HPP

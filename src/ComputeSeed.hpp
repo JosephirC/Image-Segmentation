@@ -50,10 +50,12 @@ public:
                     // We creat a point in the part of the image
                     int xPoint = std::rand() % (rowsPart);
                     int yPoint = std::rand() % (colsPart);
-                    Seed seed (colsPart, rowsPart);
-                    std::cout << "seed" << seed.getX() << "/" << seed.getY() << std::endl;
+                    // std::cout << "xPoint " << xPoint << std::endl;
+                    // std::cout << "yPoint " << yPoint << std::endl;
+                    Seed seed (xPoint, yPoint);
+                    // std::cout << "seed " << seed.getX() << "/" << seed.getY() << std::endl;
                     Seed * seedPointeur = new Seed(colsIndex * colsPart + yPoint, rowsIndex * rowsPart + xPoint);
-                    std::cout << "seed" << seed.getX() << "/" << seed.getY() << std::endl;
+                    std::cout << "seed " << seed.getX() << "/" << seed.getY() << std::endl;
                     seedVector.push_back(seedPointeur);
                 }
                 colsIndex ++;

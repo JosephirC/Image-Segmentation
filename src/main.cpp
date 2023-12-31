@@ -8,30 +8,25 @@
 
 int main() {
     std::cout << "We start the program" << std::endl;
-
-    
-
     // We load the image
     // cv::Mat image = cv::imread("Images/bigSegmentation.png");
-    cv::Mat image = cv::imread("Images/segmentation.png");
+    // cv::Mat image = cv::imread("Images/segmentation.png");
+    // cv::Mat image = cv::imread("Images/baboon_color.png");
+    // cv::Mat image = cv::imread("Images/lena_color.png");
+    cv::Mat image = cv::imread("Images/4couleurs.png");
     cv::Mat image2;
     etirerHistogrammeCouleur(image, image2, 0, 255);
-
     cv::Mat imageShow = image2.clone();
-    // cv::Mat image = cv::imread("Images/baboon_color.png");
-
-    // cv::Mat image = cv::imread("Images/lena_color.png");
     std::cout << "size" << image.rows << " / " << image.cols <<std::endl;
 
     // We display the image
-    cv::resize(imageShow, imageShow, cv::Size(), 4, 4, cv::INTER_NEAREST);
+    // cv::resize(imageShow, imageShow, cv::Size(), 4, 4, cv::INTER_NEAREST);
     cv::imshow("Image", imageShow);
-    cv::waitKey(0);
     // We creat the regions
     
 
     std::cout << "We creat the regions" << std::endl;
-    ComputeRegions regions(image2, 10, 16);
+    ComputeRegions regions(image2, 0.01, 16);
     // We put the seeds in the image
     regions.putSeeds();
     // We calculate the regions
@@ -40,9 +35,8 @@ int main() {
         regions.calculateRegions();
     }
     cv::imshow("teste tempo a sup", image);
-    cv::waitKey(0);
     regions.display();
-    regions.display2("1fst step");
+    regions.display2("1fst step", 1);
     // regions.calculateAllRegions(500);
     std::cout << "We merge the regions" << std::endl;
     regions.merge();
@@ -51,6 +45,7 @@ int main() {
     regions.display();
     regions.display2("merge");
     std::cout << "END" << std::endl; 
+    cv::waitKey(0);
     // regions.displayoutlines();
 
     // // We calculate the regions

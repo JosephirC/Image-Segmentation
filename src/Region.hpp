@@ -139,13 +139,12 @@ public:
         std::cout << "In grow" << std::endl;
         // We get all Point in queue
         while (!_outlines.empty()) {
-            std::cout << "In while" << std::endl;
             cv::Point p = _outlines.front();
 
             _outlines.pop();
             std::cout << "Point " << p.x << "/" << p.y << std::endl;
             cv::Vec3b col = image->at<cv::Vec3b>(p);
-            std::cout << "Color " << static_cast<int>(col[0]) << "/" << static_cast<int>(col[1]) << "/" << static_cast<int>(col[2]) << std::endl;
+            // std::cout << "Color " << static_cast<int>(col[0]) << "/" << static_cast<int>(col[1]) << "/" << static_cast<int>(col[2]) << std::endl;
             // We verify if the point is in the image
             if (p.x < 0 || p.x >= image->cols || p.y < 0 || p.y >= image->rows) {
                 std::cout << "Point not in the image " << image->cols << " / " << image->rows << std::endl;
@@ -190,9 +189,16 @@ public:
             std::cout << "The two regions are not in the same image" << std::endl;
             return false;
         }
-
+        int coefTempo = 1.5;
+        this->coefSD = 2.2 * coefTempo;
+        r.coefSD = 2.2 * coefTempo;
+        this->threshold = 20 * coefTempo;
+        r.threshold = 20 * coefTempo;
+        this->averageColorSeuil();
+        r.averageColorSeuil();
         // We verify if the two regions have the same color with the seuil
-        return verifyColor(r.color) && r.verifyColor(color);
+        return verifyColor(r.color) || r.verifyColor(color);
+        //return 
     };
 
     /**
@@ -200,6 +206,7 @@ public:
      * @return the outline of the region
     */
     std::queue<cv::Point> & getoutline() const {
+        assert(outline != nullptr);
         return *outline;
     };
 
@@ -499,7 +506,7 @@ private:
      * @param p The point add to the region
     */
     void updateoutline(cv::Point p) {
-        std::cout << "In update outline" << std::endl;
+        // std::cout << "In update outline" << std::endl;
         
         // We parcour the 4 points around the point,
         // if a point is a new outline, we add it to the outline
