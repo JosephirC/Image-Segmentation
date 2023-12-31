@@ -33,6 +33,7 @@ public:
         if (nbSeed == 0) {
             nbSeed = rows * cols * 0.001;
         }
+
         std::cout << "cols and rows" << cols << "/" << rows<< std::endl;
         std::cout << "nbSeed" << nbSeed<< std::endl;
         // We initialize the random number generator

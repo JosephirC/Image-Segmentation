@@ -24,19 +24,19 @@ public:
     /**
      * Constructor
     */
-    ComputeRegions(cv::Mat img, float _pourcent, unsigned int _rep = 16) {
+    ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _rep = 16) {
         // We check the repartition is correct
         if (_rep % 4 != 0) {
             std::cout << "The repartition is not correct :" << _rep << std::endl;
             exit(1);
         }
-        this->pourcent = _pourcent;
+        this->pourcent = _pourcentByRep;
         this->rep = _rep;
         size_x_tabInfo = img.cols;
         size_y_tabInfo = img.rows;
         this->nb_pixels = size_x_tabInfo * size_y_tabInfo;
         float nb_pixels_by_region = nb_pixels / _rep;
-        nb_regions = nb_pixels_by_region * _pourcent / 100 * _rep;
+        this->nb_regions = int (nb_pixels_by_region * pourcent / 100) * _rep;
         std::cout << "nb_regions :" << nb_regions << std::endl;
         // regions = std::vector<Region *>(nb_regions);
         tabInfo = new int*[size_x_tabInfo];
@@ -78,7 +78,7 @@ public:
         // std::cout << "size PutSeeds" << image->rows << " / " << image->cols <<std::endl;
         // We creat a new image to see the seeds
         cv::Mat * image_seeds = new cv::Mat(image->clone());
-        ComputeSeed seedRandImg (image->rows, image->cols, nb_regions, this->rep);
+        ComputeSeed seedRandImg (image->rows, image->cols, nb_regions / this->rep, this->rep);
         // We put the seeds in the image
         int i = 0;
         for (const auto &seed : seedRandImg.getSeedVector()) {

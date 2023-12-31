@@ -26,12 +26,12 @@ int main() {
     
 
     std::cout << "We creat the regions" << std::endl;
-    ComputeRegions regions(image2, 0.01, 16);
+    ComputeRegions regions(image2, 0.1, 16);
     // We put the seeds in the image
     regions.putSeeds();
     // We calculate the regions
     std::cout << "We calculate the regions" << std::endl;
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 80; i++) {
         regions.calculateRegions();
     }
     cv::imshow("teste tempo a sup", image);
