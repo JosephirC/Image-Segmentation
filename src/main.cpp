@@ -9,11 +9,11 @@
 int main() {
     std::cout << "We start the program" << std::endl;
     // We load the image
-    // cv::Mat image = cv::imread("Images/bigSegmentation.png");
+    cv::Mat image = cv::imread("Images/bigSegmentation.png");
     // cv::Mat image = cv::imread("Images/segmentation.png");
     // cv::Mat image = cv::imread("Images/baboon_color.png");
     // cv::Mat image = cv::imread("Images/lena_color.png");
-    cv::Mat image = cv::imread("Images/4couleurs.png");
+    // cv::Mat image = cv::imread("Images/4couleurs.png");
     cv::Mat image2;
     etirerHistogrammeCouleur(image, image2, 0, 255);
     cv::Mat imageShow = image2.clone();
@@ -26,7 +26,7 @@ int main() {
     
 
     std::cout << "We creat the regions" << std::endl;
-    ComputeRegions regions(image2, 5.5, 16);
+    ComputeRegions regions(image2, 2.9, 16);
     // We put the seeds in the image
     regions.putSeeds();
     // We calculate the regions

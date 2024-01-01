@@ -204,41 +204,21 @@ public:
         while (!listeBorder.empty()) {
             cv::Point p = listeBorder.back();
             listeBorder.pop_back();
-            // We get the region of the point (point in border) 
+            // We get the region of the point (point in border)
+            std::cout << "Point " << p.x << " / " << p.y << std::endl; 
             int idReg2 = getIdRegion(p);
             // We check if the region is not already merge
             if (idReg2 > 0 && mergeInidice.find(idReg2) == mergeInidice.end()) {
                 // We get the region
                 Region * r2 = regions[idReg2 - 1];
-                if (r->verifyFusion(*r2) /* || true */) {
-                    // If the region can be merge we merge r2
-                    if (alereadyMerge.find(r2->getId()) == alereadyMerge.end()){
-                        r2 = mergeRegion(r2->getId(), alereadyMerge, mergeInidice);
-                        // If r have change we update r
-                        alereadyMerge.insert(r2->getId());
-                        r = regions[r->getId() - 1];
-                    }
-                    
+                if (alereadyMerge.find(r2->getId()) == alereadyMerge.end() && r->verifyFusion(*r2) /* || true */) {
+                    r2 = mergeRegion(r2->getId(), alereadyMerge, mergeInidice);
+                    // If r have change we update r
+                    // alereadyMerge.insert(r2->getId());
+                    r = regions[r->getId() - 1];
                     // Finaly we merge r2 in r
                     *r += *r2;
-                    mergeInidice.insert(idReg2);
-                } /*else {
-                    // If the region can't be merge we merge all region in r2 (region can be merge)
-                    if (alereadyMerge.find(r2->getId()) == alereadyMerge.end()){
-                        std::unordered_set<int> mergeInidice2;
-                        r2 = mergeRegion(r2->getId(), alereadyMerge, mergeInidice2);
-                        // If r have change we update r
-                        r = regions[r->getId() - 1];
-                        while (!mergeInidice2.empty()) {
-                            int idMerged = *mergeInidice2.begin();
-                            // std::cout<<"Element to remove" << idMerged << std::endl;
-                            mergeInidice2.erase(idMerged);
-                            delete regions[idMerged];
-                            regions[idMerged] = r2;
-                        } 
-                        alereadyMerge.insert(r2->getId());     
-                    }
-                }*/
+                }
             }
         }
         alereadyMerge.insert(r->getId());
@@ -271,8 +251,10 @@ public:
                 // std::cout<<"Element to remove" << idMerged << std::endl;
                 notMerge.erase(idMerged);
                 mergeInidice.erase(idMerged);
+                std::cout << "We erase indice " << idMerged - 1 << " | " << "for region " << idMerged << std::endl;
                 delete regions[idMerged - 1];
                 regions[idMerged - 1] = r;
+                std::cout << "nouvelle id de region : " << regions[idMerged - 1]->getId() << std::endl;
             }
         }
         std::cout << "Merge end" << std::endl;
