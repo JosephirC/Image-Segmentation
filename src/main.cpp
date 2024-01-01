@@ -43,6 +43,7 @@ int main() {
     // We display the regions
     std::cout << "We display the regions" << std::endl;
     regions.display();
+    cv::waitKey(0);
     regions.display2("merge");
     std::cout << "END" << std::endl; 
     cv::waitKey(0);

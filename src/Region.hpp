@@ -69,22 +69,26 @@ public:
      * Copy constructor
     */
     Region(const Region& r) {
-        tabInfo = r.tabInfo;
-        outline = new std::queue<cv::Point>();
-        colors = new std::vector<cv::Vec3b>();
-        
-        // pas sur si le constructeur par copie d'un unordered_map est bon comme ca
-        // allRegionColors = new std::unordered_map<int, cv::Vec3b>(*r.allRegionColors);
-
+        // We copy basic data
+        id = r.id;
+        size_x = r.size_x;
+        size_y = r.size_y;
+        threshold = r.threshold;
+        coefSD = r.coefSD;
+        isIncrease = r.isIncrease;
         color = r.color;
         color_seuil_inf = r.color_seuil_inf;
         color_seuil_sup = r.color_seuil_sup;
-        // We copy the outline and the colors
-        // std::queue<cv::Point> _outlinesCopie = r.getoutline();
-        for (unsigned int i = 0; i < r.colors->size(); i++) {
-            colors->push_back(r.colors->at(i));
-        }
-    };
+
+        // We keep same tabInfo
+        this->tabInfo = r.tabInfo;
+
+        // We copy the image, the outline, the border and the colors
+        image = new cv::Mat(r.image->clone());
+        outline = new std::queue<cv::Point>(*r.outline);
+        border = new std::vector<cv::Point>(*r.border);
+        colors = new std::vector<cv::Vec3b>(*r.colors);
+    }
 
     /**
      * Destructor

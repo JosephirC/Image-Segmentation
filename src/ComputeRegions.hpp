@@ -195,34 +195,53 @@ public:
     /**
      * Merge a Region 
     */
-    Region * mergeRegion(Region * r, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice) {
+    Region * mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice) {
+        std::cout << "Merge region " << id << std::endl;
+        Region *r = regions [id - 1];
+        mergeInidice.insert(r->getId());
         std::vector<cv::Point> listeBorder = r->getborder();
-        // displayListPoint(listeBorder);
+        // We parcour the list of border
         while (!listeBorder.empty()) {
             cv::Point p = listeBorder.back();
             listeBorder.pop_back();
-            // int id = getIdRegion(p);
-            int indice = tabInfo[p.x][p.y];
-            if (indice > 0 && alereadyMerge.find(indice) == alereadyMerge.end()) {
-                Region * r2 = regions[indice - 1];
-                alereadyMerge.insert(indice);
+            // We get the region of the point (point in border) 
+            int idReg2 = getIdRegion(p);
+            // We check if the region is not already merge
+            if (idReg2 > 0 && mergeInidice.find(idReg2) == mergeInidice.end()) {
+                // We get the region
+                Region * r2 = regions[idReg2 - 1];
                 if (r->verifyFusion(*r2) /* || true */) {
-                    r2 = mergeRegion(r2, alereadyMerge, mergeInidice);
-                    *r += *r2;
-                    mergeInidice.insert(indice -1);
-                } else {
-                    std::unordered_set<int> mergeInidice2;
-                    mergeRegion(r2, alereadyMerge, mergeInidice2);
-                    while (!mergeInidice2.empty()) {
-                        int idMerged = *mergeInidice2.begin();
-                        // std::cout<<"Element to remove" << idMerged << std::endl;
-                        mergeInidice2.erase(idMerged);
-                        delete regions[idMerged];
-                        regions[idMerged] = r2;
+                    // If the region can be merge we merge r2
+                    if (alereadyMerge.find(r2->getId()) == alereadyMerge.end()){
+                        r2 = mergeRegion(r2->getId(), alereadyMerge, mergeInidice);
+                        // If r have change we update r
+                        r = regions[r->getId() - 1];
                     }
-                }
+                    alereadyMerge.insert(r2->getId());
+                    // Finaly we merge r2 in r
+                    *r += *r2;
+                    mergeInidice.insert(idReg2);
+                } /*else {
+                    // If the region can't be merge we merge all region in r2 (region can be merge)
+                    if (alereadyMerge.find(r2->getId()) == alereadyMerge.end()){
+                        std::unordered_set<int> mergeInidice2;
+                        r2 = mergeRegion(r2->getId(), alereadyMerge, mergeInidice2);
+                        // If r have change we update r
+                        r = regions[r->getId() - 1];
+                        while (!mergeInidice2.empty()) {
+                            int idMerged = *mergeInidice2.begin();
+                            // std::cout<<"Element to remove" << idMerged << std::endl;
+                            mergeInidice2.erase(idMerged);
+                            delete regions[idMerged];
+                            regions[idMerged] = r2;
+                        } 
+                        alereadyMerge.insert(r2->getId());     
+                    }
+                }*/
             }
         }
+        alereadyMerge.insert(r->getId());
+        std::cout << "End merge region " << id << std::endl;
         return r;
     }
 
@@ -241,19 +260,20 @@ public:
             // We get the first element
             int id = *notMerge.begin();
             // std::cout << "Element to merge " << id << std::endl;
-            alereadyMerge.insert(id);
+            // alereadyMerge.insert(id);
             notMerge.erase(id);
-            Region * r = mergeRegion(regions[id - 1], alereadyMerge, mergeInidice);
+            Region * r = new Region(*mergeRegion(id, alereadyMerge, mergeInidice));
             // std::cout << "Region Finish merge" << r->getId() << " color averge" << r->getColor() <<std::endl;
             while (!mergeInidice.empty()) {
                 int idMerged = *mergeInidice.begin();
                 // std::cout<<"Element to remove" << idMerged << std::endl;
                 notMerge.erase(idMerged);
                 mergeInidice.erase(idMerged);
-                delete regions[idMerged];
-                regions[idMerged] = r;
+                delete regions[idMerged - 1];
+                regions[idMerged - 1] = r;
             }
         }
+        std::cout << "Merge end" << std::endl;
     }
     
     /**
@@ -266,8 +286,8 @@ public:
         cv::Mat * image_regions = new cv::Mat(image->clone());
         for (int i = 0; i < size_x_tabInfo; i++) {
             for (int j = 0; j < size_y_tabInfo; j++) {
-                std::cout << "coo " << i << " / " <<  j << std :: endl;
-                std::cout << "tabInfo[" << i << "][" << j << "] = " << tabInfo[i][j] << std::endl;
+                // std::cout << "coo " << i << " / " <<  j << std :: endl;
+                // std::cout << "tabInfo[" << i << "][" << j << "] = " << tabInfo[i][j] << std::endl;
                 int id = tabInfo[i][j];
                 if (id > 0) {
                     image_regions->at<cv::Vec3b>(cv::Point(i, j)) = regions[id - 1]->getColor();
@@ -279,11 +299,11 @@ public:
             }
         }
         // We show in cout pixel
-        for (int i = 0; i < image_regions->cols; i++) {
-            for (int j = 0; j < image_regions->rows; j++) {
-                std::cout << "color " << i << " / " << j << " : " << image_regions->at<cv::Vec3b>(cv::Point(i, j)) << std::endl;
-            }
-        }
+        // for (int i = 0; i < image_regions->cols; i++) {
+        //     for (int j = 0; j < image_regions->rows; j++) {
+        //         std::cout << "color " << i << " / " << j << " : " << image_regions->at<cv::Vec3b>(cv::Point(i, j)) << std::endl;
+        //     }
+        // }
        
         // We display the image with the regions
         if (!image_regions->empty()) {
@@ -291,7 +311,7 @@ public:
         } else {
             std::cerr << "Error: Empty or invalid image. (Error in display)" << std::endl;
         }
-        std::cout << "end display" << std::endl;
+        std::cout << "(end display)" << std::endl;
         // delete image_regions;
     }
 
@@ -419,6 +439,7 @@ public:
      * Return the id of regions
     */
     int getIdRegion(cv::Point p) {
+        int id = tabInfo[p.x][p.y];
         if (tabInfo[p.x][p.y] == 0) {
             return 0;
         } else if (tabInfo[p.x][p.y] < 0) {
