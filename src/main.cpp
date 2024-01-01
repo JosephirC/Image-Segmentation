@@ -26,7 +26,7 @@ int main() {
     
 
     std::cout << "We creat the regions" << std::endl;
-    ComputeRegions regions(image2, 0.1, 16);
+    ComputeRegions regions(image2, 5.5, 16);
     // We put the seeds in the image
     regions.putSeeds();
     // We calculate the regions

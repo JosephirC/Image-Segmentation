@@ -37,7 +37,7 @@ public:
         std::cout << "cols and rows" << cols << "/" << rows<< std::endl;
         std::cout << "nbSeed" << nbSeed<< std::endl;
         // We initialize the random number generator
-        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+        // std::srand(static_cast<unsigned int>(std::time(nullptr)));
         // We divise the image in rep parts
         int nb_part_col_rows = sqrt(rep);
         int rowsPart = rows / nb_part_col_rows;

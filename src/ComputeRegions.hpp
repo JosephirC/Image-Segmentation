@@ -215,9 +215,10 @@ public:
                     if (alereadyMerge.find(r2->getId()) == alereadyMerge.end()){
                         r2 = mergeRegion(r2->getId(), alereadyMerge, mergeInidice);
                         // If r have change we update r
+                        alereadyMerge.insert(r2->getId());
                         r = regions[r->getId() - 1];
                     }
-                    alereadyMerge.insert(r2->getId());
+                    
                     // Finaly we merge r2 in r
                     *r += *r2;
                     mergeInidice.insert(idReg2);
@@ -263,6 +264,7 @@ public:
             // alereadyMerge.insert(id);
             notMerge.erase(id);
             Region * r = new Region(*mergeRegion(id, alereadyMerge, mergeInidice));
+            
             // std::cout << "Region Finish merge" << r->getId() << " color averge" << r->getColor() <<std::endl;
             while (!mergeInidice.empty()) {
                 int idMerged = *mergeInidice.begin();
@@ -440,11 +442,26 @@ public:
     */
     int getIdRegion(cv::Point p) {
         int id = tabInfo[p.x][p.y];
-        if (tabInfo[p.x][p.y] == 0) {
+        if (id > nb_regions || id < -1 * nb_regions) {
+            std::cout << "Error id " << id << std::endl;
+            std::cout << "Error nb_regions " << nb_regions << std::endl;
+            std::cout << "Error p " << p << std::endl;
+        } 
+        if (id == 0) {
             return 0;
-        } else if (tabInfo[p.x][p.y] < 0) {
+        } else if (id < 0) {
+            if (regions[(id * -1) - 1]->getId() < nb_regions * -1) {
+                std::cout << "Error id " << regions[(id - 1)]->getId() << std::endl;
+                std::cout << "Error nb_regions " << nb_regions << std::endl;
+                std::cout << "Error p " << p << std::endl;
+            }
             return regions[(tabInfo[p.x][p.y] + 1) * -1]->getId() * -1;
         } else {
+            if (regions[(id - 1)]->getId() > nb_regions) {
+                std::cout << "Error id " << regions[(id - 1)]->getId() << std::endl;
+                std::cout << "Error nb_regions " << nb_regions << std::endl;
+                std::cout << "Error p " << p << std::endl;
+            }
             // std::cout << "id " << tabInfo[p.x][p.y] << std::endl;
             // std::cout << "id " << regions[tabInfo[p.x][p.y] - 1]->getId() << std::endl;
             return regions[tabInfo[p.x][p.y] - 1]->getId();
