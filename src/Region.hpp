@@ -186,10 +186,10 @@ public:
             std::cout << "The two regions are not in the same image" << std::endl;
             return false;
         }
-        this->coefSD = 2.1;
-        r.coefSD = 2.1;
-        this->threshold = 10;
-        r.threshold = 10;
+        this->coefSD = 1.5;
+        r.coefSD = 1.5;
+        this->threshold = 20;
+        r.threshold = 20;
         this->averageColorSeuil();
         r.averageColorSeuil();
         // We verify if the two regions have the same color with the seuil

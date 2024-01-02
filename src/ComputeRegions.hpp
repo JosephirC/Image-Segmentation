@@ -90,8 +90,8 @@ public:
             // We add the region in the list of regions
             regions.push_back(r);
         }
-        // We display the image with the seeds
-        cv::imshow("Image with seeds div", *image_seeds);
+        // We save the image with the seeds
+        cv::imwrite("image_cree/Image_with_seeds_div.png", *image_seeds);
     }
 
     /**
@@ -233,13 +233,14 @@ public:
     /**
      * Merge a Region 
     */
-    Region * mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice) {
+    Region * mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice, int iteration, int & regTraited) {
         // std::cout << "Merge region " << id << std::endl;
         Region *r = regions [id - 1];
         mergeInidice.insert(r->getId());
         std::vector<cv::Point> listeBorder = r->getborder();
         // We parcour the list of border
-        while (!listeBorder.empty()) {
+        while (!listeBorder.empty() && iteration > 0) {
+            iteration --;
             cv::Point p = listeBorder.back();
             listeBorder.pop_back();
             // We get the region of the point (point in border)
@@ -249,7 +250,7 @@ public:
                 // We get the region
                 Region * r2 = regions[idReg2 - 1];
                 if (alereadyMerge.find(r2->getId()) == alereadyMerge.end() && r->verifyFusion(*r2) /* || true */) {
-                    r2 = mergeRegion(r2->getId(), alereadyMerge, mergeInidice);
+                    r2 = mergeRegion(r2->getId(), alereadyMerge, mergeInidice, iteration, regTraited);
                     // If r have change we update r
                     // alereadyMerge.insert(r2->getId());
                     r = regions[r->getId() - 1];
@@ -258,8 +259,15 @@ public:
                 }
             }
         }
-        alereadyMerge.insert(r->getId());
-        return r;
+        if (iteration <= 0) {
+            std::cout << "Error iteration, we don't put region in aleredy merge" << std::endl;
+            return r;
+        } else {
+            regTraited ++;
+            std::cout<<"Region " << r->getId() << " is merge (" << regTraited << " / " << nb_regions << ")" << std::endl;
+            alereadyMerge.insert(r->getId());
+            return r;
+        }
     }
 
     /**
@@ -278,11 +286,12 @@ public:
         for (int i = 0; i < nb_regions; i++) {
             notMerge.insert(regions[i]->getId());
         }
+        int nbRegTraited = 0;
         while (!notMerge.empty()) {
             // We get the first element
             int id = *notMerge.begin();
             notMerge.erase(id);
-            Region * r = new Region(*mergeRegion(id, alereadyMerge, mergeInidice));
+            Region * r = new Region(*mergeRegion(id, alereadyMerge, mergeInidice, 1000, nbRegTraited));
             // We keep in memory the list of indice of region to merge
             listOfIndicesToRegion.push_back(mergeInidice);
             // We update regions for continue merge
@@ -338,7 +347,7 @@ public:
         // delete image_regions;
     }
 
-    void display2(const std::string & name = "Image with regions", int resize = 1) {
+    void display2(const std::string & name = "Image with regions", int resize = 1, const std::string & directory = "image_cree/") {
         // Créer une palette de couleurs
         std::vector<cv::Vec3b> colorPalette;
         for (int i = 0; i < nb_regions; ++i) {
@@ -372,6 +381,7 @@ public:
 
         // Afficher l'image avec les régions colorées
         cv::imshow(name, *image_regions);
+        cv::imwrite(directory + name + ".png", *image_regions);
     }
 
     // void displayWithRegionId() {
@@ -464,30 +474,29 @@ public:
      * Return the id of regions
     */
     int getIdRegion(cv::Point p) {
+        // If in com are usless buuuuuuttttt if we want to use for debug :-)
         int id = tabInfo[p.x][p.y];
-        if (id > nb_regions || id < -1 * nb_regions) {
-            std::cout << "Error id " << id << std::endl;
-            std::cout << "Error nb_regions " << nb_regions << std::endl;
-            std::cout << "Error p " << p << std::endl;
-        } 
+        // if (id > nb_regions || id < -1 * nb_regions) {
+        //     std::cout << "Error id " << id << std::endl;
+        //     std::cout << "Error nb_regions " << nb_regions << std::endl;
+        //     std::cout << "Error p " << p << std::endl;
+        // } 
         if (id == 0) {
             return 0;
         } else if (id < 0) {
-            if (regions[(id * -1) - 1]->getId() < nb_regions * -1) {
-                std::cout << "Error id " << regions[(id - 1)]->getId() << std::endl;
-                std::cout << "Error nb_regions " << nb_regions << std::endl;
-                std::cout << "Error p " << p << std::endl;
-            }
-            return regions[(tabInfo[p.x][p.y] + 1) * -1]->getId() * -1;
+            // if (regions[(id * -1) - 1]->getId() < nb_regions * -1) {
+            //     std::cout << "Error id " << regions[(id - 1)]->getId() << std::endl;
+            //     std::cout << "Error nb_regions " << nb_regions << std::endl;
+            //     std::cout << "Error p " << p << std::endl;
+            // }
+            return regions[(id + 1) * -1]->getId() * -1;
         } else {
-            if (regions[(id - 1)]->getId() > nb_regions) {
-                std::cout << "Error id " << regions[(id - 1)]->getId() << std::endl;
-                std::cout << "Error nb_regions " << nb_regions << std::endl;
-                std::cout << "Error p " << p << std::endl;
-            }
-            // std::cout << "id " << tabInfo[p.x][p.y] << std::endl;
-            // std::cout << "id " << regions[tabInfo[p.x][p.y] - 1]->getId() << std::endl;
-            return regions[tabInfo[p.x][p.y] - 1]->getId();
+            // if (regions[(id - 1)]->getId() > nb_regions) {
+            //     std::cout << "Error id " << regions[(id - 1)]->getId() << std::endl;
+            //     std::cout << "Error nb_regions " << nb_regions << std::endl;
+            //     std::cout << "Error p " << p << std::endl;
+            // }
+            return regions[id - 1]->getId();
         }
     }
 
