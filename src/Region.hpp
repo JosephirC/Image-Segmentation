@@ -40,7 +40,7 @@ public:
      * @param imageOriginal The original image
      * 
     */
-    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 20, float _coefSD = 2.2):
+    Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 20, float _coefSD = 1.8):
                     id(_id),
                     size_x(imageOriginal->cols),
                     size_y(imageOriginal->rows),
@@ -80,11 +80,11 @@ public:
         color_seuil_inf = r.color_seuil_inf;
         color_seuil_sup = r.color_seuil_sup;
 
-        // We keep same tabInfo
+        // We keep same tabInfo and image
         this->tabInfo = r.tabInfo;
+        image = r.image;
 
         // We copy the image, the outline, the border and the colors
-        image = new cv::Mat(r.image->clone());
         outline = new std::queue<cv::Point>(*r.outline);
         border = new std::vector<cv::Point>(*r.border);
         colors = new std::vector<cv::Vec3b>(*r.colors);
@@ -140,22 +140,18 @@ public:
         std::queue<cv::Point> _outlines = *outline;
         delete outline;
         outline = new std::queue<cv::Point>();
-        std::cout << "In grow" << std::endl;
         // We get all Point in queue
         while (!_outlines.empty()) {
             cv::Point p = _outlines.front();
 
             _outlines.pop();
-            std::cout << "Point " << p.x << "/" << p.y << std::endl;
             cv::Vec3b col = image->at<cv::Vec3b>(p);
-            // std::cout << "Color " << static_cast<int>(col[0]) << "/" << static_cast<int>(col[1]) << "/" << static_cast<int>(col[2]) << std::endl;
             // We verify if the point is in the image
             if (p.x < 0 || p.x >= image->cols || p.y < 0 || p.y >= image->rows) {
                 std::cout << "Point not in the image " << image->cols << " / " << image->rows << std::endl;
                 std::cout <<p.x<<"/ "<<p.y << std::endl;
             }
             // We verify if the point is not in an region
-            std::cout << "tabInfo " << tabInfo [p.x] [p.y] << std::endl;
             if (tabInfo [p.x] [p.y] <= 0) {
                 if (verifyColor(col)) {
                     // If yes we add the point to the region
@@ -167,15 +163,11 @@ public:
                     // And we update the outline of the region
                     updateoutline(p);
                 } else {
-                    std::cout << "Point not in the color " << std::endl;
                     tabInfo [p.x] [p.y] = -1 * id;
-                    // std::cout << "We add :" << tabInfo[p.x][p.y] << " in border :" << id << std::endl;
                     border->push_back(p);
                 }
             } else {
-                std::cout << "Point in the image " << std::endl;
                 if (tabInfo [p.x] [p.y] != id) {
-                    // std::cout << "We add :" << tabInfo[p.x][p.y] << " in border :" << id << std::endl;
                     border->push_back(p);
                 }
             }
@@ -185,6 +177,7 @@ public:
 
     /**
      * /!\ not finished This function verify if two regions can be fused
+     * Again in progress but you can use it
      *
     */
     bool verifyFusion (Region& r) {
@@ -193,11 +186,10 @@ public:
             std::cout << "The two regions are not in the same image" << std::endl;
             return false;
         }
-        int coefTempo = 1.5;
-        this->coefSD = 2.2 * coefTempo;
-        r.coefSD = 2.2 * coefTempo;
-        this->threshold = 20 * coefTempo;
-        r.threshold = 20 * coefTempo;
+        this->coefSD = 2.1;
+        r.coefSD = 2.1;
+        this->threshold = 10;
+        r.threshold = 10;
         this->averageColorSeuil();
         r.averageColorSeuil();
         // We verify if the two regions have the same color with the seuil

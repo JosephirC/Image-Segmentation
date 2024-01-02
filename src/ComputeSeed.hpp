@@ -56,7 +56,7 @@ public:
                     Seed seed (xPoint, yPoint);
                     // std::cout << "seed " << seed.getX() << "/" << seed.getY() << std::endl;
                     Seed * seedPointeur = new Seed(colsIndex * colsPart + yPoint, rowsIndex * rowsPart + xPoint);
-                    std::cout << "seed " << seed.getX() << "/" << seed.getY() << std::endl;
+                    // std::cout << "seed " << seed.getX() << "/" << seed.getY() << std::endl;
                     seedVector.push_back(seedPointeur);
                 }
                 colsIndex ++;
