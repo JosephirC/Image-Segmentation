@@ -12,8 +12,8 @@ int main() {
     // cv::Mat image = cv::imread("Images/bigSegmentation.png");
     // cv::Mat image = cv::imread("Images/segmentation.png");
     // cv::Mat image = cv::imread("Images/baboon_color.png");
-    // cv::Mat image = cv::imread("Images/lena_color.png");
-    cv::Mat image = cv::imread("Images/4couleurs.png");
+    cv::Mat image = cv::imread("Images/lena_color.png");
+    // cv::Mat image = cv::imread("Images/4couleurs.png");
     cv::Mat image2;
     etirerHistogrammeCouleur(image, image2, 0, 255);
     cv::Mat imageShow = image2.clone();
@@ -24,14 +24,15 @@ int main() {
     // We creat the regions
     
     std::cout << "We creat the regions" << std::endl;
-    ComputeRegions regions(image2, 0.1, 16);
+    ComputeRegions regions(image2, 1.8, 16);
     // We put the seeds in the image
     regions.putSeeds();
     // We calculate the regions
     std::cout << "We calculate the regions" << std::endl;
-    for (int i = 0; i < 50; i++) {
-        regions.calculateRegions();
-    }
+    regions.calculateToTheEnd(100);
+    // for (int i = 0; i < 50; i++) {
+    //     regions.calculateRegions();
+    // }
     regions.display();
     regions.display2("1fst step", 1);
     // regions.calculateAllRegions(500);
@@ -39,7 +40,7 @@ int main() {
     regions.merge();
     regions.display2("merge");
     std::cout << "END" << std::endl; 
-    cv::waitKey(0);
+    // cv::waitKey(0);
     // regions.displayoutlines();
     return 0;
 }

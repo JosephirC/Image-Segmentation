@@ -117,39 +117,53 @@ public:
         }
     }
 
-    std::vector<Region *> calculateRegions(std::vector<Region *> allRegions) {
-        // For each region we calculate grow of this outline
-        std::vector<Region *> newRegions = std::vector<Region *>();
-        for (unsigned int i = 0; i < allRegions.size(); i++) {
-            if (allRegions[i]->getoutline().size() > 0) {
-                allRegions[i]->grow();
-                newRegions.push_back(allRegions[i]);
+    /**
+     * Calculate the region in parameter
+     * @param allRegions : list of region to calculate
+     * @return the region can be grow
+    */
+    std::queue<Region *> calculateRegions(std::queue<Region *> & regToCal) {
+        std::queue<Region *> regCanGrow = std::queue<Region *>();
+        // For each region we calculate grow with this outline
+        // First step we get outline of each region
+        while (!regToCal.empty()) {
+            Region * reg = regToCal.front();
+            regToCal.pop();
+            if (reg->getoutline().size() > 0) {
+                reg->grow();
+                regCanGrow.push(reg);
             } else {
-                // std::cout << "Region " << i << " is empty" << std::endl;
-                if (allRegions[i]->getIsIncrease()) {
-                    // std::cout << "Region " << i << " is increase" << std::endl;
-                    allRegions[i]->increaseThreshold();
-                    allRegions[i]->setoutline(allRegions[i]->getborder());
-                    allRegions[i]->clearborder();
-                    allRegions[i]->grow();
-                    newRegions.push_back(allRegions[i]);
+                // Reg can not grow, we try to be more kind
+                if (reg->getIsIncrease()) {
+                    // If we can be kinder, we are kinder
+                    reg->increaseThreshold();
+                    // We change outline by old border
+                    reg->setoutline(reg->getborder());
+                    reg->clearborder();
+                    reg->grow();
+                    regCanGrow.push(reg);
                 }
             }
         }
-        return newRegions;
+        return regCanGrow;
     }
 
-    void calculateAllRegions(int nbr) {
-        std::vector<Region *> allRegions(regions);
-        for (int i = 0; i < nbr; i++) {
-            if(allRegions.size() == 0) {
-                std::cout << "All regions are empty at " << i << std::endl;
-                break;
-            }
-            allRegions = calculateRegions(allRegions);
+    /**
+     * We calculate as long as there are regions to calculate (or X)
+    */
+    void calculateToTheEnd(int nbrCallMax = 100) {
+        // We get all regions in a queue
+        std::queue<Region *> regToCal = std::queue<Region *>();
+        for (int i = 0; i < nb_regions; i++) {
+            regToCal.push(regions[i]);
+        }
+        // We calculate the regions
+        while (!regToCal.empty() && nbrCallMax > 0) {
+            std::cout<<"We are to " << nbrCallMax << " of the end" << std::endl;
+            nbrCallMax --;
+            regToCal = calculateRegions(regToCal);
         }
     }
-
 
     /**
      * Display list of point
@@ -245,7 +259,6 @@ public:
             }
         }
         alereadyMerge.insert(r->getId());
-        std::cout << "End merge region " << id << std::endl;
         return r;
     }
 
