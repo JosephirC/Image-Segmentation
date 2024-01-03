@@ -150,6 +150,7 @@ public:
 
     /**
      * We calculate as long as there are regions to calculate (or X)
+     * @param nbrCallMax : number of call max
     */
     void calculateToTheEnd(int nbrCallMax = 100) {
         // We get all regions in a queue
@@ -310,16 +311,14 @@ public:
     
     /**
      * Display the regions
+     * @param title : title of the window
     */
     void display(const std::string title = "Image with regions") {
         std::cout << "size display" << image->rows << " / " << image->cols <<std::endl;
-        // We call the display function for each region
         // we creat a new image to see the regions
         cv::Mat * image_regions = new cv::Mat(image->clone());
         for (int i = 0; i < size_x_tabInfo; i++) {
             for (int j = 0; j < size_y_tabInfo; j++) {
-                // std::cout << "coo " << i << " / " <<  j << std :: endl;
-                // std::cout << "tabInfo[" << i << "][" << j << "] = " << tabInfo[i][j] << std::endl;
                 int id = tabInfo[i][j];
                 if (id > 0) {
                     image_regions->at<cv::Vec3b>(cv::Point(i, j)) = regions[id - 1]->getColor();
@@ -329,14 +328,7 @@ public:
                     image_regions->at<cv::Vec3b>(cv::Point(i, j)) = /*image->at<cv::Vec3b>(cv::Point(i, j)); */ cv::Vec3b(0, 0, 0);
                 }
             }
-        }
-        // We show in cout pixel
-        // for (int i = 0; i < image_regions->cols; i++) {
-        //     for (int j = 0; j < image_regions->rows; j++) {
-        //         std::cout << "color " << i << " / " << j << " : " << image_regions->at<cv::Vec3b>(cv::Point(i, j)) << std::endl;
-        //     }
-        // }
-       
+        }       
         // We display the image with the regions
         if (!image_regions->empty()) {
             cv::imshow(title, *image_regions);
@@ -460,6 +452,7 @@ public:
 
     /**
      * Return region in a point
+     * @param p : point
     */
     Region * getRegion(cv::Point p) {
         int id = tabInfo[p.x][p.y];
@@ -472,6 +465,7 @@ public:
 
     /**
      * Return the id of regions
+     * @param p : point
     */
     int getIdRegion(cv::Point p) {
         // If in com are usless buuuuuuttttt if we want to use for debug :-)
@@ -498,6 +492,36 @@ public:
             // }
             return regions[id - 1]->getId();
         }
+    }
+
+    /**
+     * Return number of regions
+    */
+    int getNbRegions() const {
+        return nb_regions;
+    }
+
+    /**
+     * Return number of pixels
+    */
+    int getNbPixels() const {
+        return nb_pixels;
+    }
+
+    /**
+     * Get point not in regions
+    */
+    std::vector<cv::Point> getNotInReg () {
+        // A vector of point not in region
+        std::vector<cv::Point> notInRegion = std::vector<cv::Point>();
+        for (int i = 0; i < size_x_tabInfo; i++) {
+            for (int j = 0; j < size_y_tabInfo; j++) {
+                if (tabInfo[i][j] <= 0) {
+                    notInRegion.push_back(cv::Point(i, j));
+                }
+            }
+        }
+        return notInRegion;
     }
 
 private:
