@@ -55,9 +55,11 @@ int main() {
 
     regions.reCalculateRegions(20.0);
     regions.display2("region_after_recalcul");
+    cv::waitKey(0);
 
     regions.merge();
     regions.display2("merge_after_recalcul");
+    cv::waitKey(0);
 
     std::cout << "END" << std::endl; 
 

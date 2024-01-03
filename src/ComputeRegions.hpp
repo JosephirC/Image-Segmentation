@@ -150,7 +150,7 @@ public:
 
     /**
      * We calculate a queue of regions
-     * @param reg : regions to reCalculate
+     * @param reg : regions 
      * @param nbrCallMax : number of call max
     */
     void calculatQueueRegion(std::queue<Region *> reg, int nbrCallMax = 100) {
@@ -302,7 +302,7 @@ public:
             // We get the first element
             int id = *notMerge.begin();
             notMerge.erase(id);
-            Region * r = new Region(*mergeRegion(id, alereadyMerge, mergeInidice, 1000, nbRegTraited));
+            Region * r = new Region(*mergeRegion(id, alereadyMerge, mergeInidice, 1500, nbRegTraited));
             // We keep in memory the list of indice of region to merge
             listOfIndicesToRegion.push_back(mergeInidice);
             // We update regions for continue merge
@@ -547,8 +547,7 @@ public:
             int indice = rand() % pointNotInReg.size();
             cv::Point p = pointNotInReg[indice];
             // We put a new seed
-            std::cout << "Region " << i << "/" << this->nb_regions<<std::endl;
-            Region * r = new Region(i, p, tabInfo, image);
+            Region * r = new Region(i + nb_regions + 1, p, tabInfo, image);
             // We add the region in the list of regions
             regions.push_back(r);
             // We add the region in the queue of region to calculate
@@ -556,8 +555,10 @@ public:
             // We remove the point of the list
             pointNotInReg.erase(pointNotInReg.begin() + indice);
         }
+        nb_regions = regions.size();
         // We calculate the regions
         calculatQueueRegion(regToCal);
+        std::cout<<"End reCalculateRegions" << std::endl;
     }
 
 private:
