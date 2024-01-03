@@ -119,7 +119,7 @@ public:
 
     /**
      * Calculate the region in parameter
-     * @param allRegions : list of region to calculate
+     * @param regToCal : list of region to calculate
      * @return the region can be grow
     */
     std::queue<Region *> calculateRegions(std::queue<Region *> & regToCal) {
@@ -149,6 +149,20 @@ public:
     }
 
     /**
+     * We calculate a queue of regions
+     * @param reg : regions to reCalculate
+     * @param nbrCallMax : number of call max
+    */
+    void calculatQueueRegion(std::queue<Region *> reg, int nbrCallMax = 100) {
+        // We calculate the regions
+        while (!reg.empty() && nbrCallMax > 0) {
+            std::cout<<"We are to " << nbrCallMax << " of the end" << std::endl;
+            nbrCallMax --;
+            reg = calculateRegions(reg);
+        }
+    }
+    
+    /**
      * We calculate as long as there are regions to calculate (or X)
      * @param nbrCallMax : number of call max
     */
@@ -159,11 +173,7 @@ public:
             regToCal.push(regions[i]);
         }
         // We calculate the regions
-        while (!regToCal.empty() && nbrCallMax > 0) {
-            std::cout<<"We are to " << nbrCallMax << " of the end" << std::endl;
-            nbrCallMax --;
-            regToCal = calculateRegions(regToCal);
-        }
+        calculatQueueRegion(regToCal, nbrCallMax);
     }
 
     /**
@@ -261,8 +271,8 @@ public:
             }
         }
         if (iteration <= 0) {
-            std::cout << "Error iteration, we don't put region in aleredy merge" << std::endl;
-            return r;
+           std::cout << "Error iteration, we don't put region in aleredy merge" << std::endl;
+           return r;
         } else {
             regTraited ++;
             std::cout<<"Region " << r->getId() << " is merge (" << regTraited << " / " << nb_regions << ")" << std::endl;
@@ -509,7 +519,7 @@ public:
     }
 
     /**
-     * Get point not in regions
+     * Get point not in regions in vector
     */
     std::vector<cv::Point> getNotInReg () {
         // A vector of point not in region
@@ -522,6 +532,32 @@ public:
             }
         }
         return notInRegion;
+    }
+
+    /**
+     * ReCalculate regions in image
+     * @param pourcent : pourcent of point not in region to put in new seeds
+    */
+    void reCalculateRegions(float pourcent = 30) {
+        std::vector<cv::Point> pointNotInReg = getNotInReg();
+        std::queue<Region *> regToCal = std::queue<Region *>();
+        // We get X% of the point not in region to put in new seeds
+        for (int i = 0; i < pointNotInReg.size() / pourcent; i++) {
+            // We get a random point
+            int indice = rand() % pointNotInReg.size();
+            cv::Point p = pointNotInReg[indice];
+            // We put a new seed
+            std::cout << "Region " << i << "/" << this->nb_regions<<std::endl;
+            Region * r = new Region(i, p, tabInfo, image);
+            // We add the region in the list of regions
+            regions.push_back(r);
+            // We add the region in the queue of region to calculate
+            regToCal.push(r);
+            // We remove the point of the list
+            pointNotInReg.erase(pointNotInReg.begin() + indice);
+        }
+        // We calculate the regions
+        calculatQueueRegion(regToCal);
     }
 
 private:

@@ -30,7 +30,7 @@ int main() {
 
     // We creat the regions
     std::cout << "We creat the regions" << std::endl;
-    ComputeRegions regions(image2, 0.55, 16);
+    ComputeRegions regions(image2, 0.8, 16);
 
     // We put the seeds in the image
     auto start_seeds = std::chrono::high_resolution_clock::now();
@@ -51,9 +51,14 @@ int main() {
     regions.merge();
     int nbSeedsEnd = regions.getNbRegions();
     auto end_merge = std::chrono::high_resolution_clock::now();
-
-
     regions.display2("merge");
+
+    regions.reCalculateRegions(20.0);
+    regions.display2("region_after_recalcul");
+
+    regions.merge();
+    regions.display2("merge_after_recalcul");
+
     std::cout << "END" << std::endl; 
 
     // We display all times
