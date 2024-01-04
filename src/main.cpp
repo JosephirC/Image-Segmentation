@@ -14,8 +14,8 @@ int main() {
     // cv::Mat image = cv::imread("Images/bigSegmentation.png");
     // cv::Mat image = cv::imread("Images/segmentation.png");
     // cv::Mat image = cv::imread("Images/baboon_color.png");
-    // cv::Mat image = cv::imread("Images/lena_color.png");
-    cv::Mat image = cv::imread("Images/4couleurs.png");
+    cv::Mat image = cv::imread("Images/lena_color.png");
+    // cv::Mat image = cv::imread("Images/4couleurs.png");
     auto end_load = std::chrono::high_resolution_clock::now();
     
     // We equalize the image    
@@ -53,14 +53,17 @@ int main() {
     auto end_merge = std::chrono::high_resolution_clock::now();
     regions.display2("merge");
 
-    // regions.reCalculateRegions(20.0);
-    // regions.display2("region_after_recalcul");
-    // cv::waitKey(0);
+    regions.displayBorderInner("border_inner_merge", 2);
+    cv::waitKey(0);
+
+    std::cout << "We start the smoothing" << std::endl;
+    regions.smoothingReg();
+    regions.display2("smoothing de base");
 
     // regions.merge();
     // regions.display2("merge_2");
 
-    regions.displayBorderInner("border_inner", 2);
+    regions.displayBorderInner("border_inner_smooth", 2);
     cv::waitKey(0);
 
     // regions.merge();

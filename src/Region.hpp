@@ -279,6 +279,7 @@ public:
     void removePointInBorder (cv::Point p) {
         for (unsigned int i = 0; i < border->size(); i++) {
             if (border->at(i) == p) {
+                std::cout << "We remove the point " << p.x << "/" << p.y << " in the border of the region " << id << std::endl;
                 border->erase(border->begin() + i);
                 return;
             }

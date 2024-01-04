@@ -597,12 +597,15 @@ public:
                 int id = tabInfo[i][j];
                 if (id < 0) {
                     if (checkNeigthor(i, j, id * -1)) {
-                        tabInfo[i][j] *= -1;
-                        int idReg = getIdRegion(cv::Point(i, j));
-                        regions[idReg]->addPoint(cv::Point(i, j));
+                        // tabInfo[i][j] *= -1;
+                        int idReg = getIdRegion(cv::Point(i, j)) * -1;
+                        regions[idReg - 1]->addPoint(cv::Point(i, j));
                     }
                 }
             }
+        }
+        for (auto & r : regions) {
+            this->updateBorder(r);
         }
     }
 
