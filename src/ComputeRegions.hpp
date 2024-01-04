@@ -254,7 +254,7 @@ public:
             }
         }
         std::vector<cv::Point> tmp2 = r->getborder();
-        std::cout << "size border " << tmp.size() << " / " << tmp2.size() << std::endl;
+        // std::cout << "size border " << tmp.size() << " / " << tmp2.size() << std::endl;
     }
 
     /**
@@ -599,14 +599,17 @@ public:
                     if (checkNeigthor(i, j, id * -1)) {
                         // tabInfo[i][j] *= -1;
                         int idReg = getIdRegion(cv::Point(i, j)) * -1;
+                        // We cout size of border
+                        int size = regions[idReg - 1]->getborder().size();
                         regions[idReg - 1]->addPoint(cv::Point(i, j));
+                        std::cout << "size border " << size << " to " << regions[idReg - 1]->getborder().size() << std::endl;
                     }
                 }
             }
         }
-        for (auto & r : regions) {
-            this->updateBorder(r);
-        }
+        // for (auto & r : regions) {
+        //     this->updateBorder(r);
+        // }
     }
 
     /**

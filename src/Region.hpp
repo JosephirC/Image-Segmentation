@@ -284,6 +284,7 @@ public:
                 return;
             }
         }
+        std::cout << "The point " << p.x << "/" << p.y << " is not in the border of the region " << id << std::endl;
     }
 
     /**
