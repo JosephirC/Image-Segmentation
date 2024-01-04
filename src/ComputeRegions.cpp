@@ -1,17 +1,17 @@
 #include <iostream>
 #include <vector>
 #include <opencv2/opencv.hpp>
-#include "RegionRe.hpp"
-#include "ReComputeRegions.hpp"
-#include "ReComputeSeed.hpp"
+#include "Region.hpp"
+#include "ComputeRegions.hpp"
+#include "ComputeSeed.hpp"
 #include <set>
 #include <unordered_set>
 
-ReComputeRegions::ReComputeRegions() {
+ComputeRegions::ComputeRegions() {
     image = new cv::Mat();
 }
 
-ReComputeRegions::ReComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _rep) {
+ComputeRegions::ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _rep) {
     // We check the repartition is correct
     if (_rep % 4 != 0) {
         std::cout << "The repartition is not correct :" << _rep << std::endl;
@@ -38,7 +38,7 @@ ReComputeRegions::ReComputeRegions(cv::Mat img, float _pourcentByRep, unsigned i
 }
 
 
-ReComputeRegions::~ReComputeRegions() {
+ComputeRegions::~ComputeRegions() {
     delete image;
 
     std::sort(regions.begin(), regions.end());
@@ -57,11 +57,11 @@ ReComputeRegions::~ReComputeRegions() {
 }
 
 
-void ReComputeRegions::putSeeds() {        
+void ComputeRegions::putSeeds() {        
     // std::cout << "size PutSeeds" << image->rows << " / " << image->cols <<std::endl;
     // We creat a new image to see the seeds
     cv::Mat * image_seeds = new cv::Mat(image->clone());
-    ReComputeSeed seedRandImg (image->rows, image->cols, nb_regions / this->rep, this->rep);
+    ComputeSeed seedRandImg (image->rows, image->cols, nb_regions / this->rep, this->rep);
     // We put the seeds in the image
     int i = 0;
     for (const auto &seed : seedRandImg.getSeedVector()) {
@@ -69,7 +69,7 @@ void ReComputeRegions::putSeeds() {
         image_seeds->at<cv::Vec3b>(seed->getPoint()) = cv::Vec3b(0, 0, 255);
         // We creat a new region
         std::cout << "Region " << i << "/" << this->nb_regions<<std::endl;
-        RegionRe * r = new RegionRe(i, seed->getPoint(), tabInfo, image);
+        Region * r = new Region(i, seed->getPoint(), tabInfo, image);
         // We add the region in the list of regions
         regions.push_back(r);
     }
@@ -78,7 +78,7 @@ void ReComputeRegions::putSeeds() {
 }
 
 
-void ReComputeRegions::calculateRegions() {
+void ComputeRegions::calculateRegions() {
     // For each region we calculate grow of this outline
     for (int i = 0; i < nb_regions; i++) {
         regions[i]->getoutline();
@@ -98,12 +98,12 @@ void ReComputeRegions::calculateRegions() {
     }
 }
 
-std::queue<RegionRe *> ReComputeRegions::calculateRegions(std::queue<RegionRe *> & regToCal) {
-    std::queue<RegionRe *> regCanGrow = std::queue<RegionRe *>();
+std::queue<Region *> ComputeRegions::calculateRegions(std::queue<Region *> & regToCal) {
+    std::queue<Region *> regCanGrow = std::queue<Region *>();
     // For each region we calculate grow with this outline
     // First step we get outline of each region
     while (!regToCal.empty()) {
-        RegionRe * reg = regToCal.front();
+        Region * reg = regToCal.front();
         regToCal.pop();
         if (reg->getoutline().size() > 0) {
             reg->grow();
@@ -124,7 +124,7 @@ std::queue<RegionRe *> ReComputeRegions::calculateRegions(std::queue<RegionRe *>
     return regCanGrow;
 }
 
-void ReComputeRegions::calculatQueueRegion(std::queue<RegionRe *> reg, int nbrCallMax) {
+void ComputeRegions::calculatQueueRegion(std::queue<Region *> reg, int nbrCallMax) {
     // We calculate the regions
     while (!reg.empty() && nbrCallMax > 0) {
         std::cout<<"We are to " << nbrCallMax << " of the end" << std::endl;
@@ -133,9 +133,9 @@ void ReComputeRegions::calculatQueueRegion(std::queue<RegionRe *> reg, int nbrCa
     }
 }
 
-void ReComputeRegions::calculateToTheEnd(int nbrCallMax) {
+void ComputeRegions::calculateToTheEnd(int nbrCallMax) {
     // We get all regions in a queue
-    std::queue<RegionRe *> regToCal = std::queue<RegionRe *>();
+    std::queue<Region *> regToCal = std::queue<Region *>();
     for (int i = 0; i < nb_regions; i++) {
         regToCal.push(regions[i]);
     }
@@ -143,14 +143,14 @@ void ReComputeRegions::calculateToTheEnd(int nbrCallMax) {
     calculatQueueRegion(regToCal, nbrCallMax);
 }
 
-void ReComputeRegions::displayListPoint(std::vector<cv::Point> & listPoint) {
+void ComputeRegions::displayListPoint(std::vector<cv::Point> & listPoint) {
     for (const auto &element : listPoint) {
         std::cout << " Point " << element.x << " / " << element.y << " | " << tabInfo[element.x][element.y] << " /// ";
     }
     std::cout << std::endl;
 }
 
-void ReComputeRegions::displayMap(std::unordered_map<int, std::unordered_set<int>> & map) {
+void ComputeRegions::displayMap(std::unordered_map<int, std::unordered_set<int>> & map) {
     for (const auto &element : map) {
         std::cout << "Region " << element.first << " : ";
         for (const auto &element2 : element.second) {
@@ -160,7 +160,7 @@ void ReComputeRegions::displayMap(std::unordered_map<int, std::unordered_set<int
     }
 }
 
-int ReComputeRegions::findInt(const int target, const std::vector<std::unordered_set<int>> & listOfSets) const {
+int ComputeRegions::findInt(const int target, const std::vector<std::unordered_set<int>> & listOfSets) const {
     // We parcour the list of set
     for (std::size_t i = 0; i < listOfSets.size(); ++i) {
         // To find the target in the set
@@ -172,9 +172,9 @@ int ReComputeRegions::findInt(const int target, const std::vector<std::unordered
     return -1; // If the int doesn't exist
 }
 
-void ReComputeRegions::updateStorageRegions (std::vector<std::unordered_set<int>> listIR) {
+void ComputeRegions::updateStorageRegions (std::vector<std::unordered_set<int>> listIR) {
     // First step we update regions
-    std::vector<RegionRe *> newRegions = std::vector<RegionRe *>();
+    std::vector<Region *> newRegions = std::vector<Region *>();
     for (std::size_t i = 0; i < listIR.size(); i++) {
         newRegions.push_back(regions[*listIR[i].begin() - 1]);
         newRegions[i]->setId(i + 1);
@@ -195,7 +195,7 @@ void ReComputeRegions::updateStorageRegions (std::vector<std::unordered_set<int>
     }
 } 
 
-void ReComputeRegions::updateBorder (RegionRe * r) {
+void ComputeRegions::updateBorder (Region * r) {
     std::vector<cv::Point> tmp = r->getborder();
     for (const auto & pborder : tmp) {
         int id = getIdRegion(cv::Point(pborder.x, pborder.y));
@@ -205,12 +205,12 @@ void ReComputeRegions::updateBorder (RegionRe * r) {
         }
     }
     std::vector<cv::Point> tmp2 = r->getborder();
-    std::cout << "size border " << tmp.size() << " / " << tmp2.size() << std::endl;
+    // std::cout << "size border " << tmp.size() << " / " << tmp2.size() << std::endl;
 }
 
-RegionRe * ReComputeRegions::mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice, int iteration, int & regTraited) {
+Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice, int iteration, int & regTraited) {
     // std::cout << "Merge region " << id << std::endl;
-    RegionRe *r = regions [id - 1];
+    Region *r = regions [id - 1];
     mergeInidice.insert(r->getId());
     std::vector<cv::Point> listeBorder = r->getborder();
     iteration --;
@@ -223,7 +223,7 @@ RegionRe * ReComputeRegions::mergeRegion(const int id, std::unordered_set<int> &
         // We check if the region is not already merge
         if (idReg2 > 0 && mergeInidice.find(idReg2) == mergeInidice.end()) {
             // We get the region
-            RegionRe * r2 = regions[idReg2 - 1];
+            Region * r2 = regions[idReg2 - 1];
             if (alereadyMerge.find(r2->getId()) == alereadyMerge.end() && r->verifyFusion(*r2)) {
                 r2 = mergeRegion(r2->getId(), alereadyMerge, mergeInidice, iteration, regTraited);
                 // If r have change we update r
@@ -245,7 +245,7 @@ RegionRe * ReComputeRegions::mergeRegion(const int id, std::unordered_set<int> &
     }
 }
 
-void ReComputeRegions::merge() {
+void ComputeRegions::merge() {
     std::cout << "Merge" << std::endl;
     // We creat a list of region already merge for not merge them again
     std::unordered_set<int> alereadyMerge;
@@ -263,7 +263,7 @@ void ReComputeRegions::merge() {
         // We get the first element
         int id = *notMerge.begin();
         notMerge.erase(id);
-        RegionRe * r = new RegionRe(*mergeRegion(id, alereadyMerge, mergeInidice, 1000, nbRegTraited));
+        Region * r = new Region(*mergeRegion(id, alereadyMerge, mergeInidice, 1000, nbRegTraited));
         // We keep in memory the list of indice of region to merge
         listOfIndicesToRegion.push_back(mergeInidice);
         // We update regions for continue merge
@@ -281,7 +281,7 @@ void ReComputeRegions::merge() {
     updateStorageRegions(listOfIndicesToRegion);
 }
 
-void ReComputeRegions::display(const std::string title) {
+void ComputeRegions::display(const std::string title) {
     std::cout << "size display" << image->rows << " / " << image->cols <<std::endl;
     // we creat a new image to see the regions
     cv::Mat * image_regions = new cv::Mat(image->clone());
@@ -307,7 +307,7 @@ void ReComputeRegions::display(const std::string title) {
     // delete image_regions;
 }
 
-cv::Mat * ReComputeRegions::display2(const std::string & name, int resize, const std::string & directory) {    // Créer une palette de couleurs
+cv::Mat * ComputeRegions::display2(const std::string & name, int resize, const std::string & directory) {    // Créer une palette de couleurs
     std::vector<cv::Vec3b> colorPalette;
     for (int i = 0; i < nb_regions; ++i) {
         // Générer des couleurs uniques pour chaque région
@@ -407,7 +407,7 @@ cv::Mat * ReComputeRegions::display2(const std::string & name, int resize, const
 //     cv::waitKey(0);
 // }
 
-void ReComputeRegions::displayoutlines() {
+void ComputeRegions::displayoutlines() {
     // We call the display function for each region
     for (int i = 0; i < nb_regions; i++) {
         // std::cout << "Region " << i << std::endl;
@@ -415,7 +415,7 @@ void ReComputeRegions::displayoutlines() {
     }
 }
 
-RegionRe * ReComputeRegions::getRegion(cv::Point p) {
+Region * ComputeRegions::getRegion(cv::Point p) {
     int id = tabInfo[p.x][p.y];
     if (id > 0) {
         return regions[id - 1];
@@ -424,7 +424,7 @@ RegionRe * ReComputeRegions::getRegion(cv::Point p) {
     }
 }
 
-int ReComputeRegions::getIdRegion(cv::Point p) {
+int ComputeRegions::getIdRegion(cv::Point p) {
     // If in com are usless buuuuuuttttt if we want to use for debug :-)
     int id = tabInfo[p.x][p.y];
     // if (id > nb_regions || id < -1 * nb_regions) {
@@ -451,15 +451,15 @@ int ReComputeRegions::getIdRegion(cv::Point p) {
     }
 }
 
-int ReComputeRegions::getNbRegions() const {
+int ComputeRegions::getNbRegions() const {
     return nb_regions;
 }
 
-int ReComputeRegions::getNbPixels() const {
+int ComputeRegions::getNbPixels() const {
     return nb_pixels;
 }
 
-std::vector<cv::Point> ReComputeRegions::getNotInReg() {
+std::vector<cv::Point> ComputeRegions::getNotInReg() {
     // A vector of point not in region
     std::vector<cv::Point> notInRegion = std::vector<cv::Point>();
     for (int i = 0; i < size_x_tabInfo; i++) {
@@ -472,16 +472,16 @@ std::vector<cv::Point> ReComputeRegions::getNotInReg() {
     return notInRegion;
 }
 
-void ReComputeRegions::reCalculateRegions(float pourcent) {
+void ComputeRegions::reCalculateRegions(float pourcent) {
     std::vector<cv::Point> pointNotInReg = getNotInReg();
-    std::queue<RegionRe *> regToCal = std::queue<RegionRe *>();
+    std::queue<Region *> regToCal = std::queue<Region *>();
     // We get X% of the point not in region to put in new seeds
     for (int i = 0; i < pointNotInReg.size() / pourcent; i++) {
         // We get a random point
         int indice = rand() % pointNotInReg.size();
         cv::Point p = pointNotInReg[indice];
         // We put a new seed
-        RegionRe * r = new RegionRe(i + nb_regions + 1, p, tabInfo, image);
+        Region * r = new Region(i + nb_regions + 1, p, tabInfo, image);
         // We add the region in the list of regions
         regions.push_back(r);
         // We add the region in the queue of region to calculate
@@ -495,30 +495,33 @@ void ReComputeRegions::reCalculateRegions(float pourcent) {
     std::cout<<"End reCalculateRegions" << std::endl;
 }
 
-bool ReComputeRegions::checkNeigthor(int x, int y, int id) {
+bool ComputeRegions::checkNeigthor(int x, int y, int id) {
     return (abs(tabInfo[x - 1][y]) == id && abs(tabInfo[x + 1][y]) == id && 
             abs(tabInfo[x][y - 1]) == id && abs(tabInfo[x][y + 1]) == id);
 }
 
-void ReComputeRegions::smoothingReg() {
+void ComputeRegions::smoothingReg() {
     for (int i = 1; i < size_x_tabInfo - 1; i++) {
-            for (int j = 1; j < size_y_tabInfo - 1; j++) {
-                int id = tabInfo[i][j];
-                if (id < 0) {
-                    if (checkNeigthor(i, j, id * -1)) {
-                        // tabInfo[i][j] *= -1;
-                        int idReg = getIdRegion(cv::Point(i, j)) * -1;
-                        regions[idReg - 1]->addPoint(cv::Point(i, j));
-                    }
+        for (int j = 1; j < size_y_tabInfo - 1; j++) {
+            int id = tabInfo[i][j];
+            if (id < 0) {
+                if (checkNeigthor(i, j, id * -1)) {
+                    // tabInfo[i][j] *= -1;
+                    int idReg = getIdRegion(cv::Point(i, j)) * -1;
+                    // We cout size of border
+                    int size = regions[idReg - 1]->getborder().size();
+                    regions[idReg - 1]->addPoint(cv::Point(i, j));
+                    std::cout << "size border " << size << " to " << regions[idReg - 1]->getborder().size() << std::endl;
                 }
             }
         }
-    for (auto & r : regions) {
-        this->updateBorder(r);
     }
+    // for (auto & r : regions) {
+    //     this->updateBorder(r);
+    // }
 }
 
-float ReComputeRegions::getPourcentNotInReg () {
+float ComputeRegions::getPourcentNotInReg () {
     int nbPointNotInReg = 0;
     for (int i = 0; i < size_x_tabInfo; i++) {
         for (int j = 0; j < size_y_tabInfo; j++) {
@@ -533,7 +536,7 @@ float ReComputeRegions::getPourcentNotInReg () {
 /**
     * Display borderInner
 */
-void ReComputeRegions::displayBorderInner (std::string name, int resize, const std::string & directory) {
+void ComputeRegions::displayBorderInner (std::string name, int resize, const std::string & directory) {
     // We copy img original
     cv::Mat * image_borderInner = new cv::Mat(image->clone());
     cv::Mat * image_borderInner2 = new cv::Mat(display2(name, 1, directory)->clone());
@@ -557,7 +560,7 @@ void ReComputeRegions::displayBorderInner (std::string name, int resize, const s
 
 /***** Private functions *****/
 
-std::vector<cv::Point> ReComputeRegions::calNeightorsId (cv::Point p, int id) {
+std::vector<cv::Point> ComputeRegions::calNeightorsId (cv::Point p, int id) {
     std::vector<cv::Point> neightors;
     if (p.x > 0 && tabInfo[p.x - 1][p.y] == id) {
         neightors.push_back(cv::Point(p.x - 1, p.y));
@@ -574,7 +577,7 @@ std::vector<cv::Point> ReComputeRegions::calNeightorsId (cv::Point p, int id) {
     return neightors;
 }
 
-std::vector<cv::Point> ReComputeRegions::calculateBorderInner () {
+std::vector<cv::Point> ComputeRegions::calculateBorderInner () {
     std::vector<cv::Point> borderInner;
     for (int i = 0; i < nb_regions; i++) {
         std::vector<cv::Point> borderOuter = regions[i]->getborder();

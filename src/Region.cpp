@@ -1,4 +1,4 @@
-#include "RegionRe.hpp"
+#include "Region.hpp"
 #include <opencv2/opencv.hpp>
 
 // This function is used to display a color
@@ -8,7 +8,7 @@ void displayColor (const cv::Vec3b& couleur) {
     std::cout << "Canal Rouge : " << static_cast<int>(couleur[2]) << std::endl;
 }
 
-RegionRe::RegionRe() {
+Region::Region() {
     tabInfo = nullptr;
     outline = new std::queue<cv::Point>();
     border = new std::vector<cv::Point>();
@@ -18,7 +18,7 @@ RegionRe::RegionRe() {
     // allRegionColors = new std::unordered_map<int, cv::Vec3b>();
 }
 
-RegionRe::RegionRe(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold, float _coefSD):
+Region::Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold, float _coefSD):
                 id(_id),
                 size_x(imageOriginal->cols),
                 size_y(imageOriginal->rows),
@@ -41,7 +41,7 @@ RegionRe::RegionRe(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOrigina
     grow();
 }
 
-RegionRe::RegionRe(const RegionRe& r) {
+Region::Region(const Region& r) {
     // We copy basic data
     id = r.id;
     size_x = r.size_x;
@@ -63,7 +63,7 @@ RegionRe::RegionRe(const RegionRe& r) {
     colors = new std::vector<cv::Vec3b>(*r.colors);
 }
 
-RegionRe::~RegionRe(){
+Region::~Region(){
    if (outline != nullptr) {
         delete outline;
     }
@@ -78,7 +78,7 @@ RegionRe::~RegionRe(){
     colors = nullptr;
 }
 
-RegionRe & RegionRe::operator=(const RegionRe& r) {
+Region & Region::operator=(const Region& r) {
     if (this != &r) {
         //delete vecInfo;
         delete outline;
@@ -97,7 +97,7 @@ RegionRe & RegionRe::operator=(const RegionRe& r) {
     }
 }
 
-void RegionRe::grow() {
+void Region::grow() {
     std::queue<cv::Point> _outlines = *outline;
     delete outline;
     outline = new std::queue<cv::Point>();
@@ -137,7 +137,7 @@ void RegionRe::grow() {
 }
 
 
-bool RegionRe::verifyFusion (RegionRe& r) {
+bool Region::verifyFusion (Region& r) {
     // We verify if the two regions in the same image
     if (size_x != r.size_x || size_y != r.size_y) {
         std::cout << "The two regions are not in the same image" << std::endl;
@@ -154,7 +154,7 @@ bool RegionRe::verifyFusion (RegionRe& r) {
     //return 
 }
 
-void RegionRe::addPoint(cv::Point p) {
+void Region::addPoint(cv::Point p) {
     // We verify if the point is in the image
     if (p.x < 0 || p.x >= image->cols || p.y < 0 || p.y >= image->rows) {
         std::cout << "Point not in the image " << image->cols << " / " << image->rows << std::endl;
@@ -171,7 +171,7 @@ void RegionRe::addPoint(cv::Point p) {
     removePointInBorder(p);
 }
 
-bool RegionRe::removePoint(cv::Point p) {
+bool Region::removePoint(cv::Point p) {
     // We verify if the point is in the image
     if (p.x < 0 || p.x >= image->cols || p.y < 0 || p.y >= image->rows) {
         std::cout << "Point not in the image " << image->cols << " / " << image->rows << std::endl;
@@ -186,26 +186,26 @@ bool RegionRe::removePoint(cv::Point p) {
     return colors->empty();
 }
 
-std::queue<cv::Point> & RegionRe::getoutline() const {
+std::queue<cv::Point> & Region::getoutline() const {
     assert(outline != nullptr);
     return *outline;
 }
 
-std::vector<cv::Point> & RegionRe::getborder() const {
+std::vector<cv::Point> & Region::getborder() const {
     return *border;
 }
 
-void RegionRe::setoutline(std::queue<cv::Point>& _outline) {
+void Region::setoutline(std::queue<cv::Point>& _outline) {
     delete outline;
     *outline = _outline;
 }
 
-void RegionRe::setborder(const std::vector<cv::Point>& _border) {
+void Region::setborder(const std::vector<cv::Point>& _border) {
     delete border;
     *border = _border;
 }
 
-void RegionRe::removePointInBorder (cv::Point p) {
+void Region::removePointInBorder (cv::Point p) {
     for (unsigned int i = 0; i < border->size(); i++) {
         if (border->at(i) == p) {
             std::cout << "We remove the point " << p.x << "/" << p.y << " in the border of the region " << id << std::endl;
@@ -213,9 +213,10 @@ void RegionRe::removePointInBorder (cv::Point p) {
             return;
         }
     }
+    std::cout << "The point " << p.x << "/" << p.y << " is not in the border of the region " << id << std::endl;
 }
 
-void RegionRe::setoutline(const std::vector<cv::Point> & _outline) {
+void Region::setoutline(const std::vector<cv::Point> & _outline) {
    delete outline;
     outline = new std::queue<cv::Point>();
     for (unsigned int i = 0; i < _outline.size(); i++) {
@@ -223,12 +224,12 @@ void RegionRe::setoutline(const std::vector<cv::Point> & _outline) {
     }
 }
 
-void RegionRe::clearborder() {
+void Region::clearborder() {
     delete border;
     border = new std::vector<cv::Point>;
 }
 
-void RegionRe::display(const std::string title, bool average) {
+void Region::display(const std::string title, bool average) {
     if (average) {
         return;
     }
@@ -246,11 +247,11 @@ void RegionRe::display(const std::string title, bool average) {
     // cv::waitKey(0);
 }
 
-cv::Vec3b RegionRe::getColor() const {
+cv::Vec3b Region::getColor() const {
     return cv::Vec3b(color);
 }
 
-void RegionRe::increaseThreshold() {
+void Region::increaseThreshold() {
     // std::cout << "Increase threshold" << std::endl;
     if (colors->size() < 30) {
         if (threshold + 5 < 50) {
@@ -270,19 +271,19 @@ void RegionRe::increaseThreshold() {
     averageColorSeuil();
 }
 
-bool RegionRe::getIsIncrease() {
+bool Region::getIsIncrease() {
     return isIncrease;
 }
 
-int RegionRe::getId() const {
+int Region::getId() const {
     return id;
 }
 
-void RegionRe::setId(const int _id) {
+void Region::setId(const int _id) {
     id = _id;
 }
 
-void RegionRe::operator+=(const RegionRe & r2) {
+void Region::operator+=(const Region & r2) {
     // We creat a new region
     // Region * new_region = new Region();
     // We remove in border the points in common
@@ -314,17 +315,17 @@ void RegionRe::operator+=(const RegionRe & r2) {
     averageColorSeuil();
 }
 
-bool RegionRe::operator<(const RegionRe& other) const {
+bool Region::operator<(const Region& other) const {
     return id < other.id;
 }
 
-bool RegionRe::operator==(const RegionRe& other) const {
+bool Region::operator==(const Region& other) const {
     return id == other.id;
 }
 
 /***** Private functions *****/ 
 
-void RegionRe::averageColor(){
+void Region::averageColor(){
     int r = 0;
     int g = 0;
     int b = 0;
@@ -339,7 +340,7 @@ void RegionRe::averageColor(){
     color = cv::Vec3b(r, g, b);
 }
 
-void RegionRe::averageColorSeuil() {
+void Region::averageColorSeuil() {
     int r = 0;
     int g = 0;
     int b = 0;
@@ -377,13 +378,13 @@ void RegionRe::averageColorSeuil() {
     }
 }
 
-bool RegionRe::verifyColor(cv::Vec3b col) const {
+bool Region::verifyColor(cv::Vec3b col) const {
     return (col[0] >= color_seuil_inf[0] && col[0] <= color_seuil_sup[0])
         && (col[1] >= color_seuil_inf[1] && col[1] <= color_seuil_sup[1]) 
         && (col[2] >= color_seuil_inf[2] && col[2] <= color_seuil_sup[2]);
 }
 
-bool RegionRe::verifyoutline(cv::Point p) const {
+bool Region::verifyoutline(cv::Point p) const {
     // We verify if the point is not in the region
     if (tabInfo[p.x] [p.y] == id) {
         // We verify if the point is in the outline of the region
@@ -396,7 +397,7 @@ bool RegionRe::verifyoutline(cv::Point p) const {
     }
 }
 
-bool RegionRe::verifyPoint(cv::Point p) const {
+bool Region::verifyPoint(cv::Point p) const {
     if (p.x < 0 || p.x >= size_x || p.y < 0 || p.y >= size_y) {
         return false;
     } else if (tabInfo[p.x][p.y] > 0) {
@@ -410,7 +411,7 @@ bool RegionRe::verifyPoint(cv::Point p) const {
     }
 }
 
-void RegionRe::updateoutline(cv::Point p) {
+void Region::updateoutline(cv::Point p) {
     // std::cout << "In update outline" << std::endl;
     
     // We parcour the 4 points around the point,

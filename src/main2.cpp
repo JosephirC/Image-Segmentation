@@ -1,9 +1,9 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include "fonctions.hpp"
-#include "ReComputeRegions.hpp"
-#include "RegionRe.hpp"
-#include "ReSeed.hpp"
+#include "ComputeRegions.hpp"
+#include "Region.hpp"
+#include "Seed.hpp"
 
 int main() {
     auto start_total = std::chrono::high_resolution_clock::now();
@@ -30,7 +30,7 @@ int main() {
 
     // We creat the regions
     std::cout << "We creat the regions" << std::endl;
-    ReComputeRegions regions(image2, 0.8, 16);
+    ComputeRegions regions(image2, 0.8, 16);
 
     // We put the seeds in the image
     auto start_seeds = std::chrono::high_resolution_clock::now();

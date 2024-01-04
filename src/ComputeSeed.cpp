@@ -1,14 +1,14 @@
 #include <iostream>
 #include <cstdlib>
 #include <opencv2/opencv.hpp>
-#include "ReComputeSeed.hpp"
-#include "ReSeed.hpp"
+#include "ComputeSeed.hpp"
+#include "Seed.hpp"
 
-ReComputeSeed::ReComputeSeed() {
+ComputeSeed::ComputeSeed() {
     
 }
 
-ReComputeSeed::ReComputeSeed(const int rows, const int cols, unsigned int nbSeed, const int rep) {
+ComputeSeed::ComputeSeed(const int rows, const int cols, unsigned int nbSeed, const int rep) {
     if (nbSeed == 0) {
         nbSeed = rows * cols * 0.001;
     }
@@ -32,9 +32,9 @@ ReComputeSeed::ReComputeSeed(const int rows, const int cols, unsigned int nbSeed
                 int yPoint = std::rand() % (colsPart);
                 // std::cout << "xPoint " << xPoint << std::endl;
                 // std::cout << "yPoint " << yPoint << std::endl;
-                ReSeed seed (xPoint, yPoint);
+                Seed seed (xPoint, yPoint);
                 // std::cout << "seed " << seed.getX() << "/" << seed.getY() << std::endl;
-                ReSeed * seedPointeur = new ReSeed(colsIndex * colsPart + yPoint, rowsIndex * rowsPart + xPoint);
+                Seed * seedPointeur = new Seed(colsIndex * colsPart + yPoint, rowsIndex * rowsPart + xPoint);
                 // std::cout << "seed " << seed.getX() << "/" << seed.getY() << std::endl;
                 seedVector.push_back(seedPointeur);
             }
@@ -45,7 +45,7 @@ ReComputeSeed::ReComputeSeed(const int rows, const int cols, unsigned int nbSeed
     }
 }
 
-ReComputeSeed::~ReComputeSeed() {
+ComputeSeed::~ComputeSeed() {
     for (auto& seed : seedVector) {
         delete seed;
         seed = nullptr;
@@ -53,6 +53,6 @@ ReComputeSeed::~ReComputeSeed() {
     seedVector.clear();
 }
 
-std::vector<ReSeed *> ReComputeSeed::getSeedVector() const {
+std::vector<Seed *> ComputeSeed::getSeedVector() const {
         return seedVector;
     }
