@@ -93,8 +93,8 @@ Region & Region::operator=(const Region& r) {
         color = r.color;
         color_seuil_inf = r.color_seuil_inf;
         color_seuil_sup = r.color_seuil_sup;
-    return *this;
     }
+    return *this;
 }
 
 void Region::grow() {
