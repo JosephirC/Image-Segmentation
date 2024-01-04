@@ -8,8 +8,8 @@ all: tp1
 tp1: obj/tp1.o obj/Region.o obj/Seed.o obj/ComputeRegions.o obj/ComputeSeed.o 
 	$(CXX) $(CXXFLAGS) obj/tp1.o obj/Region.o obj/Seed.o obj/ComputeRegions.o obj/ComputeSeed.o -o tp1 $(OPENCV_LIB)
 
-obj/tp1.o: src/main2.cpp src/fonctions.hpp src/ComputeRegions.hpp src/Region.hpp src/Seed.hpp
-	$(CXX) $(CXXFLAGS) -c src/main2.cpp -o obj/tp1.o  $(DIR_OPENCV)
+obj/tp1.o: src/main.cpp src/fonctions.hpp src/ComputeRegions.hpp src/Region.hpp src/Seed.hpp
+	$(CXX) $(CXXFLAGS) -c src/main.cpp -o obj/tp1.o  $(DIR_OPENCV)
 
 obj/Region.o: src/Region.cpp src/Region.hpp
 	$(CXX) $(CXXFLAGS) -c src/Region.cpp -o obj/Region.o $(DIR_OPENCV)
