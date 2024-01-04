@@ -198,6 +198,47 @@ public:
     };
 
     /**
+     * Add Point in region
+    */
+    void addPoint(cv::Point p) {
+        // We verify if the point is in the image
+        if (p.x < 0 || p.x >= image->cols || p.y < 0 || p.y >= image->rows) {
+            std::cout << "Point not in the image " << image->cols << " / " << image->rows << std::endl;
+            std::cout <<p.x<<"/ "<<p.y << std::endl;
+        }
+        // We get color of point
+        cv::Vec3b col = image->at<cv::Vec3b>(p);
+        tabInfo [p.x] [p.y] = id;
+        colors->push_back(col);
+        // We update the average color of the region
+        averageColor();
+        averageColorSeuil();
+        // And we update the border of the region
+        removePointInBorder(p);
+    }
+
+    /**
+     * Remove Point in region
+     * @return true if the region is empty
+    */
+    bool removePoint(cv::Point p) {
+        // We verify if the point is in the image
+        if (p.x < 0 || p.x >= image->cols || p.y < 0 || p.y >= image->rows) {
+            std::cout << "Point not in the image " << image->cols << " / " << image->rows << std::endl;
+            std::cout <<p.x<<"/ "<<p.y << std::endl;
+        }
+        // We get color of point
+        cv::Vec3b col = image->at<cv::Vec3b>(p);
+        auto it = std::find(colors->begin(), colors->end(), col);
+        if (it != colors->end()) {
+            colors->erase(std::find(colors->begin(), colors->end(), col));
+        }
+        return colors->empty();
+    }
+
+
+
+    /**
      * Get the outline of the region
      * @return the outline of the region
     */
@@ -230,6 +271,18 @@ public:
     void setborder(const std::vector<cv::Point>& _border) {
         delete border;
         *border = _border;
+    }
+
+    /**
+     * Remove a point in the border of the region
+    */
+    void removePointInBorder (cv::Point p) {
+        for (unsigned int i = 0; i < border->size(); i++) {
+            if (border->at(i) == p) {
+                border->erase(border->begin() + i);
+                return;
+            }
+        }
     }
 
     /**

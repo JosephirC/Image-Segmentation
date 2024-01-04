@@ -14,8 +14,8 @@ int main() {
     // cv::Mat image = cv::imread("Images/bigSegmentation.png");
     // cv::Mat image = cv::imread("Images/segmentation.png");
     // cv::Mat image = cv::imread("Images/baboon_color.png");
-    cv::Mat image = cv::imread("Images/lena_color.png");
-    // cv::Mat image = cv::imread("Images/4couleurs.png");
+    // cv::Mat image = cv::imread("Images/lena_color.png");
+    cv::Mat image = cv::imread("Images/4couleurs.png");
     auto end_load = std::chrono::high_resolution_clock::now();
     
     // We equalize the image    
@@ -57,23 +57,35 @@ int main() {
     // regions.display2("region_after_recalcul");
     // cv::waitKey(0);
 
-    regions.merge();
-    regions.display2("merge_2");
+    // regions.merge();
+    // regions.display2("merge_2");
 
-    regions.merge();
-    regions.display2("merge_3");
+    regions.displayBorderInner("border_inner", 2);
+    cv::waitKey(0);
 
-    regions.reCalculateRegions(20.0);
-    regions.display2("region_after_recalcul");
+    // regions.merge();
+    // regions.display2("merge_3");
 
-    regions.merge();
-    regions.display2("merge_recalcul");
-    // cv::waitKey(0);
+    // regions.reCalculateRegions(20.0);
+    // regions.display2("region_after_recalcul");
 
-    regions.smoothingReg();
-    regions.display2("smoothing");
+    // regions.merge();
+    // regions.display2("merge_recalcul");
+    // // cv::waitKey(0);
 
+    // regions.smoothingReg();
+    // regions.display2("smoothing");
 
+    // regions.reCalculateRegions(80.0);
+    // regions.display2("region_after_recalcul_smoothing");
+
+    // regions.merge();
+    // regions.display2("merge_smoothing_recalcul");
+
+    // regions.smoothingReg();
+    // regions.display2("smoothing_after_merge");
+
+   
 
     std::cout << "END" << std::endl; 
 
@@ -92,7 +104,7 @@ int main() {
     } else if (std::chrono::duration_cast<std::chrono::milliseconds>(end_calcul - start_calcul).count() > std::chrono::duration_cast<std::chrono::milliseconds>(end_merge - start_merge).count()) {
         std::cout << "Calcul time is too long. You can put more pixels to make them smaller and shrink less time merge" << std::endl;
     }
-    std::cout << "Pourcent point not in region : " << (float) regions.getNotInReg().size() / (float) regions.getNbPixels()  << std::endl;
+    std::cout << "Pourcent point not in region : " << regions.getPourcentNotInReg() << std::endl;
 
     // cv::waitKey(0);
     return 0;

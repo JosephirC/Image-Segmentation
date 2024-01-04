@@ -242,6 +242,22 @@ public:
     } 
 
     /**
+     * Update a border region
+    */
+    void updateBorder (Region * r) {
+        std::vector<cv::Point> tmp = r->getborder();
+        for (const auto & pborder : tmp) {
+            int id = getIdRegion(cv::Point(pborder.x, pborder.y));
+            if (id == r->getId()) {
+                std::cout << "we remove point" << pborder <<std::endl;
+                r->removePointInBorder(pborder);
+            }
+        }
+        std::vector<cv::Point> tmp2 = r->getborder();
+        std::cout << "size border " << tmp.size() << " / " << tmp2.size() << std::endl;
+    }
+
+    /**
      * Merge a Region 
     */
     Region * mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice, int iteration, int & regTraited) {
@@ -313,10 +329,12 @@ public:
                 delete regions[idMerged - 1];
                 regions[idMerged - 1] = r;
             }
+            updateBorder(r);
         }
         std::cout << "Merge end" << std::endl;
         // We update tabInfo
         updateStorageRegions(listOfIndicesToRegion);
+        
     }
     
     /**
@@ -349,7 +367,7 @@ public:
         // delete image_regions;
     }
 
-    void display2(const std::string & name = "Image with regions", int resize = 1, const std::string & directory = "image_cree/") {
+    cv::Mat * display2(const std::string & name = "Image with regions", int resize = 1, const std::string & directory = "image_cree/") {
         // Créer une palette de couleurs
         std::vector<cv::Vec3b> colorPalette;
         for (int i = 0; i < nb_regions; ++i) {
@@ -384,6 +402,7 @@ public:
         // Afficher l'image avec les régions colorées
         cv::imshow(name, *image_regions);
         cv::imwrite(directory + name + ".png", *image_regions);
+        return image_regions;
     }
 
     // void displayWithRegionId() {
@@ -579,9 +598,51 @@ public:
                 if (id < 0) {
                     if (checkNeigthor(i, j, id * -1)) {
                         tabInfo[i][j] *= -1;
+                        int idReg = getIdRegion(cv::Point(i, j));
+                        regions[idReg]->addPoint(cv::Point(i, j));
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Calculate the pourcent of point not in region
+    */
+    float getPourcentNotInReg () {
+        int nbPointNotInReg = 0;
+        for (int i = 0; i < size_x_tabInfo; i++) {
+            for (int j = 0; j < size_y_tabInfo; j++) {
+                if (tabInfo[i][j] <= 0) {
+                    nbPointNotInReg ++;
+                }
+            }
+        }
+        return (nbPointNotInReg * 100) / nb_pixels;
+    }
+
+    /**
+     * Display borderInner
+    */
+    void displayBorderInner (std::string name = "Image with border inner", int resize = 1, const std::string & directory = "image_cree/") {
+        // We copy img original
+        cv::Mat * image_borderInner = new cv::Mat(image->clone());
+        cv::Mat * image_borderInner2 = new cv::Mat(display2(name, 1, directory)->clone());
+        // We get border inner
+        for (const auto & borderPoint : calculateBorderInner()){
+            image_borderInner->at<cv::Vec3b>(borderPoint) = cv::Vec3b(0, 0, 255);
+            image_borderInner2->at<cv::Vec3b>(borderPoint) = cv::Vec3b(0, 0, 255);
+        }
+        // We resize the image
+        cv::resize(*image_borderInner, *image_borderInner, cv::Size(), resize, resize, cv::INTER_NEAREST);
+        // We display the image with the border inner
+        if (!image_borderInner->empty()) {
+            cv::imshow(name, *image_borderInner);
+            cv::imshow(name + "2", *image_borderInner2);
+            cv::imwrite(directory + name + ".png", *image_borderInner);
+            cv::imwrite(directory + name + "2.png", *image_borderInner2);
+        } else {
+            std::cerr << "Error: Empty or invalid image. (Error in display)" << std::endl;
         }
     }
 
@@ -595,6 +656,45 @@ private:
     int size_x_tabInfo;
     int size_y_tabInfo;
     int nb_pixels;
+
+
+    /**
+     * Calculate neightors same id of a point
+     * @return queue of Point
+    */
+    std::vector<cv::Point> calNeightorsId (cv::Point p, int id) {
+        std::vector<cv::Point> neightors;
+        if (p.x > 0 && tabInfo[p.x - 1][p.y] == id) {
+            neightors.push_back(cv::Point(p.x - 1, p.y));
+        }
+        if (p.x + 1 < size_x_tabInfo && tabInfo[p.x + 1][p.y] == id) {
+            neightors.push_back(cv::Point(p.x + 1, p.y));
+        }
+        if (p.y > 0  && tabInfo[p.x][p.y - 1] == id) {
+            neightors.push_back(cv::Point(p.x, p.y - 1));
+        }
+        if (p.y + 1 < size_y_tabInfo && tabInfo[p.x][p.y + 1] == id) {
+            neightors.push_back(cv::Point(p.x, p.y + 1));
+        }
+        return neightors;
+    }
+
+    /**
+     * Calculate border inner each region
+    */
+    std::vector<cv::Point> calculateBorderInner () {
+        std::vector<cv::Point> borderInner;
+        for (int i = 0; i < nb_regions; i++) {
+            std::vector<cv::Point> borderOuter = regions[i]->getborder();
+            for (const auto& p : borderOuter) {
+                std::vector<cv::Point> neightors = calNeightorsId(p, regions[i]->getId());
+                borderInner.insert(borderInner.end(), neightors.begin(), neightors.end());
+            }
+        }
+        return borderInner;
+    }
+
+
 };
 
 #endif // COMPUTREGIONS_HPP
