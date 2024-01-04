@@ -53,13 +53,27 @@ int main() {
     auto end_merge = std::chrono::high_resolution_clock::now();
     regions.display2("merge");
 
-    regions.reCalculateRegions(20.0);
-    regions.display2("region_after_recalcul");
-    cv::waitKey(0);
+    // regions.reCalculateRegions(20.0);
+    // regions.display2("region_after_recalcul");
+    // cv::waitKey(0);
 
     regions.merge();
-    regions.display2("merge_after_recalcul");
-    cv::waitKey(0);
+    regions.display2("merge_2");
+
+    regions.merge();
+    regions.display2("merge_3");
+
+    regions.reCalculateRegions(20.0);
+    regions.display2("region_after_recalcul");
+
+    regions.merge();
+    regions.display2("merge_recalcul");
+    // cv::waitKey(0);
+
+    regions.smoothingReg();
+    regions.display2("smoothing");
+
+
 
     std::cout << "END" << std::endl; 
 

@@ -249,9 +249,9 @@ public:
         Region *r = regions [id - 1];
         mergeInidice.insert(r->getId());
         std::vector<cv::Point> listeBorder = r->getborder();
+        iteration --;
         // We parcour the list of border
         while (!listeBorder.empty() && iteration > 0) {
-            iteration --;
             cv::Point p = listeBorder.back();
             listeBorder.pop_back();
             // We get the region of the point (point in border)
@@ -260,7 +260,7 @@ public:
             if (idReg2 > 0 && mergeInidice.find(idReg2) == mergeInidice.end()) {
                 // We get the region
                 Region * r2 = regions[idReg2 - 1];
-                if (alereadyMerge.find(r2->getId()) == alereadyMerge.end() && r->verifyFusion(*r2) /* || true */) {
+                if (alereadyMerge.find(r2->getId()) == alereadyMerge.end() && r->verifyFusion(*r2)) {
                     r2 = mergeRegion(r2->getId(), alereadyMerge, mergeInidice, iteration, regTraited);
                     // If r have change we update r
                     // alereadyMerge.insert(r2->getId());
@@ -302,7 +302,7 @@ public:
             // We get the first element
             int id = *notMerge.begin();
             notMerge.erase(id);
-            Region * r = new Region(*mergeRegion(id, alereadyMerge, mergeInidice, 1500, nbRegTraited));
+            Region * r = new Region(*mergeRegion(id, alereadyMerge, mergeInidice, 1000, nbRegTraited));
             // We keep in memory the list of indice of region to merge
             listOfIndicesToRegion.push_back(mergeInidice);
             // We update regions for continue merge
@@ -559,6 +559,30 @@ public:
         // We calculate the regions
         calculatQueueRegion(regToCal);
         std::cout<<"End reCalculateRegions" << std::endl;
+    }
+
+    /**
+     * We check if neghtbor is in same region, or in boder of this region 
+    */
+    bool checkNeigthor (int x, int y, int id) {
+        return (abs(tabInfo[x - 1][y]) == id && abs(tabInfo[x + 1][y]) == id && 
+                abs(tabInfo[x][y - 1]) == id && abs(tabInfo[x][y + 1]) == id);
+    }
+
+    /**
+     * Smoothing regions in image
+    */
+    void smoothingReg () {
+        for (int i = 1; i < size_x_tabInfo - 1; i++) {
+            for (int j = 1; j < size_y_tabInfo - 1; j++) {
+                int id = tabInfo[i][j];
+                if (id < 0) {
+                    if (checkNeigthor(i, j, id * -1)) {
+                        tabInfo[i][j] *= -1;
+                    }
+                }
+            }
+        }
     }
 
 private:
