@@ -1,6 +1,8 @@
 #include "Region.hpp"
 #include <opencv2/opencv.hpp>
 
+
+
 // This function is used to display a color
 void displayColor (const cv::Vec3b& couleur) {
     std::cout << "Canal Bleu : " << static_cast<int>(couleur[0]) << std::endl;
@@ -125,11 +127,17 @@ void Region::grow() {
                 updateoutline(p);
             } else {
                 tabInfo [p.x] [p.y] = -1 * id;
-                border->push_back(p);
+                // We check if the point is not already in the border of the region
+                if (std::find(border->begin(), border->end(), p) == border->end()) {
+                    border->push_back(p);
+                }
             }
         } else {
             if (tabInfo [p.x] [p.y] != id) {
-                border->push_back(p);
+                // We check if the point is alredy in the border of the region
+                if (std::find(border->begin(), border->end(), p) == border->end()) {
+                    border->push_back(p);
+                }
             }
         }
     }
@@ -294,7 +302,7 @@ void Region::operator+=(const Region & r2) {
         }
     }
     for (const auto& element : *(r2.border)) {
-        if (tabInfo [element.x] [element.y] != id){
+        if (abs(tabInfo [element.x] [element.y]) != id){
             new_border->push_back(element);
         }
     }
@@ -401,8 +409,7 @@ bool Region::verifyPoint(cv::Point p) const {
     if (p.x < 0 || p.x >= size_x || p.y < 0 || p.y >= size_y) {
         return false;
     } else if (tabInfo[p.x][p.y] > 0) {
-        if (tabInfo[p.x][p.y] != id) {
-            // std::cout << "We add :" << tabInfo[p.x][p.y] << " in border :" << id << " the point :" <<p.x << "/"<< p.y << std::endl;
+        if (tabInfo[p.x][p.y] != id && std::find(border->begin(), border->end(), p) == border->end()) {
             border->push_back(p);
         }
         return false;

@@ -54,7 +54,6 @@ int main() {
     regions.display2("merge");
 
     regions.displayBorderInner("border_inner_merge", 2);
-    cv::waitKey(0);
 
     std::cout << "We start the smoothing" << std::endl;
     regions.smoothingReg();
@@ -64,7 +63,6 @@ int main() {
     // regions.display2("merge_2");
 
     regions.displayBorderInner("border_inner_smooth", 2);
-    cv::waitKey(0);
 
     // regions.merge();
     // regions.display2("merge_3");

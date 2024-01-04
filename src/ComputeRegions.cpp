@@ -7,6 +7,21 @@
 #include <set>
 #include <unordered_set>
 
+/**
+ * Function not in class Region
+*/
+bool isUnique(const std::vector<cv::Point>& points) {
+    for (size_t i = 0; i < points.size(); ++i) {
+        for (size_t j = i + 1; j < points.size(); ++j) {
+            if (points[i] == points[j]) {
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
+
 ComputeRegions::ComputeRegions() {
     image = new cv::Mat();
 }
@@ -130,7 +145,13 @@ void ComputeRegions::calculatQueueRegion(std::queue<Region *> reg, int nbrCallMa
         std::cout<<"We are to " << nbrCallMax << " of the end" << std::endl;
         nbrCallMax --;
         reg = calculateRegions(reg);
+        for (const auto & r : regions) {
+            if (! isUnique(r->getborder())) {
+                std::cout << "Error border not unique after growing in region " << r->getId() << " iteration :" << nbrCallMax << std::endl;
+            }
+        }
     }
+    
 }
 
 void ComputeRegions::calculateToTheEnd(int nbrCallMax) {
@@ -501,6 +522,8 @@ bool ComputeRegions::checkNeigthor(int x, int y, int id) {
 }
 
 void ComputeRegions::smoothingReg() {
+    std::cout << "Start smoothing function" << std::endl;
+    std::cout << "Debug before, size border 1 : " << regions[0]->getborder().size() << std::endl;
     for (int i = 1; i < size_x_tabInfo - 1; i++) {
         for (int j = 1; j < size_y_tabInfo - 1; j++) {
             int id = tabInfo[i][j];
@@ -516,6 +539,7 @@ void ComputeRegions::smoothingReg() {
             }
         }
     }
+    std::cout << "Debug after, size border 1 : " << regions[0]->getborder().size() << std::endl;
     // for (auto & r : regions) {
     //     this->updateBorder(r);
     // }
@@ -534,7 +558,7 @@ float ComputeRegions::getPourcentNotInReg () {
 }
 
 /**
-    * Display borderInner
+* Display borderInner
 */
 void ComputeRegions::displayBorderInner (std::string name, int resize, const std::string & directory) {
     // We copy img original
@@ -581,10 +605,14 @@ std::vector<cv::Point> ComputeRegions::calculateBorderInner () {
     std::vector<cv::Point> borderInner;
     for (int i = 0; i < nb_regions; i++) {
         std::vector<cv::Point> borderOuter = regions[i]->getborder();
+        if (!isUnique(borderOuter)) {
+            std::cout << "Error borderOuter not unique" << std::endl;
+        }
         for (const auto& p : borderOuter) {
             std::vector<cv::Point> neightors = calNeightorsId(p, regions[i]->getId());
             borderInner.insert(borderInner.end(), neightors.begin(), neightors.end());
         }
     }
+    std::cout << "Debug calculateBorderInner , size border 1" << regions[0]->getborder().size() << std::endl;
     return borderInner;
 }
