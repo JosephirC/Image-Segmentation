@@ -24,6 +24,7 @@ obj/ComputeSeed.o: src/ComputeSeed.cpp src/ComputeSeed.hpp src/Seed.hpp
 	$(CXX) $(CXXFLAGS) -c src/ComputeSeed.cpp -o obj/ComputeSeed.o $(DIR_OPENCV)
 
 clean:
+	rm tp1
 	rm obj/*.o
 
 .DEFAULT_GOAL := all
