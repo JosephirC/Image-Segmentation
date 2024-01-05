@@ -94,27 +94,29 @@ void ComputeRegions::putSeeds() {
 }
 
 
-void ComputeRegions::calculateRegions() {
-    // For each region we calculate grow of this outline
-    for (int i = 0; i < nb_regions; i++) {
-        regions[i]->getoutline();
-        if (regions[i]->getoutline().size() > 0) {
-            // std::cout << "Region " <<  regions[i]->getId() << " is not empty" << std::endl;
-            regions[i]->grow();
-        } else {
-            std::cout << "Region " << regions[i]->getId() << " is empty" << std::endl;
-            if (regions[i]->getIsIncrease()) {
-                // std::cout << "Region " << regions[i]->getId() << " is increase" << std::endl;
-                regions[i]->increaseThreshold();
-                regions[i]->setoutline(regions[i]->getborderVector());
-                regions[i]->clearborder();
+void ComputeRegions::calculateAllRegions(int nbIteration = 100) {
+    for (int i = 0; i < nbIteration; i++) {
+        // For each region we calculate grow of this outline
+        for (int i = 0; i < nb_regions; i++) {
+            regions[i]->getoutline();
+            if (regions[i]->getoutline().size() > 0) {
+                // std::cout << "Region " <<  regions[i]->getId() << " is not empty" << std::endl;
                 regions[i]->grow();
+            } else {
+                std::cout << "Region " << regions[i]->getId() << " is empty" << std::endl;
+                if (regions[i]->getIsIncrease()) {
+                    // std::cout << "Region " << regions[i]->getId() << " is increase" << std::endl;
+                    regions[i]->increaseThreshold();
+                    regions[i]->setoutline(regions[i]->getborderVector());
+                    regions[i]->clearborder();
+                    regions[i]->grow();
+                }
             }
         }
     }
 }
 
-std::queue<Region *> ComputeRegions::calculateRegions(std::queue<Region *> & regToCal) {
+std::queue<Region *> ComputeRegions::calculatQueueRegion(std::queue<Region *> & regToCal) {
     std::queue<Region *> regCanGrow = std::queue<Region *>();
     // For each region we calculate grow with this outline
     // First step we get outline of each region
@@ -140,19 +142,13 @@ std::queue<Region *> ComputeRegions::calculateRegions(std::queue<Region *> & reg
     return regCanGrow;
 }
 
-void ComputeRegions::calculatQueueRegion(std::queue<Region *> reg, int nbrCallMax) {
+void ComputeRegions::calculateRegions(std::queue<Region *> reg, int nbrCallMax) {
     // We calculate the regions
     while (!reg.empty() && nbrCallMax > 0) {
         std::cout<<"We are to " << nbrCallMax << " of the end" << std::endl;
         nbrCallMax --;
-        reg = calculateRegions(reg);
-        // for (const auto & r : regions) {
-        //     if (! isUnique(r->getborder())) {
-        //         std::cout << "Error border not unique after growing in region " << r->getId() << " iteration :" << nbrCallMax << std::endl;
-        //     }
-        // }
-    }
-    
+        reg = calculatQueueRegion(reg);
+    } 
 }
 
 void ComputeRegions::calculateToTheEnd(int nbrCallMax) {
@@ -162,7 +158,7 @@ void ComputeRegions::calculateToTheEnd(int nbrCallMax) {
         regToCal.push(regions[i]);
     }
     // We calculate the regions
-    calculatQueueRegion(regToCal, nbrCallMax);
+    calculateRegions(regToCal, nbrCallMax);
 }
 
 void ComputeRegions::displayListPoint(std::vector<cv::Point> & listPoint) {
@@ -222,7 +218,6 @@ void ComputeRegions::updateBorder (Region * r) {
     for (const auto & pborder : tmp) {
         int id = getIdRegion(cv::Point(pborder.x, pborder.y));
         if (id == r->getId()) {
-            std::cout << "we remove point" << pborder <<std::endl;
             r->removePointInBorder(pborder);
         }
     }
@@ -530,8 +525,8 @@ void ComputeRegions::smoothingReg() {
                     // tabInfo[i][j] *= -1;
                     int idReg = getIdRegion(cv::Point(i, j)) * -1;
                     // We cout size of border
-                    int size = regions[idReg - 1]->getborderVector().size();
-                    regions[idReg - 1]->addPoint(cv::Point(i, j));                }
+                    regions[idReg - 1]->addPoint(cv::Point(i, j));
+                }
             }
         }
     }

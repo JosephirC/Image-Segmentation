@@ -35,6 +35,11 @@ class ComputeRegions {
         void putSeeds();
 
         /**
+         * Calculate all Region
+        */
+        void calculateAllRegions(int nbrCallMax);
+
+        /**
         * Calculate the regions
         */
         void calculateRegions();
@@ -44,14 +49,14 @@ class ComputeRegions {
         * @param regToCal : list of region to calculate
         * @return the region can be grow
         */
-        std::queue<Region *> calculateRegions(std::queue<Region *> & regToCal);
+        std::queue<Region *> calculatQueueRegion(std::queue<Region *> & regToCal);
         
         /**
         * We calculate a queue of regions
         * @param reg : regions 
         * @param nbrCallMax : number of call max
         */
-        void calculatQueueRegion(std::queue<Region *> reg, int nbrCallMax = 100);
+        void calculateRegions(std::queue<Region *> reg, int nbrCallMax = 100);
 
         /**
         * We calculate as long as there are regions to calculate (or X)
