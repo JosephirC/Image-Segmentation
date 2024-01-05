@@ -55,6 +55,11 @@ class Region {
         void grow();
 
         /**
+         * Verify if a color can be fused with the region 
+        */
+        bool verifyFusion2 (const cv::Vec3b& col);
+
+        /**
         * /!\ not finished This function verify if two regions can be fused
         *
         */

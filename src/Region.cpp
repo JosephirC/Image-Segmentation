@@ -1,6 +1,15 @@
 #include "Region.hpp"
 #include <opencv2/opencv.hpp>
 
+/****** Function not in class ******/
+float computeCoefficient(int regionSize) {
+    float a = 1.0;
+    float b = 0.01;
+    float c = 0.25;
+
+    return a * exp(-b * regionSize) + c;
+}
+
 /***** Friend functions *****/ 
 namespace std {
     template <>
@@ -166,21 +175,25 @@ void Region::grow() {
 }
 
 
+bool Region::verifyFusion2 (const cv::Vec3b & col) {
+    this->coefSD = computeCoefficient(colors->size());
+    this->threshold = 20;
+    this->averageColorSeuil();
+    // We verify if the two regions have the same color with the seuil
+    return verifyColor(col);
+}
+
 bool Region::verifyFusion (Region& r) {
     // We verify if the two regions in the same image
     if (size_x != r.size_x || size_y != r.size_y) {
         std::cout << "The two regions are not in the same image" << std::endl;
         return false;
     }
-    this->coefSD = 1.5;
-    r.coefSD = 1.5;
+    this->coefSD = computeCoefficient(colors->size());
     this->threshold = 20;
-    r.threshold = 20;
     this->averageColorSeuil();
-    r.averageColorSeuil();
     // We verify if the two regions have the same color with the seuil
-    return verifyColor(r.color) || r.verifyColor(color);
-    //return 
+    return verifyColor(r.color) || r.verifyFusion2(color);
 }
 
 void Region::addPoint(cv::Point p) {
@@ -247,7 +260,7 @@ void Region::removePointInBorder (cv::Point p) {
         border->erase(p);
         return;
     }
-    std::cout << "The point " << p.x << "/" << p.y << " is not in the border of the region " << id << std::endl;
+    // std::cout << "The point " << p.x << "/" << p.y << " is not in the border of the region " << id << std::endl;
 }
 
 void Region::setoutline(const std::vector<cv::Point> & _outline) {

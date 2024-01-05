@@ -18,9 +18,10 @@ void getArgs(int argc, char** argv,
         {"smooth", true},
         {"merge", true},
         {"recalcul", false},
-        {"analyse", false},
+        {"analyse", true},
         {"equalize", true},
-        {"toTheEnd", true}
+        {"toTheEnd", true},
+        {"deleteImg", false}
     };
     params.clear();
     params = {
@@ -56,35 +57,47 @@ void getArgs(int argc, char** argv,
     }
 }
 
-void merge(ComputeRegions& regions, int & iteration) {
-    iteration++;
+int merge(ComputeRegions& regions, const int iteration = 0) {
     auto start_merge = std::chrono::high_resolution_clock::now();
     regions.merge();
     auto end_merge = std::chrono::high_resolution_clock::now();
     regions.display2("merge_n°"+ std::to_string(iteration));
     std::cout << "Merge n°" << iteration << " time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end_merge - start_merge).count() << " ms" << std::endl;
+    return iteration + 1;
 }
 
-void smooth(ComputeRegions& regions, int & iteration) {
-    iteration++;
+int smooth(ComputeRegions& regions, const int iteration = 0) {
     auto start_smooth = std::chrono::high_resolution_clock::now();
     regions.smoothingReg();
     auto end_smooth = std::chrono::high_resolution_clock::now();
     regions.display2("smoothing_n°"+ std::to_string(iteration));
     std::cout << "Smooth n°" << iteration << " time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end_smooth - start_smooth).count() << " ms" << std::endl;
+    return iteration + 1;
 }
 
-void reCalcul(ComputeRegions& regions, float pourcentSeed, int & iteration) {
-    iteration++;
+int reCalcul(ComputeRegions& regions, const float pourcentSeed, const int iteration = 0) {
     auto start_recalcul = std::chrono::high_resolution_clock::now();
     regions.reCalculateRegions(pourcentSeed);
     auto end_recalcul = std::chrono::high_resolution_clock::now();
     regions.display2("region_after_recalcul_n°"+ std::to_string(iteration));
     std::cout << "ReCalcul n°" << iteration << " time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end_recalcul - start_recalcul).count() << " ms" << std::endl;
+    return iteration + 1;
 }
 
-void analyse(ComputeRegions& regions, int & iteration) {
-    iteration++;
+void analyse(ComputeRegions& regions,
+    int nbSeedsStart,
+    std::unordered_map<std::string, float> & params) {
+    int itMerge = 1;
+    int itReCalcul = 1;
+    int itSmooth = 1;
+    int iteration = 1;
+    while (nbSeedsStart - regions.getNbRegions() > 20) {
+        std::cout << "Iteration n°" << iteration << std::endl;
+        iteration++;
+        itReCalcul = reCalcul(regions, params["pourcentReCal"], itReCalcul);
+        itMerge = merge(regions, itMerge);
+        itSmooth = smooth(regions, itSmooth);  
+    } 
     regions.displayBorderInner("border_inner_n°"+ std::to_string(iteration), 1);
     std::cout << "Pourcent point not in region : " << regions.getPourcentNotInReg() << std::endl;
 }
@@ -130,20 +143,21 @@ int main(int argc, char** argv) {
         regions.calculateAllRegions(params["nbIteration"]);
     }
     
-    int itMerge = 0;
-    int itReCalcul = 0;
-    int itSmooth = 0;
     // Peut être obligatoire tout le temps idk
     if (functToCall["merge"] == true) {
-        merge(regions, itMerge);
+        merge(regions);
     }
 
     if (functToCall["recalcul"] == true) {
-        reCalcul(regions, params["pourcentReCal"], itReCalcul);
+        reCalcul(regions, params["pourcentReCal"]);
     }
 
     if (functToCall["smooth"] == true) {
-        smooth(regions, itSmooth);
+        smooth(regions);
+    }
+
+    if (functToCall["analyse"] == true) {
+        analyse(regions, nbSeedsStart, params);
     }
     return 0;
 }
