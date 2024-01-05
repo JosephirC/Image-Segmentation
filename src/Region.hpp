@@ -78,6 +78,13 @@ class Region {
         std::queue<cv::Point> & getoutline() const;
 
         /**
+        * Get the border of the region with vector
+        * @return the border of the region
+        */
+        std::vector<cv::Point> & getborderVector() const;
+
+
+        /**
         * Get the border of the region
         * @return the border of the region
         */
@@ -104,6 +111,11 @@ class Region {
         * Set the outline of the region
         */
         void setoutline(const std::vector<cv::Point> & _outline);
+
+        /**
+        * Set the outline of the region with unordered_set
+        */
+        void setoutline(const std::unordered_set<cv::Point> & _outline);
 
         /**
         * Clear the border of the region

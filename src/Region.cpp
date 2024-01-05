@@ -220,6 +220,14 @@ std::queue<cv::Point> & Region::getoutline() const {
     return *outline;
 }
 
+std::vector<cv::Point> & Region::getborderVector() const {
+    std::vector<cv::Point> * vec_border = new std::vector<cv::Point>();
+    for (const auto& element : *border) {
+        vec_border->push_back(element);
+    }
+    return *vec_border;
+}
+
 std::unordered_set<cv::Point> & Region::getborder() const {
     return *border;
 }
@@ -243,10 +251,18 @@ void Region::removePointInBorder (cv::Point p) {
 }
 
 void Region::setoutline(const std::vector<cv::Point> & _outline) {
-   delete outline;
+    delete outline;
     outline = new std::queue<cv::Point>();
     for (unsigned int i = 0; i < _outline.size(); i++) {
         outline->push(_outline.at(i));
+    }
+}
+
+void Region::setoutline(const std::unordered_set<cv::Point> & _outline) {
+    delete outline;
+    outline = new std::queue<cv::Point>();
+    for (const auto& element : _outline) {
+        outline->push(element);
     }
 }
 

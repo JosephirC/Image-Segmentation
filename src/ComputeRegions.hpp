@@ -163,6 +163,16 @@ class ComputeRegions {
         */
         void displayBorderInner (std::string name = "Image with border inner", int resize = 1, const std::string & directory = "image_cree/");
 
+        /**
+         * For using cv::Point in std::unordered_map
+        */
+        friend std::hash<cv::Point>;
+
+        /**
+         * Define the operator == for the class cv::Point
+        */
+        friend bool operator==(const cv::Point& a, const cv::Point& b);
+
     private:
         cv::Mat * image;
         std::vector<Region *> regions;

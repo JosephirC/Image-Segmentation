@@ -7,6 +7,7 @@
 #include <set>
 #include <unordered_set>
 
+
 /**
  * Function not in class Region
 */
@@ -105,7 +106,7 @@ void ComputeRegions::calculateRegions() {
             if (regions[i]->getIsIncrease()) {
                 // std::cout << "Region " << regions[i]->getId() << " is increase" << std::endl;
                 regions[i]->increaseThreshold();
-                regions[i]->setoutline(regions[i]->getborder());
+                regions[i]->setoutline(regions[i]->getborderVector());
                 regions[i]->clearborder();
                 regions[i]->grow();
             }
@@ -145,11 +146,11 @@ void ComputeRegions::calculatQueueRegion(std::queue<Region *> reg, int nbrCallMa
         std::cout<<"We are to " << nbrCallMax << " of the end" << std::endl;
         nbrCallMax --;
         reg = calculateRegions(reg);
-        for (const auto & r : regions) {
-            if (! isUnique(r->getborder())) {
-                std::cout << "Error border not unique after growing in region " << r->getId() << " iteration :" << nbrCallMax << std::endl;
-            }
-        }
+        // for (const auto & r : regions) {
+        //     if (! isUnique(r->getborder())) {
+        //         std::cout << "Error border not unique after growing in region " << r->getId() << " iteration :" << nbrCallMax << std::endl;
+        //     }
+        // }
     }
     
 }
@@ -217,7 +218,7 @@ void ComputeRegions::updateStorageRegions (std::vector<std::unordered_set<int>> 
 } 
 
 void ComputeRegions::updateBorder (Region * r) {
-    std::unordered_set<cv::Point> tmp = r->getborder();
+    std::vector<cv::Point> tmp = r->getborderVector();
     for (const auto & pborder : tmp) {
         int id = getIdRegion(cv::Point(pborder.x, pborder.y));
         if (id == r->getId()) {
@@ -225,7 +226,7 @@ void ComputeRegions::updateBorder (Region * r) {
             r->removePointInBorder(pborder);
         }
     }
-    std::unordered_set<cv::Point> tmp2 = r->getborder();
+    std::vector<cv::Point> tmp2 = r->getborderVector();
     // std::cout << "size border " << tmp.size() << " / " << tmp2.size() << std::endl;
 }
 
@@ -233,7 +234,7 @@ Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & ale
     // std::cout << "Merge region " << id << std::endl;
     Region *r = regions [id - 1];
     mergeInidice.insert(r->getId());
-    std::unordered_set<cv::Point> listeBorder = r->getborder();
+    std::vector<cv::Point> listeBorder = r->getborderVector();
     iteration --;
     // We parcour the list of border
     for (auto it = listeBorder.begin(); it != listeBorder.end(); ++it) {
@@ -522,7 +523,7 @@ bool ComputeRegions::checkNeigthor(int x, int y, int id) {
 
 void ComputeRegions::smoothingReg() {
     std::cout << "Start smoothing function" << std::endl;
-    std::cout << "Debug before, size border 1 : " << regions[0]->getborder().size() << std::endl;
+    std::cout << "Debug before, size border 1 : " << regions[0]->getborderVector().size() << std::endl;
     for (int i = 1; i < size_x_tabInfo - 1; i++) {
         for (int j = 1; j < size_y_tabInfo - 1; j++) {
             int id = tabInfo[i][j];
@@ -531,14 +532,14 @@ void ComputeRegions::smoothingReg() {
                     // tabInfo[i][j] *= -1;
                     int idReg = getIdRegion(cv::Point(i, j)) * -1;
                     // We cout size of border
-                    int size = regions[idReg - 1]->getborder().size();
+                    int size = regions[idReg - 1]->getborderVector().size();
                     regions[idReg - 1]->addPoint(cv::Point(i, j));
-                    std::cout << "size border " << size << " to " << regions[idReg - 1]->getborder().size() << std::endl;
+                    std::cout << "size border " << size << " to " << regions[idReg - 1]->getborderVector().size() << std::endl;
                 }
             }
         }
     }
-    std::cout << "Debug after, size border 1 : " << regions[0]->getborder().size() << std::endl;
+    std::cout << "Debug after, size border 1 : " << regions[0]->getborderVector().size() << std::endl;
     // for (auto & r : regions) {
     //     this->updateBorder(r);
     // }
@@ -603,7 +604,7 @@ std::vector<cv::Point> ComputeRegions::calNeightorsId (cv::Point p, int id) {
 std::vector<cv::Point> ComputeRegions::calculateBorderInner () {
     std::vector<cv::Point> borderInner;
     for (int i = 0; i < nb_regions; i++) {
-        std::unordered_set<cv::Point> borderOuter = regions[i]->getborder();
+        std::vector<cv::Point> borderOuter = regions[i]->getborderVector();
         // if (!isUnique(borderOuter)) {
         //     std::cout << "Error borderOuter not unique" << std::endl;
         // }
@@ -612,6 +613,6 @@ std::vector<cv::Point> ComputeRegions::calculateBorderInner () {
             borderInner.insert(borderInner.end(), neightors.begin(), neightors.end());
         }
     }
-    std::cout << "Debug calculateBorderInner , size border 1" << regions[0]->getborder().size() << std::endl;
+    std::cout << "Debug calculateBorderInner , size border 1" << regions[0]->getborderVector().size() << std::endl;
     return borderInner;
 }
