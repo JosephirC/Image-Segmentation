@@ -522,8 +522,6 @@ bool ComputeRegions::checkNeigthor(int x, int y, int id) {
 }
 
 void ComputeRegions::smoothingReg() {
-    std::cout << "Start smoothing function" << std::endl;
-    std::cout << "Debug before, size border 1 : " << regions[0]->getborderVector().size() << std::endl;
     for (int i = 1; i < size_x_tabInfo - 1; i++) {
         for (int j = 1; j < size_y_tabInfo - 1; j++) {
             int id = tabInfo[i][j];
@@ -533,16 +531,10 @@ void ComputeRegions::smoothingReg() {
                     int idReg = getIdRegion(cv::Point(i, j)) * -1;
                     // We cout size of border
                     int size = regions[idReg - 1]->getborderVector().size();
-                    regions[idReg - 1]->addPoint(cv::Point(i, j));
-                    std::cout << "size border " << size << " to " << regions[idReg - 1]->getborderVector().size() << std::endl;
-                }
+                    regions[idReg - 1]->addPoint(cv::Point(i, j));                }
             }
         }
     }
-    std::cout << "Debug after, size border 1 : " << regions[0]->getborderVector().size() << std::endl;
-    // for (auto & r : regions) {
-    //     this->updateBorder(r);
-    // }
 }
 
 float ComputeRegions::getPourcentNotInReg () {
