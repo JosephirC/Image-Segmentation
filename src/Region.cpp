@@ -1,7 +1,26 @@
 #include "Region.hpp"
 #include <opencv2/opencv.hpp>
 
+/***** Friend functions *****/ 
+namespace std {
+    template <>
+    struct hash<cv::Point> {
+        size_t operator()(const cv::Point& p) const {
+            size_t hash_x = hash<int>()(p.x);
+            size_t hash_y = hash<int>()(p.y);
+            // Combinaison of hash_x and hash_y
+            return hash_x ^ (hash_y + 0x9e3779b9 + (hash_x << 6) + (hash_x >> 2));
+        }
+    };
+}
 
+
+bool operator==(const cv::Point& a, const cv::Point& b) {
+    return a.x == b.x && a.y == b.y;
+}
+
+
+/***** Public functions *****/ 
 
 // This function is used to display a color
 void displayColor (const cv::Vec3b& couleur) {
@@ -13,7 +32,7 @@ void displayColor (const cv::Vec3b& couleur) {
 Region::Region() {
     tabInfo = nullptr;
     outline = new std::queue<cv::Point>();
-    border = new std::vector<cv::Point>();
+    border = new std::unordered_set<cv::Point>();
     colors = new std::vector<cv::Vec3b>();
     color = cv::Vec3b(0,0,0);
 
@@ -28,7 +47,7 @@ Region::Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, i
                 image(imageOriginal),
                 color(imageOriginal->at<cv::Vec3b>(p)), 
                 outline(new std::queue<cv::Point>),
-                border(new std::vector<cv::Point>),
+                border(new std::unordered_set<cv::Point>),
                 colors(new std::vector<cv::Vec3b>),
                 // allRegionColors(new std::unordered_map<int, cv::Vec3b>),
                 threshold(_threshold),
@@ -61,7 +80,7 @@ Region::Region(const Region& r) {
 
     // We copy the image, the outline, the border and the colors
     outline = new std::queue<cv::Point>(*r.outline);
-    border = new std::vector<cv::Point>(*r.border);
+    border = new std::unordered_set<cv::Point>(*r.border);
     colors = new std::vector<cv::Vec3b>(*r.colors);
 }
 
@@ -85,6 +104,7 @@ Region & Region::operator=(const Region& r) {
         //delete vecInfo;
         delete outline;
         delete colors;
+        delete border;
 
         // delete allRegionColors;
         // allRegionColors = new std::unordered_map<int, cv::Vec3b>(*r.allRegionColors);
@@ -92,6 +112,7 @@ Region & Region::operator=(const Region& r) {
         tabInfo = r.tabInfo;
         outline = new std::queue<cv::Point>();
         colors = new std::vector<cv::Vec3b>();
+        border = new std::unordered_set<cv::Point>();
         color = r.color;
         color_seuil_inf = r.color_seuil_inf;
         color_seuil_sup = r.color_seuil_sup;
@@ -128,15 +149,15 @@ void Region::grow() {
             } else {
                 tabInfo [p.x] [p.y] = -1 * id;
                 // We check if the point is not already in the border of the region
-                if (std::find(border->begin(), border->end(), p) == border->end()) {
-                    border->push_back(p);
-                }
+                // if (std::find(border->begin(), border->end(), p) == border->end()) {
+                    border->insert(p);
+                // }
             }
         } else {
             if (tabInfo [p.x] [p.y] != id) {
                 // We check if the point is alredy in the border of the region
                 if (std::find(border->begin(), border->end(), p) == border->end()) {
-                    border->push_back(p);
+                    border->insert(p);
                 }
             }
         }
@@ -199,7 +220,7 @@ std::queue<cv::Point> & Region::getoutline() const {
     return *outline;
 }
 
-std::vector<cv::Point> & Region::getborder() const {
+std::unordered_set<cv::Point> & Region::getborder() const {
     return *border;
 }
 
@@ -208,18 +229,15 @@ void Region::setoutline(std::queue<cv::Point>& _outline) {
     *outline = _outline;
 }
 
-void Region::setborder(const std::vector<cv::Point>& _border) {
+void Region::setborder(const std::unordered_set<cv::Point>& _border) {
     delete border;
     *border = _border;
 }
 
 void Region::removePointInBorder (cv::Point p) {
-    for (unsigned int i = 0; i < border->size(); i++) {
-        if (border->at(i) == p) {
-            std::cout << "We remove the point " << p.x << "/" << p.y << " in the border of the region " << id << std::endl;
-            border->erase(border->begin() + i);
-            return;
-        }
+    if (border->find(p) != border->end()) {
+        border->erase(p);
+        return;
     }
     std::cout << "The point " << p.x << "/" << p.y << " is not in the border of the region " << id << std::endl;
 }
@@ -234,7 +252,7 @@ void Region::setoutline(const std::vector<cv::Point> & _outline) {
 
 void Region::clearborder() {
     delete border;
-    border = new std::vector<cv::Point>;
+    border = new std::unordered_set<cv::Point>;
 }
 
 void Region::display(const std::string title, bool average) {
@@ -295,15 +313,15 @@ void Region::operator+=(const Region & r2) {
     // We creat a new region
     // Region * new_region = new Region();
     // We remove in border the points in common
-    std::vector<cv::Point> * new_border = new std::vector<cv::Point>();
+    std::unordered_set<cv::Point> * new_border = new std::unordered_set<cv::Point>();
     for (const auto& element : *(border)) {
         if (tabInfo [element.x] [element.y] != r2.getId()){
-            new_border->push_back(element);
+            new_border->insert(element);
         }
     }
     for (const auto& element : *(r2.border)) {
         if (abs(tabInfo [element.x] [element.y]) != id){
-            new_border->push_back(element);
+            new_border->insert(element);
         }
     }
     delete border;
@@ -409,9 +427,9 @@ bool Region::verifyPoint(cv::Point p) const {
     if (p.x < 0 || p.x >= size_x || p.y < 0 || p.y >= size_y) {
         return false;
     } else if (tabInfo[p.x][p.y] > 0) {
-        if (tabInfo[p.x][p.y] != id && std::find(border->begin(), border->end(), p) == border->end()) {
-            border->push_back(p);
-        }
+        // if (tabInfo[p.x][p.y] != id && std::find(border->begin(), border->end(), p) == border->end()) {
+            border->insert(p);
+        //}
         return false;
     } else {
         return tabInfo[p.x][p.y] != id * -1;

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_set>
 #include <opencv2/opencv.hpp>
 #include <queue>
 #include <algorithm>
@@ -80,7 +81,7 @@ class Region {
         * Get the border of the region
         * @return the border of the region
         */
-        std::vector<cv::Point> & getborder() const;
+        std::unordered_set<cv::Point> & getborder() const;
 
         /**
         * Set the outline of the region
@@ -92,7 +93,7 @@ class Region {
         * Set the border of the region
         * @param _border The border to set
         */
-        void setborder(const std::vector<cv::Point>& _border);
+        void setborder(const std::unordered_set<cv::Point>& _border);
         
         /**
         * Remove a point in the border of the region
@@ -154,6 +155,16 @@ class Region {
         */
         bool operator==(const Region& other) const;
 
+        /**
+         * For using cv::Point in std::unordered_map
+        */
+        friend std::hash<cv::Point>;
+
+        /**
+         * Define the operator == for the class cv::Point
+        */
+        friend bool operator==(const cv::Point& a, const cv::Point& b);
+
     private:
         int id; // The id of the region
         int size_x; // The size of the image in x
@@ -164,7 +175,7 @@ class Region {
         cv::Vec3b color_seuil_inf; // Is the seuil color of the region
         cv::Vec3b color_seuil_sup; // Is the seuil color of the region
         std::queue<cv::Point> * outline; // Content the points of outlin in the region, this points are not traited
-        std::vector<cv::Point> * border; // Content the points border of the region, this points are traited
+        std::unordered_set<cv::Point> * border; // Content the points border of the region, this points are traited
         std::vector<cv::Vec3b> * colors; // Content the colors of the region
         int threshold;
         float coefSD;

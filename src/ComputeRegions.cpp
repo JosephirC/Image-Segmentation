@@ -217,7 +217,7 @@ void ComputeRegions::updateStorageRegions (std::vector<std::unordered_set<int>> 
 } 
 
 void ComputeRegions::updateBorder (Region * r) {
-    std::vector<cv::Point> tmp = r->getborder();
+    std::unordered_set<cv::Point> tmp = r->getborder();
     for (const auto & pborder : tmp) {
         int id = getIdRegion(cv::Point(pborder.x, pborder.y));
         if (id == r->getId()) {
@@ -225,7 +225,7 @@ void ComputeRegions::updateBorder (Region * r) {
             r->removePointInBorder(pborder);
         }
     }
-    std::vector<cv::Point> tmp2 = r->getborder();
+    std::unordered_set<cv::Point> tmp2 = r->getborder();
     // std::cout << "size border " << tmp.size() << " / " << tmp2.size() << std::endl;
 }
 
@@ -233,12 +233,11 @@ Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & ale
     // std::cout << "Merge region " << id << std::endl;
     Region *r = regions [id - 1];
     mergeInidice.insert(r->getId());
-    std::vector<cv::Point> listeBorder = r->getborder();
+    std::unordered_set<cv::Point> listeBorder = r->getborder();
     iteration --;
     // We parcour the list of border
-    while (!listeBorder.empty() && iteration > 0) {
-        cv::Point p = listeBorder.back();
-        listeBorder.pop_back();
+    for (auto it = listeBorder.begin(); it != listeBorder.end(); ++it) {
+        cv::Point p = *it;
         // We get the region of the point (point in border)
         int idReg2 = getIdRegion(p);
         // We check if the region is not already merge
@@ -604,10 +603,10 @@ std::vector<cv::Point> ComputeRegions::calNeightorsId (cv::Point p, int id) {
 std::vector<cv::Point> ComputeRegions::calculateBorderInner () {
     std::vector<cv::Point> borderInner;
     for (int i = 0; i < nb_regions; i++) {
-        std::vector<cv::Point> borderOuter = regions[i]->getborder();
-        if (!isUnique(borderOuter)) {
-            std::cout << "Error borderOuter not unique" << std::endl;
-        }
+        std::unordered_set<cv::Point> borderOuter = regions[i]->getborder();
+        // if (!isUnique(borderOuter)) {
+        //     std::cout << "Error borderOuter not unique" << std::endl;
+        // }
         for (const auto& p : borderOuter) {
             std::vector<cv::Point> neightors = calNeightorsId(p, regions[i]->getId());
             borderInner.insert(borderInner.end(), neightors.begin(), neightors.end());
