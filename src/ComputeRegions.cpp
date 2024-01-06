@@ -33,7 +33,7 @@ ComputeRegions::ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _
         std::cout << "The repartition is not correct :" << _rep << std::endl;
         exit(1);
     }
-    this->pourcent = _pourcentByRep;
+    this->pourcent = _pourcentByRep / 100;
     this->rep = _rep;
     size_x_tabInfo = img.cols;
     size_y_tabInfo = img.rows;
@@ -227,6 +227,10 @@ void ComputeRegions::updateBorder (Region * r) {
 
 Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice, int iteration, int & regTraited) {
     // std::cout << "Merge region " << id << std::endl;
+    if (iteration <= 0) {
+        std::cout << "Error iteration, we don't put region in aleredy merge" << std::endl;
+        return nullptr;
+    }
     Region *r = regions [id - 1];
     mergeInidice.insert(r->getId());
     std::vector<cv::Point> listeBorder = r->getborderVector();
@@ -242,23 +246,21 @@ Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & ale
             Region * r2 = regions[idReg2 - 1];
             if (alereadyMerge.find(r2->getId()) == alereadyMerge.end() && r->verifyFusion(*r2)) {
                 r2 = mergeRegion(r2->getId(), alereadyMerge, mergeInidice, iteration, regTraited);
-                // If r have change we update r
-                // alereadyMerge.insert(r2->getId());
-                r = regions[r->getId() - 1];
-                // Finaly we merge r2 in r
-                *r += *r2;
+                if (r2 != nullptr) {
+                    r = regions[r->getId() - 1];
+                    // Finaly we merge r2 in r
+                    *r += *r2;
+                } else {
+                    break;
+                }
             }
         }
     }
-    if (iteration <= 0) {
-        std::cout << "Error iteration, we don't put region in aleredy merge" << std::endl;
-        return r;
-    } else {
-        regTraited ++;
-        std::cout<<"Region " << r->getId() << " is merge (" << regTraited << " / " << nb_regions << ")" << std::endl;
-        alereadyMerge.insert(r->getId());
-        return r;
-    }
+    
+    regTraited ++;
+    std::cout<<"Region " << r->getId() << " is merge (" << regTraited << " / " << nb_regions << ")" << std::endl;
+    alereadyMerge.insert(r->getId());
+    return r;
 }
 
 void ComputeRegions::merge() {
@@ -275,11 +277,12 @@ void ComputeRegions::merge() {
         notMerge.insert(regions[i]->getId());
     }
     int nbRegTraited = 0;
+    int iteration = 100;
     while (!notMerge.empty()) {
         // We get the first element
         int id = *notMerge.begin();
         notMerge.erase(id);
-        Region * r = new Region(*mergeRegion(id, alereadyMerge, mergeInidice, 1000, nbRegTraited));
+        Region * r = new Region(*mergeRegion(id, alereadyMerge, mergeInidice, iteration, nbRegTraited));
         // We keep in memory the list of indice of region to merge
         listOfIndicesToRegion.push_back(mergeInidice);
         // We update regions for continue merge
@@ -291,6 +294,13 @@ void ComputeRegions::merge() {
             regions[idMerged - 1] = r;
         }
         updateBorder(r);
+        if (iteration <= 0) {
+            std::cout << "Error iteration" << std::endl;
+            return;
+            updateStorageRegions(listOfIndicesToRegion);
+            merge();
+            return;
+        }
     }
     std::cout << "Merge end" << std::endl;
     // We update tabInfo
@@ -492,7 +502,7 @@ void ComputeRegions::reCalculateRegions(float pourcent) {
     std::vector<cv::Point> pointNotInReg = getNotInReg();
     std::queue<Region *> regToCal = std::queue<Region *>();
     // We get X% of the point not in region to put in new seeds
-    for (int i = 0; i < pointNotInReg.size() / pourcent; i++) {
+    for (int i = 0; i < pointNotInReg.size() * pourcent /100; i++) {
         // We get a random point
         int indice = rand() % pointNotInReg.size();
         cv::Point p = pointNotInReg[indice];
@@ -507,7 +517,7 @@ void ComputeRegions::reCalculateRegions(float pourcent) {
     }
     nb_regions = regions.size();
     // We calculate the regions
-    calculatQueueRegion(regToCal);
+    calculateRegions(regToCal, 100);
     std::cout<<"End reCalculateRegions" << std::endl;
 }
 

@@ -3,9 +3,11 @@
 
 /****** Function not in class ******/
 float computeCoefficient(int regionSize) {
-    float a = 1.0;
-    float b = 0.01;
-    float c = 0.25;
+    return 2;
+
+    float a = 3.0;
+    float b = 0.0001;
+    float c = 1.;
 
     return a * exp(-b * regionSize) + c;
 }
@@ -177,7 +179,7 @@ void Region::grow() {
 
 bool Region::verifyFusion2 (const cv::Vec3b & col) {
     this->coefSD = computeCoefficient(colors->size());
-    this->threshold = 20;
+    this->threshold = 30;
     this->averageColorSeuil();
     // We verify if the two regions have the same color with the seuil
     return verifyColor(col);
@@ -190,7 +192,7 @@ bool Region::verifyFusion (Region& r) {
         return false;
     }
     this->coefSD = computeCoefficient(colors->size());
-    this->threshold = 20;
+    this->threshold = 30;
     this->averageColorSeuil();
     // We verify if the two regions have the same color with the seuil
     return verifyColor(r.color) || r.verifyFusion2(color);

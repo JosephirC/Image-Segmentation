@@ -5,6 +5,7 @@
 #include "Region.hpp"
 #include "Seed.hpp"
 
+
 /**
  * For arguments
 */
@@ -18,20 +19,23 @@ void getArgs(int argc, char** argv,
         {"smooth", true},
         {"merge", true},
         {"recalcul", false},
-        {"analyse", true},
+        {"analyse", false},
         {"equalize", true},
         {"toTheEnd", true},
-        {"deleteImg", false}
+        {"deleteImg", true}
     };
     params.clear();
     params = {
-        {"pourcentSeed", 0.8},
-        {"pourcentReCal", 0.8},
+        {"pourcentSeed", 10.},
+        {"pourcentReCal", 30.5},
         {"nbRepart", 16},
-        {"nbIteration", 100}
+        {"nbIteration", 100},
+        {"nbIterationReCal", 3}
     };
 
-    pathImage = "Images/lena_color.png";
+    // pathImage = "Images/lena_color.png";
+    // pathImage = "Images/4couleurs.png";
+    pathImage = "Images/big4couleurs.png";
     // Get the arguments
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -43,7 +47,7 @@ void getArgs(int argc, char** argv,
                 // Vérifie que la clé est valide
                 if (key == "smooth" || key == "merge" || key == "recalcul" || key == "analyse" || key == "equalize" || key == "toTheEnd") {
                     functToCall[key] = (value == "true");
-                } else if (key == "pourcentSeed" || key == "pourcentReCal" || key == "nbRepart") {
+                } else if (key == "pourcentSeed" || key == "pourcentReCal" || key == "nbRepart" || key == "nbIteration" || key == "nbIterationReCal") {
                     params[key] = (float) std::stof(value);
                 } else if (key == "pathImage") {
                     pathImage = value;
@@ -56,6 +60,15 @@ void getArgs(int argc, char** argv,
         }
     }
 }
+
+// void deleteImgInDir(const std::string& directoryPath = "image_cree") {
+//     for (const auto& entry : fs::directory_iterator(directoryPath)) {
+//         if (entry.is_regular_file() && entry.path().extension() == ".png") {
+//             fs::remove(entry.path());
+//             std::cout << "Deleted: " << entry.path() << std::endl;
+//         }
+//     }
+// }
 
 int merge(ComputeRegions& regions, const int iteration = 0) {
     auto start_merge = std::chrono::high_resolution_clock::now();
@@ -91,7 +104,7 @@ void analyse(ComputeRegions& regions,
     int itReCalcul = 1;
     int itSmooth = 1;
     int iteration = 1;
-    while (nbSeedsStart - regions.getNbRegions() > 20) {
+    while (regions.getPourcentNotInReg() > 0.01 && iteration < params["nbIteration"]) {
         std::cout << "Iteration n°" << iteration << std::endl;
         iteration++;
         itReCalcul = reCalcul(regions, params["pourcentReCal"], itReCalcul);
@@ -118,6 +131,12 @@ int main(int argc, char** argv) {
     std::cout << "Pourcent ReCal: " << params["pourcentReCal"] << std::endl;
     std::cout << "Nb Repart: " << params["nbRepart"] << std::endl;
     std::cout << "Nb Iteration: " << params["nbIteration"] << std::endl;
+    std::cout << "Nb Iteration ReCal: " << params["nbIterationReCal"] << std::endl;
+    std::cout << "Path Image: " << pathImage << std::endl;
+    
+    // if (functToCall["deleteImg"] == true) {
+    //     deleteImgInDir();
+    // }
 
     // We load the image
     cv::Mat image = cv::imread(pathImage);
@@ -146,6 +165,7 @@ int main(int argc, char** argv) {
     // Peut être obligatoire tout le temps idk
     if (functToCall["merge"] == true) {
         merge(regions);
+        merge(regions, 2);
     }
 
     if (functToCall["recalcul"] == true) {
