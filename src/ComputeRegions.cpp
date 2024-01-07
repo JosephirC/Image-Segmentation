@@ -225,7 +225,7 @@ void ComputeRegions::updateBorder (Region * r) {
     // std::cout << "size border " << tmp.size() << " / " << tmp2.size() << std::endl;
 }
 
-Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice, int iteration, int & regTraited) {
+Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice, int & iteration, int & regTraited) {
     // std::cout << "Merge region " << id << std::endl;
     if (iteration <= 0) {
         std::cout << "Error iteration, we don't put region in aleredy merge" << std::endl;
@@ -263,7 +263,7 @@ Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & ale
     return r;
 }
 
-void ComputeRegions::merge() {
+bool ComputeRegions::merge() {
     std::cout << "Merge" << std::endl;
     // We creat a list of region already merge for not merge them again
     std::unordered_set<int> alereadyMerge;
@@ -278,7 +278,11 @@ void ComputeRegions::merge() {
     }
     int nbRegTraited = 0;
     int iteration = 100;
+    int iteration2 = 100;
+    bool again = false;
     while (!notMerge.empty()) {
+        iteration = 100;
+        iteration2 --;
         // We get the first element
         int id = *notMerge.begin();
         notMerge.erase(id);
@@ -295,16 +299,20 @@ void ComputeRegions::merge() {
         }
         updateBorder(r);
         if (iteration <= 0) {
-            std::cout << "Error iteration" << std::endl;
-            return;
-            updateStorageRegions(listOfIndicesToRegion);
-            merge();
-            return;
+            std::cout << "Error too many region fuse" << std::endl;
+            again = true;
         }
     }
     std::cout << "Merge end" << std::endl;
     // We update tabInfo
     updateStorageRegions(listOfIndicesToRegion);
+    if (again) {
+        std::cout << "We merge again" << std::endl;
+        merge();
+        return false;
+    } else {
+        return false;
+    }
 }
 
 void ComputeRegions::display(const std::string title) {

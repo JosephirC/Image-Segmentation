@@ -92,12 +92,12 @@ class ComputeRegions {
         /**
         * Merge a Region 
         */
-        Region * mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice, int iteration, int & regTraited);
+        Region * mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice, int & iteration, int & regTraited);
 
         /**
         * Merge regions
         */
-        void merge();
+        bool merge();
         
         /**
         * Display the regions

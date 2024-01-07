@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
     // Peut être obligatoire tout le temps idk
     if (functToCall["merge"] == true) {
         merge(regions);
-        merge(regions, 2);
+        // merge(regions, 2);
     }
 
     if (functToCall["recalcul"] == true) {

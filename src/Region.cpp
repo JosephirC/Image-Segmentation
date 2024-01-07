@@ -310,7 +310,7 @@ cv::Vec3b Region::getColor() const {
 
 void Region::increaseThreshold() {
     // std::cout << "Increase threshold" << std::endl;
-    if (colors->size() < 30) {
+    if (colors->size() < 50) {
         if (threshold + 5 < 50) {
             threshold += 5;
         } else {
@@ -318,7 +318,7 @@ void Region::increaseThreshold() {
             isIncrease = false;
         }
     } else {
-        if (coefSD + 0.2 < 2.2) {
+        if (coefSD + 0.2 < 2.4) {
             coefSD += 0.2;
         } else {
             // std::cout<< "FAUX" << std::endl;
