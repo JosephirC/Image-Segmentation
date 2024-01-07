@@ -27,7 +27,7 @@ class Region {
         * @param imageOriginal The original image
         * 
         */
-        Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 20, float _coefSD = 1.8);
+        Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 10, float _coefSD = 1.);
 
         /**
         * TODO : copier TOUS les elements de la region
@@ -138,6 +138,16 @@ class Region {
         cv::Vec3b getColor() const;
 
         /**
+        * Get all colors of the region
+        */
+        std::vector<cv::Vec3b> getColors() const;
+
+        /**
+         * Set all colors of the region
+        */
+        void setColors(const std::vector<cv::Vec3b> & _colors); 
+
+        /**
         * For increase the seuil
         */
         void increaseThreshold();
@@ -182,6 +192,18 @@ class Region {
         */
         friend bool operator==(const cv::Point& a, const cv::Point& b);
 
+        /**
+        * This function is used to calculate the average color of the region
+        */
+        void averageColor();
+
+        /**
+        * This function is used to calculate the seuil color of the region
+        */
+        void averageColorSeuil();
+
+        void computeCritMerge();
+
     private:
         int id; // The id of the region
         int size_x; // The size of the image in x
@@ -199,16 +221,6 @@ class Region {
         bool isIncrease;
 
         // std::unordered_map<int, cv::Vec3b> * allRegionColors; // cela permet a toutes les regions de savoir les couleurs des autres regions
-        
-        /**
-        * This function is used to calculate the average color of the region
-        */
-        void averageColor();
-
-        /**
-        * This function is used to calculate the seuil color of the region
-        */
-        void averageColorSeuil();
 
         /**
         * This function is used to verify if the color is in the seuil of the region

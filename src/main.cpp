@@ -26,16 +26,17 @@ void getArgs(int argc, char** argv,
     };
     params.clear();
     params = {
-        {"pourcentSeed", 10.},
-        {"pourcentReCal", 30.5},
+        {"pourcentSeed", 5.},
+        {"pourcentReCal", 5.},
         {"nbRepart", 16},
         {"nbIteration", 100},
         {"nbIterationReCal", 3}
     };
 
-    // pathImage = "Images/lena_color.png";
+    pathImage = "Images/lena_color.png";
     // pathImage = "Images/4couleurs.png";
-    pathImage = "Images/big4couleurs.png";
+    // pathImage = "Images/bigSegmentation.png";
+    // pathImage = "Images/big4couleurs.png";
     // Get the arguments
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -100,11 +101,12 @@ int reCalcul(ComputeRegions& regions, const float pourcentSeed, const int iterat
 void analyse(ComputeRegions& regions,
     int nbSeedsStart,
     std::unordered_map<std::string, float> & params) {
+        
     int itMerge = 1;
     int itReCalcul = 1;
     int itSmooth = 1;
     int iteration = 1;
-    while (regions.getPourcentNotInReg() > 0.01 && iteration < params["nbIteration"]) {
+    while (regions.getPourcentNotInReg() > 5. && iteration < params["nbIteration"]) {
         std::cout << "Iteration n°" << iteration << std::endl;
         iteration++;
         itReCalcul = reCalcul(regions, params["pourcentReCal"], itReCalcul);
@@ -175,9 +177,8 @@ int main(int argc, char** argv) {
     if (functToCall["smooth"] == true) {
         smooth(regions);
     }
-
+    regions.displayBorderInner("border_inner");
     if (functToCall["analyse"] == true) {
         analyse(regions, nbSeedsStart, params);
     }
-    return 0;
 }

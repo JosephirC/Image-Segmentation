@@ -33,7 +33,7 @@ ComputeRegions::ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _
         std::cout << "The repartition is not correct :" << _rep << std::endl;
         exit(1);
     }
-    this->pourcent = _pourcentByRep / 100;
+    this->pourcent = _pourcentByRep;
     this->rep = _rep;
     size_x_tabInfo = img.cols;
     size_y_tabInfo = img.rows;
@@ -245,8 +245,14 @@ Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & ale
             // We get the region
             Region * r2 = regions[idReg2 - 1];
             if (alereadyMerge.find(r2->getId()) == alereadyMerge.end() && r->verifyFusion(*r2)) {
+                std::vector<cv::Vec3b> couleur = r2->getColors();
+                std::vector<cv::Vec3b> couleur2 = r->getColors();
+                // we concatenate the list of colors
+                couleur2.insert(couleur2.end(), couleur.begin(), couleur.end());
+                r2->setColors(couleur2);
                 r2 = mergeRegion(r2->getId(), alereadyMerge, mergeInidice, iteration, regTraited);
                 if (r2 != nullptr) {
+                    r2->setColors(couleur);
                     r = regions[r->getId() - 1];
                     // Finaly we merge r2 in r
                     *r += *r2;
@@ -256,7 +262,6 @@ Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & ale
             }
         }
     }
-    
     regTraited ++;
     std::cout<<"Region " << r->getId() << " is merge (" << regTraited << " / " << nb_regions << ")" << std::endl;
     alereadyMerge.insert(r->getId());
@@ -277,12 +282,11 @@ bool ComputeRegions::merge() {
         notMerge.insert(regions[i]->getId());
     }
     int nbRegTraited = 0;
-    int iteration = 100;
-    int iteration2 = 100;
+    int iteration = 500;
     bool again = false;
     while (!notMerge.empty()) {
-        iteration = 100;
-        iteration2 --;
+        std::cout << "We merge HERE regions" << std::endl;
+        iteration = 500;
         // We get the first element
         int id = *notMerge.begin();
         notMerge.erase(id);
@@ -309,7 +313,7 @@ bool ComputeRegions::merge() {
     if (again) {
         std::cout << "We merge again" << std::endl;
         merge();
-        return false;
+        return true;
     } else {
         return false;
     }
@@ -510,7 +514,12 @@ void ComputeRegions::reCalculateRegions(float pourcent) {
     std::vector<cv::Point> pointNotInReg = getNotInReg();
     std::queue<Region *> regToCal = std::queue<Region *>();
     // We get X% of the point not in region to put in new seeds
-    for (int i = 0; i < pointNotInReg.size() * pourcent /100; i++) {
+    int size = pointNotInReg.size();
+    std::cout<<"Size :" << size << std::endl;
+    std::cout<<"pourcent :" << pourcent << std::endl;
+    std::cout<<"resultat :" << size * pourcent / 100 << std::endl;
+    int nbIt = (int) (float(size) * pourcent / 100.0f);
+    for (int i = 0; i < nbIt; i++) {
         // We get a random point
         int indice = rand() % pointNotInReg.size();
         cv::Point p = pointNotInReg[indice];

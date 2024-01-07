@@ -2,15 +2,12 @@
 #include <opencv2/opencv.hpp>
 
 /****** Function not in class ******/
-float computeCoefficient(int regionSize) {
-    return 2;
-
-    float a = 3.0;
-    float b = 0.0001;
-    float c = 1.;
-
-    return a * exp(-b * regionSize) + c;
+void displayColor (const cv::Vec3b& couleur) {
+    std::cout << "Canal Bleu : " << static_cast<int>(couleur[0]) << std::endl;
+    std::cout << "Canal Vert : " << static_cast<int>(couleur[1]) << std::endl;
+    std::cout << "Canal Rouge : " << static_cast<int>(couleur[2]) << std::endl;
 }
+
 
 /***** Friend functions *****/ 
 namespace std {
@@ -32,13 +29,39 @@ bool operator==(const cv::Point& a, const cv::Point& b) {
 
 
 /***** Public functions *****/ 
-
-// This function is used to display a color
-void displayColor (const cv::Vec3b& couleur) {
-    std::cout << "Canal Bleu : " << static_cast<int>(couleur[0]) << std::endl;
-    std::cout << "Canal Vert : " << static_cast<int>(couleur[1]) << std::endl;
-    std::cout << "Canal Rouge : " << static_cast<int>(couleur[2]) << std::endl;
+void Region::computeCritMerge() {
+    int r = 25;
+    int g = 25;
+    int b = 25;
+    // if (colors->size() < 50) {
+    //     r = 30; g = 30; b = 30;
+    // } else if (colors->size() < 200) {
+    //     r = 25; g = 25; b = 25;
+    // } else if (colors->size() < 500) {
+    //     r = 30; g = 30; b = 30;
+    // } else if (colors->size() < 1000) {
+    //     r = 25; g = 25; b = 25;
+    // } else if (colors->size() < 2000) {
+    //     r = 20; g = 20; b = 20;
+    // } else if (colors->size() < 5000) {
+    //     r = 15; g = 15; b = 15;
+    // } else if (colors->size() < 10000) {
+    //     r = 10; g = 10; b = 10;
+    // }
+    
+    
+    
+    this->color_seuil_inf = cv::Vec3b(
+        (color[0] - r > 0)? color[0] - r:0,
+        (color[1] - g > 0)? color[1] - g:0,
+        (color[2] - b > 0)? color[2] - b:0);
+    this->color_seuil_sup = cv::Vec3b(
+        (color[0] + r < 255)? color[0] + r:255,
+        (color[1] + g < 255)? color[1] + g:255,
+        (color[2] + b < 255)? color[2] + b:255);
 }
+
+
 
 Region::Region() {
     tabInfo = nullptr;
@@ -178,10 +201,7 @@ void Region::grow() {
 
 
 bool Region::verifyFusion2 (const cv::Vec3b & col) {
-    this->coefSD = computeCoefficient(colors->size());
-    this->threshold = 30;
-    this->averageColorSeuil();
-    // We verify if the two regions have the same color with the seuil
+    computeCritMerge();
     return verifyColor(col);
 }
 
@@ -191,9 +211,7 @@ bool Region::verifyFusion (Region& r) {
         std::cout << "The two regions are not in the same image" << std::endl;
         return false;
     }
-    this->coefSD = computeCoefficient(colors->size());
-    this->threshold = 30;
-    this->averageColorSeuil();
+    computeCritMerge();
     // We verify if the two regions have the same color with the seuil
     return verifyColor(r.color) || r.verifyFusion2(color);
 }
@@ -308,17 +326,25 @@ cv::Vec3b Region::getColor() const {
     return cv::Vec3b(color);
 }
 
+std::vector<cv::Vec3b> Region::getColors() const {
+    return std::vector<cv::Vec3b> (colors->begin(), colors->end());
+}
+
+void Region::setColors(const std::vector<cv::Vec3b> & _colors) {
+    this->colors = new std::vector<cv::Vec3b> (_colors);
+}
+
 void Region::increaseThreshold() {
     // std::cout << "Increase threshold" << std::endl;
     if (colors->size() < 50) {
-        if (threshold + 5 < 50) {
+        if (threshold + 5 < 30) {
             threshold += 5;
         } else {
             // std::cout<< "FAUX" << std::endl;
             isIncrease = false;
         }
     } else {
-        if (coefSD + 0.2 < 2.4) {
+        if (coefSD + 0.2 < 1.8) {
             coefSD += 0.2;
         } else {
             // std::cout<< "FAUX" << std::endl;
