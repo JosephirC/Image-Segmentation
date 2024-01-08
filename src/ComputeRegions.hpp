@@ -84,6 +84,11 @@ class ComputeRegions {
         */
         void updateStorageRegions (std::vector<std::unordered_set<int>> listIR);
 
+        /*
+        *
+        */
+        void updateStorageRegions (std::unordered_map<int, std::unordered_set<int>> listIR);
+
         /**
         * Update a border region
         */
@@ -164,6 +169,18 @@ class ComputeRegions {
         float getPourcentNotInReg();
 
         /**
+         * Check all neightbor region
+         * @param idReg : id of region
+         * @return map of neightbor region with their pourcent of neightbor
+        */
+        std::unordered_map<int, float> checkNeigthorRegion(int idReg);
+
+        /**
+         * Encompassment region
+        */
+        void encompassmentRegion();
+
+        /**
         * Display borderInner
         */
         void displayBorderInner (std::string name = "Image with border inner", int resize = 1, const std::string & directory = "image_cree/");
@@ -198,6 +215,11 @@ class ComputeRegions {
         * Calculate border inner each region
         */
         std::vector<cv::Point> calculateBorderInner();
+
+        /**
+         * Find all id of neightbor point
+        */
+        std::vector<int> findNeightborPoint(const cv::Point & p);
 };
 
 #endif // COMPUTREGIONS_HPP

@@ -106,13 +106,15 @@ void analyse(ComputeRegions& regions,
     int itReCalcul = 1;
     int itSmooth = 1;
     int iteration = 1;
-    while (regions.getPourcentNotInReg() > 5. && iteration < params["nbIteration"]) {
+    while (regions.getPourcentNotInReg() > 10. && iteration < params["nbIteration"]) {
         std::cout << "Iteration n°" << iteration << std::endl;
         iteration++;
         itReCalcul = reCalcul(regions, params["pourcentReCal"], itReCalcul);
         itMerge = merge(regions, itMerge);
         itSmooth = smooth(regions, itSmooth);  
     } 
+    regions.encompassmentRegion();
+    regions.display2("final encompassement");
     regions.displayBorderInner("border_inner_n°"+ std::to_string(iteration), 1);
     std::cout << "Pourcent point not in region : " << regions.getPourcentNotInReg() << std::endl;
 }

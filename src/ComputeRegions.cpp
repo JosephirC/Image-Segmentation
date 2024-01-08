@@ -187,6 +187,7 @@ int ComputeRegions::findInt(const int target, const std::vector<std::unordered_s
         }
     }
     std::cout << "Error findInt" << std::endl;
+    std::cout << "target don't exist " << target << std::endl;
     return -1; // If the int doesn't exist
 }
 
@@ -212,6 +213,32 @@ void ComputeRegions::updateStorageRegions (std::vector<std::unordered_set<int>> 
         }
     }
 } 
+
+void ComputeRegions::updateStorageRegions(std::unordered_map<int, std::unordered_set<int>> listIR) {
+    std::vector<Region *> newRegions = std::vector<Region *>();
+    std::vector<std::unordered_set<int>> newId = std::vector<std::unordered_set<int>>();
+    for (const auto& pair : listIR) {
+        newRegions.push_back(regions[pair.first - 1]);
+        newRegions.back()->setId(newRegions.size());
+        newId.push_back(pair.second);
+        newId.back().insert(pair.first);
+    }
+    regions = newRegions;
+    nb_regions = regions.size();
+    for (int i = 0; i < size_x_tabInfo; i++) {
+        for (int j = 0; j < size_y_tabInfo; j++) {
+            int id = tabInfo[i][j];
+            if (id > 0) {
+                // We get the indice of the set in the list of set then we get the id of the region
+                std::cout << "id " << id << std::endl;
+                tabInfo[i][j] = regions[findInt(id, newId)]->getId();
+            } else if (id < 0) {
+                tabInfo[i][j] = regions[(findInt(id * -1, newId))]->getId() * -1;
+            }
+        }
+    }
+    
+}
 
 void ComputeRegions::updateBorder (Region * r) {
     std::vector<cv::Point> tmp = r->getborderVector();
@@ -282,7 +309,7 @@ bool ComputeRegions::merge() {
         notMerge.insert(regions[i]->getId());
     }
     int nbRegTraited = 0;
-    int iteration = 500;
+    int iteration = 1000;
     bool again = false;
     while (!notMerge.empty()) {
         std::cout << "We merge HERE regions" << std::endl;
@@ -596,6 +623,76 @@ void ComputeRegions::displayBorderInner (std::string name, int resize, const std
     }
 }
 
+std::unordered_map<int, float> ComputeRegions::checkNeigthorRegion(int idReg) {
+    std::unordered_map<int, float> neightborRegion;
+    std::vector<cv::Point> border = regions[idReg - 1]->getborderVector();
+    float size = border.size();
+    for (const auto & p : border) {
+        int id = getIdRegion(p);
+        if (id != idReg) {
+            if (neightborRegion.find(id) == neightborRegion.end()) {
+                neightborRegion[id] = 1.0 / size;
+            } else {
+                neightborRegion[id] += 1.0 / size;
+            }
+        }
+    }
+    return neightborRegion;
+}
+
+void ComputeRegions::encompassmentRegion() {
+    std::unordered_set <int> idRegCompute;
+    std::unordered_map<int, std::unordered_set<int>> listOfIndicesToRegion;
+    for (auto & reg : regions) {
+        // We check if region is littel for image
+        if (idRegCompute.find(reg->getId()) != idRegCompute.end()) {
+            continue;
+        }
+        if (reg->getColors().size() / (float)nb_pixels < 0.01) {
+            int id = reg->getId();
+            std::unordered_map<int, float> neightborRegion = checkNeigthorRegion(reg->getId());
+            float max = 0;
+            int idMax = 0;
+            for (const auto & element : neightborRegion) {
+                if (element.second > max) {
+                    max = element.second;
+                    idMax = element.first;
+                }
+            }
+            // If region max is lot of neighbor 
+            if (idMax <= 0) {
+                std::cout << "We creat the list of region to merge" << std::endl;
+                listOfIndicesToRegion[id] = std::unordered_set<int>();
+                continue;
+            }
+            if (max > 0.70 && regions[idMax - 1]->getColors().size() * 4 > reg->getColors().size()) {
+                std::cout << "Merge region " << id << " and " << idMax << std::endl;
+                *regions[idMax - 1] += *reg;
+                regions[id - 1] = regions[idMax - 1];
+                // regions[reg->getId() - 1] = reg;
+                // We check if the region exist in the list of region to merge
+                if (listOfIndicesToRegion.find(idMax) != listOfIndicesToRegion.end()) {
+                    // We add the region in the list of region to merge
+                    listOfIndicesToRegion[idMax].insert(id); 
+                } else {
+                    // We creat the list of region to merge
+                    listOfIndicesToRegion[idMax] = std::unordered_set<int>();
+                    listOfIndicesToRegion[idMax].insert(id);
+                    idRegCompute.insert(idMax);
+                }
+            } else {
+                std::cout << "We creat the list of region to merge" << std::endl;
+                listOfIndicesToRegion[id] = std::unordered_set<int>();
+            }
+        } else {
+            idRegCompute.insert(reg->getId());
+            std::cout<<"Region " << reg->getId() << " is big" << std::endl;
+            listOfIndicesToRegion[reg->getId()] = std::unordered_set<int>();
+        }
+    }
+    updateStorageRegions(listOfIndicesToRegion);
+}
+
 /***** Private functions *****/
 
 std::vector<cv::Point> ComputeRegions::calNeightorsId (cv::Point p, int id) {
@@ -615,6 +712,23 @@ std::vector<cv::Point> ComputeRegions::calNeightorsId (cv::Point p, int id) {
     return neightors;
 }
 
+std::vector<int> ComputeRegions::findNeightborPoint (const cv::Point & p) {
+    std::vector<int> neightborPoint;
+    if (p.x > 0) {
+        neightborPoint.push_back(getIdRegion(cv::Point(p.x - 1, p.y)));
+    }
+    if (p.x + 1 < size_x_tabInfo) {
+        neightborPoint.push_back(getIdRegion(cv::Point(p.x + 1, p.y)));
+    }
+    if (p.y > 0) {
+        neightborPoint.push_back(getIdRegion(cv::Point(p.x, p.y - 1)));
+    }
+    if (p.y + 1 < size_y_tabInfo) {
+        neightborPoint.push_back(getIdRegion(cv::Point(p.x, p.y + 1)));
+    }
+    return neightborPoint;
+}
+
 std::vector<cv::Point> ComputeRegions::calculateBorderInner () {
     std::vector<cv::Point> borderInner;
     for (int i = 0; i < nb_regions; i++) {
@@ -630,3 +744,4 @@ std::vector<cv::Point> ComputeRegions::calculateBorderInner () {
     std::cout << "Debug calculateBorderInner , size border 1" << regions[0]->getborderVector().size() << std::endl;
     return borderInner;
 }
+
