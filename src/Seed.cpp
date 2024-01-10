@@ -1,9 +1,7 @@
-#include "Seed.hpp"
-
 #include <iostream>
 #include <cstdlib>
 #include <opencv2/opencv.hpp>
-
+#include "Seed.hpp"
 
 Seed::Seed() {
     point = cv::Point(0, 0);

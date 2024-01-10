@@ -411,3 +411,20 @@ void comparaisonConvolution(cv::Mat& image) {
     // On affiche l'image floutée
     cv::imshow("Image filtre OpenCV", imageBlur);
 }
+
+void filtreBruit(const cv::Mat& inputImage, cv::Mat& outputImage, int kernelSize) {
+    // Appliquer un filtre a une image pour reduire le bruit
+    cv::blur(inputImage, outputImage, cv::Size(kernelSize, kernelSize));
+}
+
+void filtreBruitGaussien(const cv::Mat& inputImage, cv::Mat& outputImage, int kernelSize){
+    cv::GaussianBlur(inputImage, outputImage, cv::Size(kernelSize, kernelSize), 0);
+}
+
+void filtreBruitMedian(const cv::Mat& inputImage, cv::Mat& outputImage, int kernelSize){
+    cv::medianBlur(inputImage, outputImage, kernelSize);
+}
+
+void filtreBruitBilateral(const cv::Mat& inputImage, cv::Mat& outputImage, int kernelSize){
+    cv::bilateralFilter(inputImage, outputImage, kernelSize, 75, 75);
+}

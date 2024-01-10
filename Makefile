@@ -3,13 +3,19 @@ CXXFLAGS = -Wall -Wextra -std=c++11 -g -O0
 OPENCV_LIB = -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_videoio -lopencv_imgproc
 DIR_OPENCV = -I/usr/local/include/opencv4
 
-all: tp1.o
+all: tp1.o blur.o
 
 tp1.o: obj/tp1.o obj/Region.o obj/Seed.o obj/ComputeRegions.o obj/ComputeSeed.o 
 	$(CXX) $(CXXFLAGS) obj/tp1.o obj/Region.o obj/Seed.o obj/ComputeRegions.o obj/ComputeSeed.o -o tp1.o $(OPENCV_LIB)
 
+blur.o: obj/mainBlur.o obj/Region.o obj/Seed.o obj/ComputeRegions.o obj/ComputeSeed.o 
+	$(CXX) $(CXXFLAGS) obj/mainBlur.o obj/Region.o obj/Seed.o obj/ComputeRegions.o obj/ComputeSeed.o -o blur.o $(OPENCV_LIB)
+
 obj/tp1.o: src/main.cpp src/fonctions.hpp src/ComputeRegions.hpp src/Region.hpp src/Seed.hpp
 	$(CXX) $(CXXFLAGS) -c src/main.cpp -o obj/tp1.o  $(DIR_OPENCV)
+
+obj/mainBlur.o: src/mainBlur.cpp src/fonctions.hpp src/ComputeRegions.hpp src/Region.hpp src/Seed.hpp
+	$(CXX) $(CXXFLAGS) -c src/mainBlur.cpp -o obj/mainBlur.o  $(DIR_OPENCV)
 
 obj/Region.o: src/Region.cpp src/Region.hpp
 	$(CXX) $(CXXFLAGS) -c src/Region.cpp -o obj/Region.o $(DIR_OPENCV)
@@ -26,6 +32,7 @@ obj/ComputeSeed.o: src/ComputeSeed.cpp src/ComputeSeed.hpp src/Seed.hpp
 clean:
 	rm obj/*.o
 	rm *.o
+	rm image_cree/*.png
 
 .DEFAULT_GOAL := all
 
