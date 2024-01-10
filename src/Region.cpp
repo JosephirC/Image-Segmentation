@@ -33,24 +33,6 @@ void Region::computeCritMerge() {
     int r = 25;
     int g = 25;
     int b = 25;
-    // if (colors->size() < 50) {
-    //     r = 30; g = 30; b = 30;
-    // } else if (colors->size() < 200) {
-    //     r = 25; g = 25; b = 25;
-    // } else if (colors->size() < 500) {
-    //     r = 30; g = 30; b = 30;
-    // } else if (colors->size() < 1000) {
-    //     r = 25; g = 25; b = 25;
-    // } else if (colors->size() < 2000) {
-    //     r = 20; g = 20; b = 20;
-    // } else if (colors->size() < 5000) {
-    //     r = 15; g = 15; b = 15;
-    // } else if (colors->size() < 10000) {
-    //     r = 10; g = 10; b = 10;
-    // }
-    
-    
-    
     this->color_seuil_inf = cv::Vec3b(
         (color[0] - r > 0)? color[0] - r:0,
         (color[1] - g > 0)? color[1] - g:0,
@@ -253,13 +235,11 @@ std::queue<cv::Point> & Region::getoutline() const {
     return *outline;
 }
 
-std::vector<cv::Point> & Region::getborderVector() const {
-    std::vector<cv::Point> * vec_border = new std::vector<cv::Point>();
-    for (const auto& element : *border) {
-        vec_border->push_back(element);
-    }
-    return *vec_border;
+const std::vector<cv::Point>& Region::getborderVector() const {
+    static std::vector<cv::Point> borderVector(border->begin(), border->end());
+    return borderVector;
 }
+
 
 std::unordered_set<cv::Point> & Region::getborder() const {
     return *border;
@@ -331,6 +311,7 @@ std::vector<cv::Vec3b> Region::getColors() const {
 }
 
 void Region::setColors(const std::vector<cv::Vec3b> & _colors) {
+    delete this->colors;
     this->colors = new std::vector<cv::Vec3b> (_colors);
 }
 

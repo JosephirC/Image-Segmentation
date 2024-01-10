@@ -40,7 +40,6 @@ ComputeRegions::ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _
     this->nb_pixels = size_x_tabInfo * size_y_tabInfo;
     float nb_pixels_by_region = nb_pixels / _rep;
     this->nb_regions = int (nb_pixels_by_region * pourcent / 100) * _rep;
-    std::cout << "nb_regions :" << nb_regions << std::endl;
     // regions = std::vector<Region *>(nb_regions);
     tabInfo = new int*[size_x_tabInfo];
     for (int i = 0; i < size_x_tabInfo; i++) {
@@ -84,13 +83,13 @@ void ComputeRegions::putSeeds() {
         i++;
         image_seeds->at<cv::Vec3b>(seed->getPoint()) = cv::Vec3b(0, 0, 255);
         // We creat a new region
-        std::cout << "Region " << i << "/" << this->nb_regions<<std::endl;
+        // std::cout << "Region " << i << "/" << this->nb_regions<<std::endl;
         Region * r = new Region(i, seed->getPoint(), tabInfo, image);
         // We add the region in the list of regions
         regions.push_back(r);
     }
     // We save the image with the seeds
-    cv::imwrite("image_cree/Image_with_seeds_div.png", *image_seeds);
+    // cv::imwrite("image_cree/Image_with_seeds_div.png", *image_seeds);
 }
 
 
@@ -103,10 +102,10 @@ void ComputeRegions::calculateAllRegions(int nbIteration = 100) {
                 // std::cout << "Region " <<  regions[i]->getId() << " is not empty" << std::endl;
                 regions[i]->grow();
             } else {
-                std::cout << "Region " << regions[i]->getId() << " is empty" << std::endl;
                 if (regions[i]->getIsIncrease()) {
                     // std::cout << "Region " << regions[i]->getId() << " is increase" << std::endl;
                     regions[i]->increaseThreshold();
+                    // std::vector <cv::Point> border = regions[i]->getborderVector();
                     regions[i]->setoutline(regions[i]->getborderVector());
                     regions[i]->clearborder();
                     regions[i]->grow();
@@ -145,7 +144,7 @@ std::queue<Region *> ComputeRegions::calculatQueueRegion(std::queue<Region *> & 
 void ComputeRegions::calculateRegions(std::queue<Region *> reg, int nbrCallMax) {
     // We calculate the regions
     while (!reg.empty() && nbrCallMax > 0) {
-        std::cout<<"We are to " << nbrCallMax << " of the end" << std::endl;
+        // std::cout<<"We are to " << nbrCallMax << " of the end" << std::endl;
         nbrCallMax --;
         reg = calculatQueueRegion(reg);
     } 
@@ -230,7 +229,6 @@ void ComputeRegions::updateStorageRegions(std::unordered_map<int, std::unordered
             int id = tabInfo[i][j];
             if (id > 0) {
                 // We get the indice of the set in the list of set then we get the id of the region
-                std::cout << "id " << id << std::endl;
                 tabInfo[i][j] = regions[findInt(id, newId)]->getId();
             } else if (id < 0) {
                 tabInfo[i][j] = regions[(findInt(id * -1, newId))]->getId() * -1;
@@ -255,7 +253,6 @@ void ComputeRegions::updateBorder (Region * r) {
 Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice, int & iteration, int & regTraited) {
     // std::cout << "Merge region " << id << std::endl;
     if (iteration <= 0) {
-        std::cout << "Error iteration, we don't put region in aleredy merge" << std::endl;
         return nullptr;
     }
     Region *r = regions [id - 1];
@@ -296,7 +293,7 @@ Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & ale
 }
 
 bool ComputeRegions::merge() {
-    std::cout << "Merge" << std::endl;
+    // std::cout << "Merge" << std::endl;
     // We creat a list of region already merge for not merge them again
     std::unordered_set<int> alereadyMerge;
     // We creat a list of region to merge
@@ -312,7 +309,6 @@ bool ComputeRegions::merge() {
     int iteration = 500;
     bool again = false;
     while (!notMerge.empty()) {
-        std::cout << "We merge HERE regions" << std::endl;
         iteration = 5000;
         // We get the first element
         int id = *notMerge.begin();
@@ -330,7 +326,6 @@ bool ComputeRegions::merge() {
         }
         updateBorder(r);
         if (iteration <= 0) {
-            std::cout << "Error too many region fuse" << std::endl;
             // We add region not merge in listOfIndicesToRegion
             while (notMerge.size() > 0) {
                 int id = *notMerge.begin();
@@ -341,11 +336,11 @@ bool ComputeRegions::merge() {
             break;
         }
     }
-    std::cout << "Merge end" << std::endl;
+    // std::cout << "Merge end" << std::endl;
     // We update tabInfo
     updateStorageRegions(listOfIndicesToRegion);
     if (again) {
-        std::cout << "We merge again" << std::endl;
+        // std::cout << "We merge again" << std::endl;
         merge();
         return true;
     } else {
@@ -379,7 +374,7 @@ void ComputeRegions::display(const std::string title) {
     // delete image_regions;
 }
 
-cv::Mat * ComputeRegions::display2(const std::string & name, int resize, const std::string & directory) {    // Créer une palette de couleurs
+cv::Mat * ComputeRegions::makeImageWithRegion() {
     std::vector<cv::Vec3b> colorPalette;
     for (int i = 0; i < nb_regions; ++i) {
         // Générer des couleurs uniques pour chaque région
@@ -406,14 +401,60 @@ cv::Mat * ComputeRegions::display2(const std::string & name, int resize, const s
             }
         }
     }
+    return image_regions;
+}
+
+cv::Mat * ComputeRegions::display2(const std::string & name, int resize) {    // Créer une palette de couleurs
+   cv::Mat *image_regions = makeImageWithRegion();
 
     // Ajuster la taille de l'image pour l'affichage
     cv::resize(*image_regions, *image_regions, cv::Size(), resize, resize, cv::INTER_NEAREST);
 
     // Afficher l'image avec les régions colorées
     cv::imshow(name, *image_regions);
-    cv::imwrite(directory + name + ".png", *image_regions);
     return image_regions;
+}
+
+void ComputeRegions::saveImage(const std::string & name, const std::string & directory) {
+    std::vector<cv::Vec3b> colorPalette;
+    for (int i = 0; i < nb_regions; ++i) {
+        // Générer des couleurs uniques pour chaque région
+        uchar r = static_cast<uchar>(std::rand() % 256);
+        uchar g = static_cast<uchar>(std::rand() % 256);
+        uchar b = static_cast<uchar>(std::rand() % 256);
+        colorPalette.push_back(cv::Vec3b(b, g, r));  // Utilisez BGR au lieu de RGB
+    }
+    cv::Mat *image_regions = new cv::Mat(image->clone());
+    for (int i = 0; i < size_x_tabInfo; i++) {
+        for (int j = 0; j < size_y_tabInfo; j++) {
+            int id = getIdRegion(cv::Point(i, j));
+            if (id > 0) {
+                // Utiliser la couleur correspondant à l'identifiant de la région
+                image_regions->at<cv::Vec3b>(cv::Point(i, j)) = colorPalette[id - 1];
+            } else if (id < 0) {
+                // Régions non attribuées, les laisser en noir ou utilisez une autre couleur
+                image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(255, 0, 0);
+            } else {
+                image_regions->at<cv::Vec3b>(cv::Point(i, j)) = cv::Vec3b(0, 0, 0);
+            }
+        }
+    }
+    cv::imwrite(directory + name + ".png", *image_regions);
+}
+
+cv::Mat * ComputeRegions::makeImageWithBorderInner() {
+    // We copy img original
+    cv::Mat * image_borderInner = new cv::Mat(makeImageWithRegion()->clone());
+    // We get border inner
+    for (const auto & borderPoint : calculateBorderInner()){
+        image_borderInner->at<cv::Vec3b>(borderPoint) = cv::Vec3b(0, 0, 255);
+    }
+    return image_borderInner;
+}
+
+void ComputeRegions::saveImageWithBorderInner(const std::string & name, const std::string & directory) {
+    cv::Mat * image_borderInner = makeImageWithBorderInner();
+    cv::imwrite(directory + name + ".png", *image_borderInner);
 }
 
 // void displayWithRegionId() {
@@ -611,7 +652,7 @@ float ComputeRegions::getPourcentNotInReg () {
 void ComputeRegions::displayBorderInner (std::string name, int resize, const std::string & directory) {
     // We copy img original
     cv::Mat * image_borderInner = new cv::Mat(image->clone());
-    cv::Mat * image_borderInner2 = new cv::Mat(display2(name, 1, directory)->clone());
+    cv::Mat * image_borderInner2 = new cv::Mat(makeImageWithRegion()->clone());
     // We get border inner
     for (const auto & borderPoint : calculateBorderInner()){
         image_borderInner->at<cv::Vec3b>(borderPoint) = cv::Vec3b(0, 0, 255);

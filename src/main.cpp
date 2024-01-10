@@ -30,7 +30,8 @@ void getArgs(int argc, char** argv,
         {"pourcentReCal", 5.},
         {"nbRepart", 16},
         {"nbIteration", 100},
-        {"nbIterationReCal", 3}
+        {"nbIterationReCal", 3},
+        {"blur", 3}
     };
 
     pathImage = "Images/lena_color.png";
@@ -48,7 +49,7 @@ void getArgs(int argc, char** argv,
                 // Vérifie que la clé est valide
                 if (key == "smooth" || key == "merge" || key == "recalcul" || key == "analyse" || key == "equalize" || key == "toTheEnd") {
                     functToCall[key] = (value == "true");
-                } else if (key == "pourcentSeed" || key == "pourcentReCal" || key == "nbRepart" || key == "nbIteration" || key == "nbIterationReCal") {
+                } else if (key == "pourcentSeed" || key == "pourcentReCal" || key == "nbRepart" || key == "nbIteration" || key == "nbIterationReCal" || key == "blur") {
                     params[key] = (float) std::stof(value);
                 } else if (key == "pathImage") {
                     pathImage = value;
@@ -75,7 +76,7 @@ int merge(ComputeRegions& regions, const int iteration = 0) {
     auto start_merge = std::chrono::high_resolution_clock::now();
     regions.merge();
     auto end_merge = std::chrono::high_resolution_clock::now();
-    regions.display2("merge_n°"+ std::to_string(iteration));
+    // regions.saveImage("merge_n°"+ std::to_string(iteration));
     std::cout << "Merge n°" << iteration << " time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end_merge - start_merge).count() << " ms" << std::endl;
     return iteration + 1;
 }
@@ -84,7 +85,7 @@ int smooth(ComputeRegions& regions, const int iteration = 0) {
     auto start_smooth = std::chrono::high_resolution_clock::now();
     regions.smoothingReg();
     auto end_smooth = std::chrono::high_resolution_clock::now();
-    regions.display2("smoothing_n°"+ std::to_string(iteration));
+    // regions.saveImage("smoothing_n°"+ std::to_string(iteration));
     std::cout << "Smooth n°" << iteration << " time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end_smooth - start_smooth).count() << " ms" << std::endl;
     return iteration + 1;
 }
@@ -93,13 +94,13 @@ int reCalcul(ComputeRegions& regions, const float pourcentSeed, const int iterat
     auto start_recalcul = std::chrono::high_resolution_clock::now();
     regions.reCalculateRegions(pourcentSeed);
     auto end_recalcul = std::chrono::high_resolution_clock::now();
-    regions.display2("region_after_recalcul_n°"+ std::to_string(iteration));
+    // regions.saveImage("region_after_recalcul_n°"+ std::to_string(iteration));
     std::cout << "ReCalcul n°" << iteration << " time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end_recalcul - start_recalcul).count() << " ms" << std::endl;
     return iteration + 1;
 }
 
 void analyse(ComputeRegions& regions,
-    int nbSeedsStart,
+    // int nbSeedsStart,
     std::unordered_map<std::string, float> & params) {
         
     int itMerge = 1;
@@ -114,8 +115,8 @@ void analyse(ComputeRegions& regions,
         itSmooth = smooth(regions, itSmooth);  
     } 
     regions.encompassmentRegion();
-    regions.display2("final encompassement");
-    regions.displayBorderInner("border_inner_n°"+ std::to_string(iteration), 1);
+    // regions.saveImage("final encompassement");
+    regions.saveImageWithBorderInner("border_inner_n°"+ std::to_string(iteration));
     std::cout << "Pourcent point not in region : " << regions.getPourcentNotInReg() << std::endl;
 }
 
@@ -169,7 +170,6 @@ int main(int argc, char** argv) {
     // Peut être obligatoire tout le temps idk
     if (functToCall["merge"] == true) {
         merge(regions);
-        // merge(regions, 2);
     }
 
     if (functToCall["recalcul"] == true) {
@@ -179,8 +179,8 @@ int main(int argc, char** argv) {
     if (functToCall["smooth"] == true) {
         smooth(regions);
     }
-    regions.displayBorderInner("border_inner");
+
     if (functToCall["analyse"] == true) {
-        analyse(regions, nbSeedsStart, params);
+        analyse(regions, params);
     }
 }

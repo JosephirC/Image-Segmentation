@@ -110,7 +110,7 @@ class ComputeRegions {
         */
         void display(const std::string title = "Image with regions");
 
-        cv::Mat * display2(const std::string & name = "Image with regions", int resize = 1, const std::string & directory = "image_cree/");
+        cv::Mat * display2(const std::string & name = "Image with regions", int resize = 1);
         // void displayWithRegionId();
 
         //displayWithRegionId aussi
@@ -120,6 +120,16 @@ class ComputeRegions {
         * Display the outline regions
         */
         void displayoutlines();
+
+        /*
+         * Make image with region
+        */
+        cv::Mat * makeImageWithRegion();
+
+        /**
+         * make image with border inner
+        */
+        cv::Mat * makeImageWithBorderInner();
 
         /**
         * Return region in a point
@@ -185,6 +195,16 @@ class ComputeRegions {
         * Display borderInner
         */
         void displayBorderInner (std::string name = "Image with border inner", int resize = 1, const std::string & directory = "image_cree/");
+
+        /**
+         * Save image
+        */
+        void saveImage(const std::string & name, const std::string & directory = "image_cree/");
+
+        /**
+         * Save image with border inner
+        */
+        void saveImageWithBorderInner(const std::string & name, const std::string & directory = "image_cree/");
 
         /**
          * For using cv::Point in std::unordered_map

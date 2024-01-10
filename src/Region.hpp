@@ -86,7 +86,7 @@ class Region {
         * Get the border of the region with vector
         * @return the border of the region
         */
-        std::vector<cv::Point> & getborderVector() const;
+        const std::vector<cv::Point> & getborderVector() const;
 
 
         /**
