@@ -337,15 +337,15 @@ void Region::setColors(const std::vector<cv::Vec3b> & _colors) {
 void Region::increaseThreshold() {
     // std::cout << "Increase threshold" << std::endl;
     if (colors->size() < 50) {
-        if (threshold + 5 < 30) {
+        if (threshold + 5 < 20) {
             threshold += 5;
         } else {
             // std::cout<< "FAUX" << std::endl;
             isIncrease = false;
         }
     } else {
-        if (coefSD + 0.2 < 1.8) {
-            coefSD += 0.2;
+        if (coefSD + 0.1 < 1.5) {
+            coefSD += 0.1;
         } else {
             // std::cout<< "FAUX" << std::endl;
             isIncrease = false;

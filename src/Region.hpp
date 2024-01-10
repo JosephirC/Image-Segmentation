@@ -27,7 +27,7 @@ class Region {
         * @param imageOriginal The original image
         * 
         */
-        Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 10, float _coefSD = 1.);
+        Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 5, float _coefSD = 1.);
 
         /**
         * TODO : copier TOUS les elements de la region

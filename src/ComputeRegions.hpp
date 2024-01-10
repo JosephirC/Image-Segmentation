@@ -177,8 +177,9 @@ class ComputeRegions {
 
         /**
          * Encompassment region
+         * @param pourcent : pourcent of neightbor region to encompass
         */
-        void encompassmentRegion();
+        void encompassmentRegion(float pourcent = 60.0);
 
         /**
         * Display borderInner

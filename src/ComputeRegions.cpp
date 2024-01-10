@@ -309,11 +309,11 @@ bool ComputeRegions::merge() {
         notMerge.insert(regions[i]->getId());
     }
     int nbRegTraited = 0;
-    int iteration = 1000;
+    int iteration = 500;
     bool again = false;
     while (!notMerge.empty()) {
         std::cout << "We merge HERE regions" << std::endl;
-        iteration = 500;
+        iteration = 5000;
         // We get the first element
         int id = *notMerge.begin();
         notMerge.erase(id);
@@ -331,7 +331,14 @@ bool ComputeRegions::merge() {
         updateBorder(r);
         if (iteration <= 0) {
             std::cout << "Error too many region fuse" << std::endl;
+            // We add region not merge in listOfIndicesToRegion
+            while (notMerge.size() > 0) {
+                int id = *notMerge.begin();
+                notMerge.erase(id);
+                listOfIndicesToRegion.push_back(std::unordered_set<int>({id}));
+            }
             again = true;
+            break;
         }
     }
     std::cout << "Merge end" << std::endl;
@@ -640,7 +647,7 @@ std::unordered_map<int, float> ComputeRegions::checkNeigthorRegion(int idReg) {
     return neightborRegion;
 }
 
-void ComputeRegions::encompassmentRegion() {
+void ComputeRegions::encompassmentRegion(float pourcentNeightbor) {
     std::unordered_set <int> idRegCompute;
     std::unordered_map<int, std::unordered_set<int>> listOfIndicesToRegion;
     for (auto & reg : regions) {
@@ -648,7 +655,7 @@ void ComputeRegions::encompassmentRegion() {
         if (idRegCompute.find(reg->getId()) != idRegCompute.end()) {
             continue;
         }
-        if (reg->getColors().size() / (float)nb_pixels < 0.01) {
+        if (reg->getColors().size() / (float)nb_pixels < 0.05) {
             int id = reg->getId();
             std::unordered_map<int, float> neightborRegion = checkNeigthorRegion(reg->getId());
             float max = 0;
@@ -665,7 +672,7 @@ void ComputeRegions::encompassmentRegion() {
                 listOfIndicesToRegion[id] = std::unordered_set<int>();
                 continue;
             }
-            if (max > 0.70 && regions[idMax - 1]->getColors().size() * 4 > reg->getColors().size()) {
+            if (max > pourcentNeightbor/100 && regions[idMax - 1]->getColors().size() * 4 > reg->getColors().size()) {
                 std::cout << "Merge region " << id << " and " << idMax << std::endl;
                 *regions[idMax - 1] += *reg;
                 regions[id - 1] = regions[idMax - 1];
