@@ -55,7 +55,7 @@ Region::Region() {
     // allRegionColors = new std::unordered_map<int, cv::Vec3b>();
 }
 
-Region::Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold, float _coefSD):
+Region::Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold, int seuilMax, float _coefSD):
                 id(_id),
                 size_x(imageOriginal->cols),
                 size_y(imageOriginal->rows),
@@ -68,7 +68,9 @@ Region::Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, i
                 // allRegionColors(new std::unordered_map<int, cv::Vec3b>),
                 threshold(_threshold),
                 coefSD(_coefSD),
-                isIncrease(false) {
+                isIncrease(false),
+                seuilMax(seuilMax),
+                coefMax(_coefSD) {
     // std::cout << "Region constructor" << std::endl;
     colors->push_back(color);
     averageColorSeuil();

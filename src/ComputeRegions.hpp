@@ -22,7 +22,7 @@ class ComputeRegions {
         /**
         * Constructor
         */
-        ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _rep = 16);
+        ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _rep = 16, int _seuilMin = 10, int _seuilMax = 30, float _coefSD = 1.);
 
         /**
         * Destructor
@@ -226,6 +226,10 @@ class ComputeRegions {
         int size_x_tabInfo;
         int size_y_tabInfo;
         int nb_pixels;
+        int seuilMin;
+        int seuilMax;
+        float coefMax;
+
         /**
         * Calculate neightors same id of a point
         * @return queue of Point

@@ -27,7 +27,7 @@ ComputeRegions::ComputeRegions() {
     image = new cv::Mat();
 }
 
-ComputeRegions::ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _rep) {
+ComputeRegions::ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _rep, int seuilMax, int seuilMin, float coefMax) {
     // We check the repartition is correct
     if (_rep % 4 != 0) {
         std::cout << "The repartition is not correct :" << _rep << std::endl;
@@ -40,6 +40,9 @@ ComputeRegions::ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _
     this->nb_pixels = size_x_tabInfo * size_y_tabInfo;
     float nb_pixels_by_region = nb_pixels / _rep;
     this->nb_regions = int (nb_pixels_by_region * pourcent / 100) * _rep;
+    this->seuilMax = seuilMax;
+    this->seuilMin = seuilMin;
+    this->coefMax = coefMax;
     // regions = std::vector<Region *>(nb_regions);
     tabInfo = new int*[size_x_tabInfo];
     for (int i = 0; i < size_x_tabInfo; i++) {
@@ -84,7 +87,7 @@ void ComputeRegions::putSeeds() {
         image_seeds->at<cv::Vec3b>(seed->getPoint()) = cv::Vec3b(0, 0, 255);
         // We creat a new region
         // std::cout << "Region " << i << "/" << this->nb_regions<<std::endl;
-        Region * r = new Region(i, seed->getPoint(), tabInfo, image);
+        Region * r = new Region(i, seed->getPoint(), tabInfo, image, seuilMin, seuilMax, coefMax);
         // We add the region in the list of regions
         regions.push_back(r);
     }

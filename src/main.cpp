@@ -26,12 +26,15 @@ void getArgs(int argc, char** argv,
     };
     params.clear();
     params = {
-        {"pourcentSeed", 5.},
+        {"pourcentSeed", 2.},
         {"pourcentReCal", 5.},
         {"nbRepart", 16},
         {"nbIteration", 100},
         {"nbIterationReCal", 3},
-        {"blur", 3}
+        {"blur", 3},
+        {"seuilMax", 30.},
+        {"seuilMin", 10.},
+        {"coefSDMax", 2.5}
     };
 
     pathImage = "Images/lena_color.png";
@@ -49,7 +52,7 @@ void getArgs(int argc, char** argv,
                 // Vérifie que la clé est valide
                 if (key == "smooth" || key == "merge" || key == "recalcul" || key == "analyse" || key == "equalize" || key == "toTheEnd") {
                     functToCall[key] = (value == "true");
-                } else if (key == "pourcentSeed" || key == "pourcentReCal" || key == "nbRepart" || key == "nbIteration" || key == "nbIterationReCal" || key == "blur") {
+                } else if (key == "pourcentSeed" || key == "pourcentReCal" || key == "nbRepart" || key == "nbIteration" || key == "nbIterationReCal" || key == "blur" || key == "seuilMax" || key == "seuilMin" || key == "coefSDMax") {
                     params[key] = (float) std::stof(value);
                 } else if (key == "pathImage") {
                     pathImage = value;
@@ -107,12 +110,14 @@ void analyse(ComputeRegions& regions,
     int itReCalcul = 1;
     int itSmooth = 1;
     int iteration = 1;
+    regions.saveImage("it_n°"+ std::to_string(iteration));
     while (regions.getPourcentNotInReg() > 10. && iteration < params["nbIteration"]) {
-        std::cout << "Iteration n°" << iteration << std::endl;
         iteration++;
+        std::cout << "Iteration n°" << iteration << std::endl;
         itReCalcul = reCalcul(regions, params["pourcentReCal"], itReCalcul);
         itMerge = merge(regions, itMerge);
-        itSmooth = smooth(regions, itSmooth);  
+        itSmooth = smooth(regions, itSmooth); 
+        regions.saveImage("it_n°"+ std::to_string(iteration)); 
     } 
     regions.encompassmentRegion();
     // regions.saveImage("final encompassement");
@@ -153,8 +158,14 @@ int main(int argc, char** argv) {
         image = image2.clone();
         // delete &image2;
     }
+    if (params["blur"] > 0) {
+        std::cout << "We blur the image" << std::endl;
+        cv::Mat image2;
+        cv::blur(image, image2, cv::Size(params["blur"], params["blur"]));
+        image = image2.clone();
+    }
 
-    ComputeRegions regions(image, params["pourcentSeed"], params["nbRepart"]);
+    ComputeRegions regions(image, params["pourcentSeed"], params["nbRepart"], params["seuilMax"], params["seuilMin"], params["coefSDMax"]);
     auto start_seeds = std::chrono::high_resolution_clock::now();
     regions.putSeeds();
     auto end_seeds = std::chrono::high_resolution_clock::now();
@@ -183,4 +194,7 @@ int main(int argc, char** argv) {
     if (functToCall["analyse"] == true) {
         analyse(regions, params);
     }
+    
+    regions.saveImage("final");
+    
 }
