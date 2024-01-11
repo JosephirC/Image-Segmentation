@@ -19,7 +19,7 @@ void getArgs(int argc, char** argv,
         {"smooth", true},
         {"merge", true},
         {"recalcul", false},
-        {"analyse", false},
+        {"analyse", true},
         {"equalize", true},
         {"toTheEnd", true},
         {"deleteImg", true}
@@ -34,7 +34,7 @@ void getArgs(int argc, char** argv,
         {"blur", 3},
         {"seuilMax", 30.},
         {"seuilMin", 10.},
-        {"coefSDMax", 2.5}
+        {"coefSDMax", 1.5}
     };
 
     pathImage = "Images/lena_color.png";
@@ -111,7 +111,7 @@ void analyse(ComputeRegions& regions,
     int itSmooth = 1;
     int iteration = 1;
     regions.saveImage("it_n°"+ std::to_string(iteration));
-    while (regions.getPourcentNotInReg() > 10. && iteration < params["nbIteration"]) {
+    while (regions.getPourcentNotInReg() > 5. && iteration < params["nbIteration"]) {
         iteration++;
         std::cout << "Iteration n°" << iteration << std::endl;
         itReCalcul = reCalcul(regions, params["pourcentReCal"], itReCalcul);
@@ -172,11 +172,14 @@ int main(int argc, char** argv) {
     int nbSeedsStart = regions.getNbRegions();
     std::cout << "For " << nbSeedsStart << " regions put in start" << std::endl;
     std::cout << "Seeds time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end_seeds - start_seeds).count() << " ms" << std::endl;
+    auto start_calcul = std::chrono::high_resolution_clock::now();
     if (functToCall["toTheEnd"]) {
         regions.calculateToTheEnd(params["nbIteration"]);
     } else {
         regions.calculateAllRegions(params["nbIteration"]);
     }
+    auto end_calcul = std::chrono::high_resolution_clock::now();
+    std::cout << "Calcul time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end_calcul - start_calcul).count() << " ms" << std::endl;
     
     // Peut être obligatoire tout le temps idk
     if (functToCall["merge"] == true) {

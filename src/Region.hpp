@@ -27,7 +27,7 @@ class Region {
         * @param imageOriginal The original image
         * 
         */
-        Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 5, int seuilMax = 10, float _coefSD = 1.);
+        Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 5, float coefSD = 1., int seuilMax = 10, float _coefSDMax = 1.5);
 
         /**
         * TODO : copier TOUS les elements de la region
@@ -86,7 +86,7 @@ class Region {
         * Get the border of the region with vector
         * @return the border of the region
         */
-        const std::vector<cv::Point> & getborderVector() const;
+        std::vector<cv::Point> getborderVector() const;
 
 
         /**

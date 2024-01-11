@@ -30,9 +30,9 @@ bool operator==(const cv::Point& a, const cv::Point& b) {
 
 /***** Public functions *****/ 
 void Region::computeCritMerge() {
-    int r = 25;
-    int g = 25;
-    int b = 25;
+    int r = 15;
+    int g = 15;
+    int b = 15;
     this->color_seuil_inf = cv::Vec3b(
         (color[0] - r > 0)? color[0] - r:0,
         (color[1] - g > 0)? color[1] - g:0,
@@ -55,7 +55,7 @@ Region::Region() {
     // allRegionColors = new std::unordered_map<int, cv::Vec3b>();
 }
 
-Region::Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold, int seuilMax, float _coefSD):
+Region::Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold, float _coefSD,  int seuilMax, float _coefSDMax):
                 id(_id),
                 size_x(imageOriginal->cols),
                 size_y(imageOriginal->rows),
@@ -70,7 +70,7 @@ Region::Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, i
                 coefSD(_coefSD),
                 isIncrease(false),
                 seuilMax(seuilMax),
-                coefMax(_coefSD) {
+                coefMax(_coefSDMax) {
     // std::cout << "Region constructor" << std::endl;
     colors->push_back(color);
     averageColorSeuil();
@@ -237,8 +237,8 @@ std::queue<cv::Point> & Region::getoutline() const {
     return *outline;
 }
 
-const std::vector<cv::Point>& Region::getborderVector() const {
-    static std::vector<cv::Point> borderVector(border->begin(), border->end());
+std::vector<cv::Point> Region::getborderVector() const {
+    std::vector<cv::Point> borderVector(border->begin(), border->end());
     return borderVector;
 }
 
@@ -320,14 +320,14 @@ void Region::setColors(const std::vector<cv::Vec3b> & _colors) {
 void Region::increaseThreshold() {
     // std::cout << "Increase threshold" << std::endl;
     if (colors->size() < 50) {
-        if (threshold + 5 < 20) {
+        if (threshold + 5 < this->seuilMax) {
             threshold += 5;
         } else {
             // std::cout<< "FAUX" << std::endl;
             isIncrease = false;
         }
     } else {
-        if (coefSD + 0.1 < 1.5) {
+        if (coefSD + 0.1 < this->coefMax) {
             coefSD += 0.1;
         } else {
             // std::cout<< "FAUX" << std::endl;

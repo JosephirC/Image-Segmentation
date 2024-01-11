@@ -87,7 +87,7 @@ void ComputeRegions::putSeeds() {
         image_seeds->at<cv::Vec3b>(seed->getPoint()) = cv::Vec3b(0, 0, 255);
         // We creat a new region
         // std::cout << "Region " << i << "/" << this->nb_regions<<std::endl;
-        Region * r = new Region(i, seed->getPoint(), tabInfo, image, seuilMin, seuilMax, coefMax);
+        Region * r = new Region(i, seed->getPoint(), tabInfo, image, seuilMin, 1.0,seuilMax, coefMax);
         // We add the region in the list of regions
         regions.push_back(r);
     }
