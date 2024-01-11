@@ -30,9 +30,9 @@ bool operator==(const cv::Point& a, const cv::Point& b) {
 
 /***** Public functions *****/ 
 void Region::computeCritMerge() {
-    int r = 15;
-    int g = 15;
-    int b = 15;
+    int r = 20;
+    int g = 20;
+    int b = 20;
     this->color_seuil_inf = cv::Vec3b(
         (color[0] - r > 0)? color[0] - r:0,
         (color[1] - g > 0)? color[1] - g:0,
@@ -320,8 +320,8 @@ void Region::setColors(const std::vector<cv::Vec3b> & _colors) {
 void Region::increaseThreshold() {
     // std::cout << "Increase threshold" << std::endl;
     if (colors->size() < 50) {
-        if (threshold + 5 < this->seuilMax) {
-            threshold += 5;
+        if (threshold + 2 < this->seuilMax) {
+            threshold += 2;
         } else {
             // std::cout<< "FAUX" << std::endl;
             isIncrease = false;

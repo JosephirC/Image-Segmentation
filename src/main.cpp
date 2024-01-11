@@ -26,8 +26,8 @@ void getArgs(int argc, char** argv,
     };
     params.clear();
     params = {
-        {"pourcentSeed", 2.},
-        {"pourcentReCal", 5.},
+        {"pourcentSeed", .8},
+        {"pourcentReCal", 1.2},
         {"nbRepart", 16},
         {"nbIteration", 100},
         {"nbIterationReCal", 3},
@@ -114,10 +114,12 @@ void analyse(ComputeRegions& regions,
     while (regions.getPourcentNotInReg() > 5. && iteration < params["nbIteration"]) {
         iteration++;
         std::cout << "Iteration n°" << iteration << std::endl;
-        itReCalcul = reCalcul(regions, params["pourcentReCal"], itReCalcul);
+        itReCalcul = reCalcul(regions, params["pourcentReCal"] + itReCalcul * 0.5, itReCalcul);
         itMerge = merge(regions, itMerge);
         itSmooth = smooth(regions, itSmooth); 
         regions.saveImage("it_n°"+ std::to_string(iteration)); 
+        std::cout << "Pourcent point not in region : " << regions.getPourcentNotInReg() << std::endl;
+        std::cout << "Nb regions : " << regions.getNbRegions() << std::endl;
     } 
     regions.encompassmentRegion();
     // regions.saveImage("final encompassement");
@@ -163,6 +165,7 @@ int main(int argc, char** argv) {
         cv::Mat image2;
         cv::blur(image, image2, cv::Size(params["blur"], params["blur"]));
         image = image2.clone();
+        cv::imwrite("image_cree/blur.png", image);
     }
 
     ComputeRegions regions(image, params["pourcentSeed"], params["nbRepart"], params["seuilMax"], params["seuilMin"], params["coefSDMax"]);

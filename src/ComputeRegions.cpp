@@ -290,7 +290,7 @@ Region * ComputeRegions::mergeRegion(const int id, std::unordered_set<int> & ale
         }
     }
     regTraited ++;
-    std::cout<<"Region " << r->getId() << " is merge (" << regTraited << " / " << nb_regions << ")" << std::endl;
+    // std::cout<<"Region " << r->getId() << " is merge (" << regTraited << " / " << nb_regions << ")" << std::endl;
     alereadyMerge.insert(r->getId());
     return r;
 }
@@ -596,7 +596,7 @@ void ComputeRegions::reCalculateRegions(float pourcent) {
     std::cout<<"Size :" << size << std::endl;
     std::cout<<"pourcent :" << pourcent << std::endl;
     std::cout<<"resultat :" << size * pourcent / 100 << std::endl;
-    int nbIt = (int) (float(size) * pourcent / 100.0f);
+    int nbIt = (int) (float(size) * pourcent / 100.0f) + 10;
     for (int i = 0; i < nbIt; i++) {
         // We get a random point
         int indice = rand() % pointNotInReg.size();
@@ -679,7 +679,7 @@ std::unordered_map<int, float> ComputeRegions::checkNeigthorRegion(int idReg) {
     std::vector<cv::Point> border = regions[idReg - 1]->getborderVector();
     float size = border.size();
     for (const auto & p : border) {
-        int id = getIdRegion(p);
+        int id = abs(getIdRegion(p));
         if (id != idReg) {
             if (neightborRegion.find(id) == neightborRegion.end()) {
                 neightborRegion[id] = 1.0 / size;
