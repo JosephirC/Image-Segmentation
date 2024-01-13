@@ -27,7 +27,7 @@ ComputeRegions::ComputeRegions() {
     image = new cv::Mat();
 }
 
-ComputeRegions::ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _rep, int seuilMax, int seuilMin, float coefMax) {
+ComputeRegions::ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _rep, int seuilMax, int seuilMin, float coefMin, float coefMax) {
     // We check the repartition is correct
     if (_rep % 4 != 0) {
         std::cout << "The repartition is not correct :" << _rep << std::endl;
@@ -42,7 +42,8 @@ ComputeRegions::ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _
     this->nb_regions = int (nb_pixels_by_region * pourcent / 100) * _rep;
     this->seuilMax = seuilMax;
     this->seuilMin = seuilMin;
-    this->coefMax = coefMax;
+    this->coefSDMin = coefMin;
+    this->coefSDMax = coefMax;
     // regions = std::vector<Region *>(nb_regions);
     tabInfo = new int*[size_x_tabInfo];
     for (int i = 0; i < size_x_tabInfo; i++) {
@@ -87,7 +88,7 @@ void ComputeRegions::putSeeds() {
         image_seeds->at<cv::Vec3b>(seed->getPoint()) = cv::Vec3b(0, 0, 255);
         // We creat a new region
         // std::cout << "Region " << i << "/" << this->nb_regions<<std::endl;
-        Region * r = new Region(i, seed->getPoint(), tabInfo, image, seuilMin, 1.0,seuilMax, coefMax);
+        Region * r = new Region(i, seed->getPoint(), tabInfo, image, seuilMin, coefSDMin, seuilMax, coefSDMax);
         // We add the region in the list of regions
         regions.push_back(r);
     }
@@ -712,12 +713,10 @@ void ComputeRegions::encompassmentRegion(float pourcentNeightbor) {
             }
             // If region max is lot of neighbor 
             if (idMax <= 0) {
-                std::cout << "We creat the list of region to merge" << std::endl;
                 listOfIndicesToRegion[id] = std::unordered_set<int>();
                 continue;
             }
             if (max > pourcentNeightbor/100 && regions[idMax - 1]->getColors().size() * 4 > reg->getColors().size()) {
-                std::cout << "Merge region " << id << " and " << idMax << std::endl;
                 *regions[idMax - 1] += *reg;
                 regions[id - 1] = regions[idMax - 1];
                 // regions[reg->getId() - 1] = reg;
@@ -726,18 +725,15 @@ void ComputeRegions::encompassmentRegion(float pourcentNeightbor) {
                     // We add the region in the list of region to merge
                     listOfIndicesToRegion[idMax].insert(id); 
                 } else {
-                    // We creat the list of region to merge
                     listOfIndicesToRegion[idMax] = std::unordered_set<int>();
                     listOfIndicesToRegion[idMax].insert(id);
                     idRegCompute.insert(idMax);
                 }
             } else {
-                std::cout << "We creat the list of region to merge" << std::endl;
                 listOfIndicesToRegion[id] = std::unordered_set<int>();
             }
         } else {
             idRegCompute.insert(reg->getId());
-            std::cout<<"Region " << reg->getId() << " is big" << std::endl;
             listOfIndicesToRegion[reg->getId()] = std::unordered_set<int>();
         }
     }

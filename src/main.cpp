@@ -28,19 +28,22 @@ void getArgs(int argc, char** argv,
     params = {
         {"pourcentSeed", .8},
         {"pourcentReCal", 1.2},
+        {"tauxPixelNoir", 10},
         {"nbRepart", 16},
         {"nbIteration", 100},
         {"nbIterationReCal", 3},
         {"blur", 3},
         {"seuilMax", 30.},
         {"seuilMin", 10.},
-        {"coefSDMax", 1.5}
+        {"coefSDMin", 2.2},
+        {"coefSDMax", 2.8}
     };
 
-    pathImage = "Images/lena_color.png";
+    // pathImage = "Images/lena_color.png";
     // pathImage = "Images/4couleurs.png";
     // pathImage = "Images/bigSegmentation.png";
     // pathImage = "Images/big4couleurs.png";
+    pathImage = "Images/imgProf.jpg";
     // Get the arguments
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -52,7 +55,7 @@ void getArgs(int argc, char** argv,
                 // Vérifie que la clé est valide
                 if (key == "smooth" || key == "merge" || key == "recalcul" || key == "analyse" || key == "equalize" || key == "toTheEnd") {
                     functToCall[key] = (value == "true");
-                } else if (key == "pourcentSeed" || key == "pourcentReCal" || key == "nbRepart" || key == "nbIteration" || key == "nbIterationReCal" || key == "blur" || key == "seuilMax" || key == "seuilMin" || key == "coefSDMax") {
+                } else if (key == "pourcentSeed" || key == "pourcentReCal" || key == "nbRepart" || key == "nbIteration" || key == "nbIterationReCal" || key == "blur" || key == "seuilMax" || key == "seuilMin" || key=="coefSDMin" || key == "coefSDMax" || key == "tauxPixelNoir") {
                     params[key] = (float) std::stof(value);
                 } else if (key == "pathImage") {
                     pathImage = value;
@@ -111,7 +114,7 @@ void analyse(ComputeRegions& regions,
     int itSmooth = 1;
     int iteration = 1;
     regions.saveImage("it_n°"+ std::to_string(iteration));
-    while (regions.getPourcentNotInReg() > 5. && iteration < params["nbIteration"]) {
+    while (regions.getPourcentNotInReg() > params["tauxPixelNoir"] && iteration < params["nbIteration"]) {
         iteration++;
         std::cout << "Iteration n°" << iteration << std::endl;
         itReCalcul = reCalcul(regions, params["pourcentReCal"] + itReCalcul * 0.5, itReCalcul);
@@ -134,16 +137,22 @@ int main(int argc, char** argv) {
     std::string pathImage;
     getArgs(argc, argv, functToCall, params, pathImage);
     // display the arguments
-    std::cout << "Smooth Enabled: " << (params["smooth"] ? "true" : "false") << std::endl;
-    std::cout << "Merge Enabled: " << (params["merge"] ? "true" : "false") << std::endl;
-    std::cout << "Recalcul Enabled: " << (params["recalcul"] ? "true" : "false") << std::endl;
-    std::cout << "Analyse Enabled: " << (params["analyse"] ? "true" : "false") << std::endl;
-    std::cout << "Equalize Enabled: " << (params["equalize"] ? "true" : "false") << std::endl;
+    std::cout << "Smooth Enabled: " << (functToCall["smooth"] ? "true" : "false") << std::endl;
+    std::cout << "Merge Enabled: " << (functToCall["merge"] ? "true" : "false") << std::endl;
+    std::cout << "Recalcul Enabled: " << (functToCall["recalcul"] ? "true" : "false") << std::endl;
+    std::cout << "Analyse Enabled: " << (functToCall["analyse"] ? "true" : "false") << std::endl;
+    std::cout << "Equalize Enabled: " << (functToCall["equalize"] ? "true" : "false") << std::endl;
     std::cout << "Pourcent Seed: " << params["pourcentSeed"] << std::endl;
     std::cout << "Pourcent ReCal: " << params["pourcentReCal"] << std::endl;
     std::cout << "Nb Repart: " << params["nbRepart"] << std::endl;
     std::cout << "Nb Iteration: " << params["nbIteration"] << std::endl;
     std::cout << "Nb Iteration ReCal: " << params["nbIterationReCal"] << std::endl;
+    std::cout << "Blur: " << params["blur"] << std::endl;
+    std::cout << "Seuil Max: " << params["seuilMax"] << std::endl;
+    std::cout << "Seuil Min: " << params["seuilMin"] << std::endl;
+    std::cout << "Coef SD Max: " << params["coefSDMax"] << std::endl;
+    std::cout << "Coef SD Min: " << params["coefSDMin"] << std::endl;
+    std::cout << "Taux Pixel Noir: " << params["tauxPixelNoir"] << std::endl;
     std::cout << "Path Image: " << pathImage << std::endl;
     
     // if (functToCall["deleteImg"] == true) {
@@ -152,6 +161,13 @@ int main(int argc, char** argv) {
 
     // We load the image
     cv::Mat image = cv::imread(pathImage);
+    if (params["blur"] > 0) {
+        std::cout << "We blur the image" << std::endl;
+        cv::Mat image2;
+        cv::medianBlur(image, image2, params["blur"]);
+        image = image2.clone();
+        cv::imwrite("image_cree/blur.png", image);
+    }
     if (functToCall["equalize"] == true) {
         std::cout << "We equalize the image" << std::endl;
         cv::Mat image2;
@@ -160,15 +176,8 @@ int main(int argc, char** argv) {
         image = image2.clone();
         // delete &image2;
     }
-    if (params["blur"] > 0) {
-        std::cout << "We blur the image" << std::endl;
-        cv::Mat image2;
-        cv::blur(image, image2, cv::Size(params["blur"], params["blur"]));
-        image = image2.clone();
-        cv::imwrite("image_cree/blur.png", image);
-    }
 
-    ComputeRegions regions(image, params["pourcentSeed"], params["nbRepart"], params["seuilMax"], params["seuilMin"], params["coefSDMax"]);
+    ComputeRegions regions(image, params["pourcentSeed"], params["nbRepart"], params["seuilMax"], params["seuilMin"], params["coefSDMin"] ,params["coefSDMax"]);
     auto start_seeds = std::chrono::high_resolution_clock::now();
     regions.putSeeds();
     auto end_seeds = std::chrono::high_resolution_clock::now();
@@ -182,7 +191,7 @@ int main(int argc, char** argv) {
         regions.calculateAllRegions(params["nbIteration"]);
     }
     auto end_calcul = std::chrono::high_resolution_clock::now();
-    std::cout << "Calcul time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end_calcul - start_calcul).count() << " ms" << std::endl;
+    std::cout << "Growing time : " << std::chrono::duration_cast<std::chrono::milliseconds>(end_calcul - start_calcul).count() << " ms" << std::endl;
     
     // Peut être obligatoire tout le temps idk
     if (functToCall["merge"] == true) {

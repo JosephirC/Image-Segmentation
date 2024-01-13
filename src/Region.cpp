@@ -30,17 +30,10 @@ bool operator==(const cv::Point& a, const cv::Point& b) {
 
 /***** Public functions *****/ 
 void Region::computeCritMerge() {
-    int r = 20;
-    int g = 20;
-    int b = 20;
-    this->color_seuil_inf = cv::Vec3b(
-        (color[0] - r > 0)? color[0] - r:0,
-        (color[1] - g > 0)? color[1] - g:0,
-        (color[2] - b > 0)? color[2] - b:0);
-    this->color_seuil_sup = cv::Vec3b(
-        (color[0] + r < 255)? color[0] + r:255,
-        (color[1] + g < 255)? color[1] + g:255,
-        (color[2] + b < 255)? color[2] + b:255);
+    averageColor();
+    averageColorSeuil();
+    this->color_seuil_inf *= 1;
+    this->color_seuil_sup *= 1;
 }
 
 
