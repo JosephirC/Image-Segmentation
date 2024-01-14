@@ -6,7 +6,7 @@
 #include <opencv2/opencv.hpp>
 
 /**
- * Class creating a seed
+ * Class createing a seed
 */
 class Seed {
 public:
@@ -17,11 +17,14 @@ public:
 
     /**
      * Constructor
+     * @param x : x coordinate
+     * @param y : y coordinate
     */
     Seed(const int x, const int y);
 
     /**
-     * Constructor
+    * Constructor
+    * @param point : point
     */
     Seed(const cv::Point& point);
 
@@ -43,6 +46,7 @@ public:
 
     /**
      * Set the point
+     * @param point : point
     */
     void setPoint(const cv::Point& point);
 
@@ -58,6 +62,7 @@ public:
 
     /**
      * operator ==
+     * @param seed : seed
     */
     bool operator==(const Seed& seed) const;
 

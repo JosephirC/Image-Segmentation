@@ -21,6 +21,13 @@ class ComputeRegions {
 
         /**
         * Constructor
+        * @param img : image 
+        * @param _pourcentByRep : percent of point by repartition
+        * @param _rep : number of repartition
+        * @param _seuilMin : min of threshold
+        * @param _seuilMax : max of threshold
+        * @param _coefSDMin : min of coef of standard deviation
+        * @param _coefSD : max of coef of standard deviation
         */
         ComputeRegions(cv::Mat img, float _pourcentByRep, unsigned int _rep = 16, int _seuilMin = 10, int _seuilMax = 30, float _coefSDMin = 1.5, float _coefSD = 1.);
 
@@ -35,7 +42,8 @@ class ComputeRegions {
         void putSeeds();
 
         /**
-         * Calculate all Region
+         * Calculate all Regions
+         * @param nbrCallMax : number of max calls
         */
         void calculateAllRegions(int nbrCallMax);
 
@@ -54,7 +62,7 @@ class ComputeRegions {
         /**
         * We calculate a queue of regions
         * @param reg : regions 
-        * @param nbrCallMax : number of call max
+        * @param nbrCallMax : number of max calls
         */
         void calculateRegions(std::queue<Region *> reg, int nbrCallMax = 100);
 
@@ -65,39 +73,53 @@ class ComputeRegions {
         void calculateToTheEnd(int nbrCallMax = 100);
 
         /**
-        * Display list of point
+        * Display list of points
+        * @param listPoint : list of points
         */
         void displayListPoint(std::vector<cv::Point> & listPoint);
 
         /**
         * Display  std::unordered_map<int, std::unordered_set<int>>
+        * @param map : map
         */
         void displayMap(std::unordered_map<int, std::unordered_set<int>> & map);
 
         /**
-        * Find indice in vector of undored_set<int>, with a int
+        * Find index in vector of undored_set<int>, with a int
+        * @param target : int to find
+        * @param listOfSets : vector of unordered_set<int>
+        * @return index of target in vector
         */
         int findInt(const int target, const std::vector<std::unordered_set<int>> & listOfSets) const;
 
         /**
         * update tabInfos and regions
+        * @param listIR : list of unordered_set<int>
         */
         void updateStorageRegions (std::vector<std::unordered_set<int>> listIR);
 
-        /*
-        *
-        */
+        /** 
+        * update tabInfos and regions
+        * @param listIR : list of unordered_set<int>
+        */ 
         void updateStorageRegions (std::unordered_map<int, std::unordered_set<int>> listIR);
 
         /**
-        * Update a border region
+        * Update the border of a region
+        * @param r : region
         */
         void updateBorder (Region * r);
 
         /**
         * Merge a Region 
+        * @param id : id of region
+        * @param alereadyMerge : set of id already merge
+        * @param mergeIndex : set of indexes of region to merge
+        * @param iteration : number of iteration
+        * @param regTraited : number of regions treated
+        * @return the region merged
         */
-        Region * mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeInidice, int & iteration, int & regTraited);
+        Region * mergeRegion(const int id, std::unordered_set<int> & alereadyMerge, std::unordered_set<int> & mergeIndex, int & iteration, int & regTraited);
 
         /**
         * Merge regions
@@ -110,11 +132,12 @@ class ComputeRegions {
         */
         void display(const std::string title = "Image with regions");
 
+        /**
+         * Display the regions
+         * @param name : name of the window
+         * @param resize : resize of the image
+        */
         cv::Mat * display2(const std::string & name = "Image with regions", int resize = 1);
-        // void displayWithRegionId();
-
-        //displayWithRegionId aussi
-        // void display3();
 
         /**
         * Display the outline regions
@@ -132,13 +155,13 @@ class ComputeRegions {
         cv::Mat * makeImageWithBorderInner();
 
         /**
-        * Return region in a point
+        * Return the region of a given point
         * @param p : point
         */
         Region * getRegion(cv::Point p);
 
         /**
-        * Return the id of regions
+        * Return the id of a region by a point
         * @param p : point
         */
         int getIdRegion(cv::Point p);
@@ -159,12 +182,12 @@ class ComputeRegions {
 
         /**
         * ReCalculate regions in image
-        * @param pourcent : pourcent of point not in region to put in new seeds
+        * @param pourcent : percent of point not in region to put in new seeds
         */
         void reCalculateRegions(float pourcent = 30);
 
         /**
-        * We check if neghtbor is in same region, or in boder of this region 
+        * We check if neighbour is in same region, or in boder of this region
         */
         bool checkNeigthor(int x, int y, int id);
 
@@ -174,35 +197,42 @@ class ComputeRegions {
         void smoothingReg();
 
         /**
-        * Calculate the pourcent of point not in region
+        * Calculate the percent of points not in region
         */
         float getPourcentNotInReg();
 
         /**
-         * Check all neightbor region
+         * Check all neightbour regions
          * @param idReg : id of region
-         * @return map of neightbor region with their pourcent of neightbor
+         * @return map of neightbor region with their percent of neightbours
         */
         std::unordered_map<int, float> checkNeigthorRegion(int idReg);
 
         /**
-         * Encompassment region
-         * @param pourcent : pourcent of neightbor region to encompass
+         * Encompassment of regions
+         * @param pourcent : pourcent of neightbour regions to encompass
         */
         void encompassmentRegion(float pourcent = 60.0);
 
         /**
         * Display borderInner
+        * @param name : name of the image
+        * @param resize : resize of the image
+        * @param directory : directory of the image
         */
         void displayBorderInner (std::string name = "Image with border inner", int resize = 1, const std::string & directory = "image_cree/");
 
         /**
-         * Save image
+         * Save the image
+         * @param name : name of the image
+         * @param directory : directory of the image
         */
         void saveImage(const std::string & name, const std::string & directory = "image_cree/");
 
         /**
-         * Save image with border inner
+         * Save the image with border inner
+         * @param name : name of the image
+         * @param directory : directory of the image
         */
         void saveImageWithBorderInner(const std::string & name, const std::string & directory = "image_cree/");
 
@@ -213,6 +243,8 @@ class ComputeRegions {
 
         /**
          * Define the operator == for the class cv::Point
+         * @param a : point a
+         * @param b : point b
         */
         friend bool operator==(const cv::Point& a, const cv::Point& b);
 
@@ -232,20 +264,25 @@ class ComputeRegions {
         float coefSDMax;
 
         /**
-        * Calculate neightors same id of a point
+        * Calculate neightours same id of a point
+        * @param p : point
+        * @param id : id of region
         * @return queue of Point
         */
         std::vector<cv::Point> calNeightorsId (cv::Point p, int id);
 
         /**
         * Calculate border inner each region
+        * @return vector of border inner
         */
         std::vector<cv::Point> calculateBorderInner();
 
         /**
-         * Find all id of neightbor point
+         * Find all id of neightbour point
+         * @param p : point
+         * @return vector of id
         */
-        std::vector<int> findNeightborPoint(const cv::Point & p);
+        std::vector<int> findNeightbourPoint(const cv::Point & p);
 };
 
 #endif // COMPUTREGIONS_HPP

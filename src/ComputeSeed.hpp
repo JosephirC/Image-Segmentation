@@ -6,7 +6,7 @@
 #include <vector>
 
 /**
- * Class creating a seed
+ * Class createing a seed
 */
 class ComputeSeed {
     public:

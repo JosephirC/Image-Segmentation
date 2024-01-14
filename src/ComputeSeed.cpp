@@ -17,7 +17,7 @@ ComputeSeed::ComputeSeed(const int rows, const int cols, unsigned int nbSeed, co
     std::cout << "nbSeed" << nbSeed<< std::endl;
     // We initialize the random number generator
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
-    // We divise the image in rep parts
+    // We divide the image in rep parts
     int nb_part_col_rows = sqrt(rep);
     int rowsPart = rows / nb_part_col_rows;
     int colsPart = cols / nb_part_col_rows; 
@@ -27,7 +27,7 @@ ComputeSeed::ComputeSeed(const int rows, const int cols, unsigned int nbSeed, co
     for (int i = 0; i < nb_part_col_rows; i++) {
         for (int j = 0; j < nb_part_col_rows; j++) {
             for (int unsigned x = 0; x < nbSeed; x++) {
-                // We creat a point in the part of the image
+                // We create a point in the part of the image
                 int xPoint = std::rand() % (rowsPart);
                 int yPoint = std::rand() % (colsPart);
                 // std::cout << "xPoint " << xPoint << std::endl;

@@ -16,17 +16,15 @@ namespace std {
         size_t operator()(const cv::Point& p) const {
             size_t hash_x = hash<int>()(p.x);
             size_t hash_y = hash<int>()(p.y);
-            // Combinaison of hash_x and hash_y
+            // Combination of hash_x and hash_y
             return hash_x ^ (hash_y + 0x9e3779b9 + (hash_x << 6) + (hash_x >> 2));
         }
     };
 }
 
-
 bool operator==(const cv::Point& a, const cv::Point& b) {
     return a.x == b.x && a.y == b.y;
 }
-
 
 /***** Public functions *****/ 
 void Region::computeCritMerge() {
@@ -36,16 +34,12 @@ void Region::computeCritMerge() {
     this->color_seuil_sup *= 1;
 }
 
-
-
 Region::Region() {
     tabInfo = nullptr;
     outline = new std::queue<cv::Point>();
     border = new std::unordered_set<cv::Point>();
     colors = new std::vector<cv::Vec3b>();
     color = cv::Vec3b(0,0,0);
-
-    // allRegionColors = new std::unordered_map<int, cv::Vec3b>();
 }
 
 Region::Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold, float _coefSD,  int seuilMax, float _coefSDMax):
@@ -58,7 +52,6 @@ Region::Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, i
                 outline(new std::queue<cv::Point>),
                 border(new std::unordered_set<cv::Point>),
                 colors(new std::vector<cv::Vec3b>),
-                // allRegionColors(new std::unordered_map<int, cv::Vec3b>),
                 threshold(_threshold),
                 coefSD(_coefSD),
                 isIncrease(false),
@@ -116,10 +109,6 @@ Region & Region::operator=(const Region& r) {
         delete outline;
         delete colors;
         delete border;
-
-        // delete allRegionColors;
-        // allRegionColors = new std::unordered_map<int, cv::Vec3b>(*r.allRegionColors);
-
         tabInfo = r.tabInfo;
         outline = new std::queue<cv::Point>();
         colors = new std::vector<cv::Vec3b>();
@@ -135,7 +124,7 @@ void Region::grow() {
     std::queue<cv::Point> _outlines = *outline;
     delete outline;
     outline = new std::queue<cv::Point>();
-    // We get all Point in queue
+    // We get all the Points in the queue
     while (!_outlines.empty()) {
         cv::Point p = _outlines.front();
 
@@ -234,7 +223,6 @@ std::vector<cv::Point> Region::getborderVector() const {
     std::vector<cv::Point> borderVector(border->begin(), border->end());
     return borderVector;
 }
-
 
 std::unordered_set<cv::Point> & Region::getborder() const {
     return *border;
@@ -343,9 +331,9 @@ void Region::setId(const int _id) {
 }
 
 void Region::operator+=(const Region & r2) {
-    // We creat a new region
+    // We create a new region
     // Region * new_region = new Region();
-    // We remove in border the points in common
+    // We remove from the border the points in common
     std::unordered_set<cv::Point> * new_border = new std::unordered_set<cv::Point>();
     for (const auto& element : *(border)) {
         if (tabInfo [element.x] [element.y] != r2.getId()){
@@ -360,7 +348,7 @@ void Region::operator+=(const Region & r2) {
     delete border;
     border = new_border;
     
-    // We add all point in the outline of the two regions
+    // We add all points in the outline of the two regions
     while (!r2.outline->empty()) {
         cv::Point p = r2.outline->front();
         r2.outline->pop();
@@ -472,7 +460,7 @@ bool Region::verifyPoint(cv::Point p) const {
 void Region::updateoutline(cv::Point p) {
     // std::cout << "In update outline" << std::endl;
     
-    // We parcour the 4 points around the point,
+    // We iterate on the 4 points around the point
     // if a point is a new outline, we add it to the outline
     if (verifyPoint(cv::Point(p.x + 1, p.y))) {
         // std::cout << "Point add to outline " << p.x + 1 << "/" << p.y << std::endl;

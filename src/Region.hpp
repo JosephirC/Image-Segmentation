@@ -25,14 +25,16 @@ class Region {
         * @param p The first point of the region
         * @param vecShare The table of information on all region
         * @param imageOriginal The original image
-        * 
+        * @param _threshold The threshold of the region
+        * @param coefSD The coef of standard deviation
+        * @param seuilMax The max of threshold
+        * @param _coefSDMax The max of coef of standard deviation
         */
         Region(int _id ,cv::Point p, int ** tabShare, cv::Mat * imageOriginal, int _threshold = 5, float coefSD = 1., int seuilMax = 10, float _coefSDMax = 1.5);
 
         /**
-        * TODO : copier TOUS les elements de la region
-        * 
         * Copy constructor
+        * @param r The region to copy
         */
         Region(const Region& r);
 
@@ -42,31 +44,33 @@ class Region {
         ~Region();
 
         /**
-        * Copy assignment operator /!\ This function is not finished
-        * TODO : youssef : je ne pense pas qu'il est bon de faire l'operator = de cette maniere
-        *      surtout pour le tabInfo
+         * operator = for the class Region
+        * @param r The region to copy
         */
         Region& operator=(const Region& r);
 
         /**
         * This function is used to add a queue of point to the region
-        * 
         */
         void grow();
 
         /**
          * Verify if a color can be fused with the region 
+         * @param col The color to verify
+         * @return true if the color can be fused with the region
         */
         bool verifyFusion2 (const cv::Vec3b& col);
 
         /**
-        * /!\ not finished This function verify if two regions can be fused
-        *
+        * Verify if a region can be fused with the region
+        * @param r The region to verify
+        * @return true if the region can be fused with the region
         */
         bool verifyFusion (Region& r);
 
         /**
         * Add Point in region
+        * @param p The point to add
         */
         void addPoint(cv::Point p);
 
@@ -88,7 +92,6 @@ class Region {
         */
         std::vector<cv::Point> getborderVector() const;
 
-
         /**
         * Get the border of the region
         * @return the border of the region
@@ -109,16 +112,19 @@ class Region {
         
         /**
         * Remove a point in the border of the region
+        * @param p The point to remove
         */
         void removePointInBorder (cv::Point p);
 
         /**
         * Set the outline of the region
+        * @param _outline The outline to set
         */
         void setoutline(const std::vector<cv::Point> & _outline);
 
         /**
         * Set the outline of the region with unordered_set
+        * @param _outline The outline to set
         */
         void setoutline(const std::unordered_set<cv::Point> & _outline);
 
@@ -128,7 +134,7 @@ class Region {
         void clearborder();
 
         /**
-        * This function display the region.
+        * This function displays the region.
         */
         void display(const std::string title = "Region", bool average = false);
 
@@ -144,6 +150,7 @@ class Region {
 
         /**
          * Set all colors of the region
+         * @param _colors The colors to set
         */
         void setColors(const std::vector<cv::Vec3b> & _colors); 
 
@@ -164,21 +171,25 @@ class Region {
 
         /**
         * Set new id to the region
+        * @param _id The new id
         */
         void setId(const int _id);
 
         /**
         * Make fuse between two regions
+        * @param r2 The region to fuse
         */
         void operator+= (const Region & r2);
 
         /** 
         * Define the operator < for the class Region
+        * @param other The region to compare
         */
         bool operator<(const Region& other) const;
 
         /**
         * Define the operator == for the class Region
+        * @param other The region to compare
         */
         bool operator==(const Region& other) const;
 
@@ -189,6 +200,8 @@ class Region {
 
         /**
          * Define the operator == for the class cv::Point
+         * @param a : point a
+         * @param b : point b
         */
         friend bool operator==(const cv::Point& a, const cv::Point& b);
 
@@ -222,8 +235,6 @@ class Region {
         int seuilMax;
         float coefMax;
 
-        // std::unordered_map<int, cv::Vec3b> * allRegionColors; // cela permet a toutes les regions de savoir les couleurs des autres regions
-
         /**
         * This function is used to verify if the color is in the seuil of the region
         * @param col the color to verify
@@ -234,11 +245,14 @@ class Region {
         /**
         * This function is used to verify a point is in the outline of the region
         * @param p The point to verify
+        * @return true if the point is in the outline of the region
         */
         bool verifyoutline(cv::Point p) const;
 
         /**
         * This function is used to verify if a point is in the image and is free
+        * @param p The point to verify
+        * @return true if the point is in the image and is free
         */
         bool verifyPoint(cv::Point p) const;
 
